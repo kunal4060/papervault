@@ -3,6 +3,7 @@
  * 100% original. Mobile-first primitives: buttons, cards, chips,
  * inputs, badges, labels. Inline SVG only — no emoji.
  */
+import Icon from "./Icon.jsx";
 
 // ---------- shared ----------
 const focusRing =
