@@ -29,7 +29,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:h-[4.5rem] lg:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:h-[4.5rem] lg:max-w-7xl lg:px-6 xl:max-w-[1400px]">
         <a href="#/" className="group flex shrink-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent shadow-[0_4px_16px_-4px_rgba(255,178,36,0.55)] transition-transform duration-200 group-hover:-rotate-6 lg:h-10 lg:w-10">
             <Icon name="file" size={18} className="text-canvas" />

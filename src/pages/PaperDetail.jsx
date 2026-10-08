@@ -384,7 +384,7 @@ export default function PaperDetail({ paperId }) {
   return (
     <div className="min-h-screen bg-canvas text-text">
       <Navbar />
-      <main className="mx-auto max-w-6xl px-4 pb-16 md:pb-24">
+      <main className="mx-auto max-w-6xl px-4 pb-16 md:pb-24 lg:max-w-7xl xl:max-w-[1400px]">
         <div className="pt-6">
           <a
             href={subject ? `#/papers/${subject.id}` : "#/papers"}
@@ -450,80 +450,121 @@ export default function PaperDetail({ paperId }) {
               </div>
             </div>
 
-            {/* Action row — mobile pe 2 rows, desktop pe ek toolbar */}
-            <div className="mt-5 md:mt-6">
-              <div className="flex flex-col gap-2 md:flex-row">
-                <div className="flex flex-1 gap-2">
-                  <ActionButton onClick={scrollToViewer} label="Preview">
-                    <Icon name="eye" size={17} />
-                  </ActionButton>
-                  <ActionButton
-                    href={paper.fileUrl}
-                    primary
-                    label="Download"
-                  >
-                    <Icon name="download" size={17} />
-                  </ActionButton>
+            {/* Desktop: 2-column — sticky action sidebar + main content.
+                Mobile pe DOM order same rehta hai: actions pehle, phir PDF/AI. */}
+            <div className="lg:mt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
+              {/* Sidebar — mobile pe actions toolbar, desktop pe sticky rail */}
+              <aside className="mt-5 md:mt-6 lg:order-2 lg:sticky lg:top-24 lg:mt-0">
+                <div className="rounded-xl border border-hairline bg-surface p-4 md:p-5">
+                  <p className="micro mb-3 hidden lg:block">Actions</p>
+                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                    <ActionButton onClick={scrollToViewer} label="Preview">
+                      <Icon name="eye" size={17} />
+                    </ActionButton>
+                    <ActionButton
+                      href={paper.fileUrl}
+                      primary
+                      label="Download"
+                    >
+                      <Icon name="download" size={17} />
+                    </ActionButton>
+                    <a
+                      href={shareHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border border-hairline text-sm font-semibold text-text hover:border-text-dim"
+                      aria-label="WhatsApp pe share karo"
+                    >
+                      <Icon name="share" size={16} className="text-moss" />
+                      WhatsApp
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setShowReport((v) => !v)}
+                      className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
+                        showReport
+                          ? "border-brick text-brick"
+                          : "border-hairline text-text hover:border-text-dim"
+                      }`}
+                      aria-label="Paper report karo"
+                      aria-expanded={showReport}
+                    >
+                      <Icon name="close" size={15} />
+                      Report
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleBookmark}
+                      className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
+                        bookmarked
+                          ? "border-accent text-accent"
+                          : "border-hairline text-text hover:border-text-dim"
+                      }`}
+                      aria-label={bookmarked ? "Bookmark hatao" : "Bookmark karo"}
+                      aria-pressed={bookmarked}
+                    >
+                      <Icon
+                        name="bookmark"
+                        size={16}
+                        className={bookmarked ? "fill-current" : ""}
+                      />
+                      {bookmarked ? "Saved" : "Save"}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-1 gap-2">
-                  <a
-                    href={shareHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border border-hairline text-sm font-semibold text-text hover:border-text-dim"
-                    aria-label="WhatsApp pe share karo"
-                  >
-                    <Icon name="share" size={16} className="text-moss" />
-                    WhatsApp
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setShowReport((v) => !v)}
-                    className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
-                      showReport
-                        ? "border-brick text-brick"
-                        : "border-hairline text-text hover:border-text-dim"
-                    }`}
-                    aria-label="Paper report karo"
-                    aria-expanded={showReport}
-                  >
-                    <Icon name="close" size={15} />
-                    Report
-                  </button>
-                  <button
-                    type="button"
-                    onClick={toggleBookmark}
-                    className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
-                      bookmarked
-                        ? "border-accent text-accent"
-                        : "border-hairline text-text hover:border-text-dim"
-                    }`}
-                    aria-label={bookmarked ? "Bookmark hatao" : "Bookmark karo"}
-                    aria-pressed={bookmarked}
-                  >
-                    <Icon
-                      name="bookmark"
-                      size={16}
-                      className={bookmarked ? "fill-current" : ""}
-                    />
-                    {bookmarked ? "Saved" : "Save"}
-                  </button>
+
+                {/* Details card — desktop sidebar only (mobile pe header me hai) */}
+                <div className="mt-4 hidden rounded-xl border border-hairline bg-surface p-5 lg:block">
+                  <p className="micro mb-3">Details</p>
+                  <dl className="space-y-2.5 text-[13px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-text-dim">Exam</dt>
+                      <dd className="font-mono font-semibold text-text">{paper.examType}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-text-dim">Year</dt>
+                      <dd className="font-mono font-semibold text-text">{paper.year}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-text-dim">Slot</dt>
+                      <dd className="font-mono font-semibold text-text">{paper.slot}</dd>
+                    </div>
+                    {paper.faculty && (
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-text-dim">Faculty</dt>
+                        <dd className="truncate font-semibold text-text">{paper.faculty}</dd>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-text-dim">Uploaded by</dt>
+                      <dd className="truncate font-semibold text-text">{paper.uploaderName}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-t border-hairline pt-2.5">
+                      <dt className="text-text-dim">Downloads</dt>
+                      <dd className="font-mono font-semibold text-accent">{formatCompact(paper.downloads)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="text-text-dim">Views</dt>
+                      <dd className="font-mono font-semibold text-text">{formatCompact(paper.views)}</dd>
+                    </div>
+                  </dl>
                 </div>
-              </div>
-            </div>
+              </aside>
 
-            {showReport && (
-              <ReportPanel
-                paperId={paper.id}
-                onClose={() => setShowReport(false)}
-              />
-            )}
+              {/* Main column */}
+              <div className="min-w-0 lg:order-1">
+                {showReport && (
+                  <ReportPanel
+                    paperId={paper.id}
+                    onClose={() => setShowReport(false)}
+                  />
+                )}
 
-            {/* PDF placeholder — // TODO: pdfjs in-browser viewer yahan aayega */}
-            <div
-              ref={viewerRef}
-              className="mt-5 scroll-mt-20 rounded-xl border border-dashed border-hairline bg-surface p-8 text-center md:mt-8 md:p-12"
-            >
+                {/* PDF placeholder — // TODO: pdfjs in-browser viewer yahan aayega */}
+                <div
+                  ref={viewerRef}
+                  className="mt-5 scroll-mt-20 rounded-xl border border-dashed border-hairline bg-surface p-8 text-center md:mt-8 md:p-12 lg:mt-0"
+                >
               <Icon name="file" size={40} className="mx-auto text-text-dim" />
               <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
                 PDF preview
@@ -547,6 +588,8 @@ export default function PaperDetail({ paperId }) {
 
             {/* AI analysis */}
             <AiAnalysisPanel analysis={paper.aiAnalysis} />
+              </div>
+            </div>
 
             {/* Similar papers */}
             {similar.length > 0 && (

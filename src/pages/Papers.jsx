@@ -102,7 +102,7 @@ function SubjectGrid() {
   }, [subjects, query]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16 md:pb-24">
+    <div className="mx-auto max-w-6xl px-4 pb-16 md:pb-24 lg:max-w-7xl xl:max-w-[1400px]">
       <PageHead
         eyebrow="Browse"
         title="Papers"
@@ -145,7 +145,7 @@ function SubjectGrid() {
             <p className="micro mb-3">
               {filtered.length} subject{filtered.length === 1 ? "" : "s"}
             </p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
               {filtered.map((s) => (
                 <SubjectCard key={s.id} subject={s} />
               ))}
@@ -374,7 +374,7 @@ function SubjectDetail({ subjectId }) {
 
   if (!subject) {
     return (
-      <div className="mx-auto max-w-6xl px-4 pb-16">
+      <div className="mx-auto max-w-6xl px-4 pb-16 lg:max-w-7xl xl:max-w-[1400px]">
         <div className="pt-6">
           <a
             href="#/papers"
@@ -397,7 +397,7 @@ function SubjectDetail({ subjectId }) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
+    <div className="mx-auto max-w-6xl px-4 pb-16 lg:max-w-7xl xl:max-w-[1400px]">
       <div className="pt-6">
         <a
           href="#/papers"
@@ -516,7 +516,7 @@ function SubjectDetail({ subjectId }) {
                         {g.exam} · {g.papers.length} paper
                         {g.papers.length === 1 ? "" : "s"}
                       </p>
-                      <div className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+                      <div className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                         {g.papers.map((p) => (
                           <PaperCard
                             key={p.id}

@@ -47,7 +47,7 @@ function SubjectList({ onOpen }) {
   }, [q]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10 lg:max-w-7xl xl:max-w-[1400px]">
       <MicroLabel className="mb-1">Vault · Syllabus & Notes</MicroLabel>
       <h1 className="font-display text-2xl font-bold md:text-[34px] md:tracking-tight">
         Syllabus <Highlight soft>code-wise</Highlight>
@@ -66,7 +66,7 @@ function SubjectList({ onOpen }) {
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-2.5 md:mt-6 lg:grid-cols-2 lg:gap-3">
+      <div className="mt-4 grid grid-cols-1 gap-2.5 md:mt-6 lg:grid-cols-2 lg:gap-3 xl:grid-cols-3">
         {list.map((s) => (
           <button
             key={s.id}
@@ -304,7 +304,7 @@ function SubjectDetail({ subjectId, onBack }) {
   const modules = syllabus?.modules ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10 lg:max-w-7xl xl:max-w-[1400px]">
       <button
         type="button"
         onClick={onBack}
@@ -324,7 +324,7 @@ function SubjectDetail({ subjectId, onBack }) {
           ))}
         </div>
       ) : (
-        <div className="lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-10">
+        <div className="lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-10 xl:grid-cols-[360px_1fr]">
           {/* Left — sticky subject identity + syllabus PDF (desktop) */}
           <div className="lg:sticky lg:top-24">
             <div className="mb-5 lg:mb-6">

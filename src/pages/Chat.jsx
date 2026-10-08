@@ -247,7 +247,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] max-w-6xl flex-col px-4 pb-4 pt-4 md:h-[calc(100dvh-4rem)] lg:max-w-7xl lg:px-6 lg:pt-6">
+    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] max-w-6xl flex-col px-4 pb-4 pt-4 md:h-[calc(100dvh-4rem)] lg:max-w-7xl lg:px-6 lg:pt-6 xl:max-w-[1400px]">
       {/* header */}
       <div className="mb-3 flex items-baseline justify-between lg:mb-4">
         <div>
@@ -280,7 +280,7 @@ export default function Chat() {
 
       <div className="flex min-h-0 flex-1 gap-4">
         {/* sidebar (desktop) */}
-        <aside className="hidden w-60 shrink-0 flex-col gap-1 lg:flex xl:w-72">
+        <aside className="hidden w-60 shrink-0 flex-col gap-1 lg:flex xl:w-80">
           <p className="micro mb-1 px-2">Rooms</p>
           {chatRooms.map((r) => (
             <button

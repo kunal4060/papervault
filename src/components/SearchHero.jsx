@@ -67,8 +67,8 @@ export default function SearchHero({ onSearch }) {
         <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.055)_1px,transparent_0)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_75%_65%_at_70%_15%,black,transparent)]" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-10 md:pb-16 md:pt-16 lg:pb-24 lg:pt-24">
-        <div className="lg:grid lg:grid-cols-[1fr_300px] lg:items-center lg:gap-14">
+      <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-10 md:pb-16 md:pt-16 lg:max-w-7xl lg:pb-24 lg:pt-24 xl:max-w-[1400px]">
+        <div className="lg:grid lg:grid-cols-[1fr_300px] lg:items-center lg:gap-14 xl:grid-cols-[1fr_340px] xl:gap-24">
           <div className="min-w-0">
             <p className="mb-4 flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-accent md:text-xs">
               <span className="inline-block h-1.5 w-1.5 bg-accent" />

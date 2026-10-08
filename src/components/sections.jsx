@@ -108,9 +108,9 @@ export function ExamCountdown({ countdown }) {
 
 export function StatStrip({ stats }) {
   const items = [
-    { n: stats.papers.toLocaleString("en-IN") + "+", label: "papers" },
-    { n: stats.subjects + "+", label: "subjects" },
-    { n: stats.notes + "+", label: "notes" },
+    { n: stats.papers.toLocaleString("en-IN"), label: "papers" },
+    { n: String(stats.subjects), label: "subjects" },
+    { n: String(stats.notes), label: "notes" },
     { n: "100%", label: "free" },
   ];
   return (
@@ -192,7 +192,7 @@ export function UploadCta() {
 export function Footer() {
   return (
     <footer className="border-t border-hairline bg-surface">
-      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-10 lg:max-w-7xl xl:max-w-[1400px]">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="font-display text-lg font-extrabold tracking-tight text-text">

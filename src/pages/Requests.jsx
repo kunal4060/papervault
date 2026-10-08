@@ -188,7 +188,7 @@ export default function Requests() {
   const openCount = requests.filter((r) => !r.fulfilledBy).length;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-16 pt-6 lg:max-w-6xl lg:pt-10">
+    <div className="mx-auto max-w-4xl px-4 pb-16 pt-6 lg:max-w-7xl lg:pt-10 xl:max-w-[1400px]">
       {/* header */}
       <p className="micro">Request board</p>
       <div className="mt-1 flex items-start justify-between gap-3">
@@ -307,7 +307,7 @@ export default function Requests() {
             newest first
           </p>
         </div>
-        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:gap-5">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:gap-5 xl:grid-cols-3">
           {requests.map((r) => (
             <RequestCard
               key={r.id}

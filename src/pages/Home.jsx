@@ -58,7 +58,7 @@ export default function Home() {
         <SearchHero onSearch={handleSearch} />
         <StatStrip stats={stats} />
 
-        <div className="mx-auto max-w-6xl px-4">
+        <div className="mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
           <div className="py-6 md:py-8">
             <ExamCountdown countdown={nextCountdown()} />
           </div>
@@ -82,7 +82,7 @@ export default function Home() {
 
           <section className="py-6 md:py-10">
             <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
-            <div className="rounded-xl border border-hairline bg-surface px-4 md:px-5">
+            <div className="rounded-xl border border-hairline bg-surface px-4 md:px-5 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
               {trending.map((p) => (
                 <PaperRow key={p.id} paper={p} />
               ))}
