@@ -144,46 +144,56 @@ function SubjectGrid() {
 /* Subject AI analysis — aggregate of all papers (§5B "3-saal trend")   */
 /* ------------------------------------------------------------------ */
 
+const EXAM_TYPES = ["CAT-1", "CAT-2", "FAT"];
+
 function SubjectAiAnalysis({ papers }) {
-  const aggregate = useMemo(() => {
-    const totals = {};
-    let analyzed = 0;
-    for (const p of papers) {
-      if (!p.aiAnalysis?.topics) continue;
-      analyzed += 1;
-      for (const t of p.aiAnalysis.topics) {
-        const k = t.module;
-        if (!totals[k]) {
-          totals[k] = {
+  const [examTab, setExamTab] = useState("CAT-1");
+
+  const byExam = useMemo(() => {
+    const result = {};
+    for (const exam of EXAM_TYPES) {
+      const totals = {};
+      let analyzed = 0;
+      for (const p of papers) {
+        if (p.examType !== exam || !p.aiAnalysis?.topics) continue;
+        analyzed += 1;
+        for (const t of p.aiAnalysis.topics) {
+          const k = t.module;
+          if (!totals[k]) {
+            totals[k] = {
+              module: t.module,
+              moduleTitle: t.moduleTitle,
+              sum: 0,
+              n: 0,
+              qnums: new Set(),
+            };
+          }
+          totals[k].sum += t.percentage;
+          totals[k].n += 1;
+          (t.questionNumbers || []).forEach((q) => totals[k].qnums.add(q));
+        }
+      }
+      result[exam] = {
+        analyzed,
+        topics: Object.values(totals)
+          .map((t) => ({
             module: t.module,
             moduleTitle: t.moduleTitle,
-            sum: 0,
-            n: 0,
-            qnums: new Set(),
-          };
-        }
-        totals[k].sum += t.percentage;
-        totals[k].n += 1;
-        (t.questionNumbers || []).forEach((q) => totals[k].qnums.add(q));
-      }
+            avg: Math.round(t.sum / t.n),
+            qnums: [...t.qnums].sort(),
+          }))
+          .sort((a, b) => b.avg - a.avg),
+      };
     }
-    return {
-      analyzed,
-      topics: Object.values(totals)
-        .map((t) => ({
-          module: t.module,
-          moduleTitle: t.moduleTitle,
-          avg: Math.round(t.sum / t.n),
-          qnums: [...t.qnums].sort(),
-        }))
-        .sort((a, b) => b.avg - a.avg),
-    };
+    return result;
   }, [papers]);
 
-  if (aggregate.analyzed === 0 || aggregate.topics.length === 0) return null;
+  const aggregate = byExam[examTab];
+  const hasAny = EXAM_TYPES.some((e) => byExam[e].analyzed > 0);
+  if (!hasAny) return null;
 
   const top = aggregate.topics[0];
-  const years = [...new Set(papers.map((p) => p.year))].length;
+  const years = [...new Set(papers.filter((p) => p.examType === examTab).map((p) => p.year))].length;
 
   return (
     <section className="mt-10 rounded-xl border border-hairline bg-surface p-5">
@@ -194,51 +204,78 @@ function SubjectAiAnalysis({ papers }) {
       <h2 className="mt-2 font-display text-xl font-bold text-text">
         Kidhar se <span className="hl-soft">zyada questions</span> aate hain
       </h2>
-      <p className="mt-2 text-sm leading-relaxed text-text-dim">
-        Module {top.module} ({top.moduleTitle}) se pichle{" "}
-        <span className="font-mono font-semibold text-accent">
-          {years} saal
-        </span>{" "}
-        me avg{" "}
-        <span className="font-mono font-semibold text-accent">
-          {top.avg}%
-        </span>{" "}
-        questions — {top.qnums.slice(0, 3).join(", ")}{" "}
-        {top.qnums.length > 3 ? "jaise numbers " : ""}yahi se aate hain!
-      </p>
 
-      <div className="mt-5 space-y-3.5">
-        {aggregate.topics.map((t, i) => (
-          <div key={t.module}>
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="min-w-0 truncate text-[13px] text-text">
-                <span className="mr-1.5 font-mono text-[12px] font-semibold text-text-dim">
-                  M{t.module}
-                </span>
-                {t.moduleTitle}
-              </p>
-              <p className="shrink-0 font-mono text-[13px] font-semibold text-text">
-                {t.avg}
-                <span className="text-text-dim">%</span>
-              </p>
-            </div>
-            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface-plus">
-              <div
-                className={`h-full rounded-full ${i === 0 ? "bg-accent" : "bg-accent-dim"}`}
-                style={{ width: `${Math.min(100, t.avg)}%` }}
-              />
-            </div>
-            {t.qnums.length > 0 && (
-              <p className="mt-1 font-mono text-[11px] text-text-dim">
-                {t.qnums.join(" · ")}
-              </p>
-            )}
-          </div>
+      {/* Exam-type tabs */}
+      <div className="mt-4 flex gap-2">
+        {EXAM_TYPES.map((exam) => (
+          <button
+            key={exam}
+            onClick={() => setExamTab(exam)}
+            className={`rounded-full border px-4 py-1.5 font-mono text-[12px] font-semibold transition-colors ${
+              examTab === exam
+                ? "border-accent bg-accent text-[#0C0D10]"
+                : "border-hairline text-text-dim hover:border-accent-dim hover:text-text"
+            }`}
+          >
+            {exam}
+            <span className="ml-1.5 opacity-70">{byExam[exam].analyzed}</span>
+          </button>
         ))}
       </div>
 
+      {aggregate.analyzed === 0 || aggregate.topics.length === 0 ? (
+        <p className="mt-4 text-sm text-text-dim">
+          {examTab} ka abhi koi analyzed paper nahi hai.
+        </p>
+      ) : (
+        <>
+          <p className="mt-3 text-sm leading-relaxed text-text-dim">
+            {examTab} me Module {top.module} ({top.moduleTitle}) se pichle{" "}
+            <span className="font-mono font-semibold text-accent">
+              {years} saal
+            </span>{" "}
+            me avg{" "}
+            <span className="font-mono font-semibold text-accent">
+              {top.avg}%
+            </span>{" "}
+            questions — {top.qnums.slice(0, 3).join(", ")}{" "}
+            {top.qnums.length > 3 ? "jaise numbers " : ""}yahi se aate hain!
+          </p>
+
+          <div className="mt-5 space-y-3.5">
+            {aggregate.topics.map((t, i) => (
+              <div key={t.module}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="min-w-0 truncate text-[13px] text-text">
+                    <span className="mr-1.5 font-mono text-[12px] font-semibold text-text-dim">
+                      M{t.module}
+                    </span>
+                    {t.moduleTitle}
+                  </p>
+                  <p className="shrink-0 font-mono text-[13px] font-semibold text-text">
+                    {t.avg}
+                    <span className="text-text-dim">%</span>
+                  </p>
+                </div>
+                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface-plus">
+                  <div
+                    className={`h-full rounded-full ${i === 0 ? "bg-accent" : "bg-accent-dim"}`}
+                    style={{ width: `${Math.min(100, t.avg)}%` }}
+                  />
+                </div>
+                {t.qnums.length > 0 && (
+                  <p className="mt-1 font-mono text-[11px] text-text-dim">
+                    {t.qnums.join(" · ")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       <p className="mt-5 border-t border-hairline pt-3 text-[12px] text-text-dim">
-        Subject aggregate · {aggregate.analyzed} paper
+        {examTab} aggregate · {aggregate.analyzed} paper
         {aggregate.analyzed === 1 ? "" : "s"} analyzed · Naya paper approve hote
         hi update hota hai
       </p>
