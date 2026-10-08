@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// PaperVault Firestore security rules.
+// Source of truth: DETAILED_PLAN.md §8.4
+//
+// Golden rule: PADHNA (read/download) = BINA LOGIN.
+//              DALNA (write) = LOGIN zaroori, role ke hisab se.
+//
+// Roles live in users/{uid}.role: "admin" | "moderator" | "user"
+// First admin is promoted manually from the Firebase console (§9).
+
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(db)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isMod() {
+      return request.auth != null &&
+        get(/databases/$(db)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator'];
+    }
+
+    // Papers: public read, mod/admin write.
+    match /papers/{id} {
+      allow read: if true;
+      allow create, update, delete: if isMod();
+    }
+
+    // Notes: public read, admin-only write.
+    match /notes/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Syllabus: public read, admin-only write.
+    match /syllabus/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Subjects: public read, admin-only write (DB-driven taxonomy).
+    match /subjects/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Upload history: user sees own; mods see all; create = logged-in owner.
+    match /uploads/{id} {
+      allow read: if request.auth != null &&
+        (resource.data.userId == request.auth.uid || isMod());
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isMod();
+    }
+
+    // Users: own doc readable by self; role changes admin-only.
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update: if isAdmin();
+    }
+
+    // Chat: public read, logged-in write, mod delete.
+    match /chatRooms/{room}/messages/{msg} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if isMod();
+    }
+
+    // Paper requests: public read, logged-in create/update (upvotes).
+    match /requests/{id} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+    }
+
+    // Reports: logged-in users file them, mods read them.
+    match /reports/{id} {
+      allow read: if isMod();
+      allow create: if request.auth != null;
+    }
+  }
+}

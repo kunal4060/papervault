@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// PaperVault Storage security rules.
+//
+// Design notes:
+// - Papers: any logged-in user may UPLOAD (goes to moderation queue).
+//   Visibility is gated by the Firestore `papers` doc (status=approved),
+//   which only mods can create — an orphan file without a doc is invisible.
+// - Notes / syllabus: admin-only writes (low volume, strict).
+// - PDFs only, max 25 MB per file.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isMod() {
+      return request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator'];
+    }
+
+    function isPdfUnder25MB() {
+      return request.resource.size < 25 * 1024 * 1024
+        && request.resource.contentType == 'application/pdf';
+    }
+
+    // papers/{subjectCode}/{autoFileName}.pdf — public download
+    match /papers/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && isPdfUnder25MB();
+      allow delete: if isMod();
+    }
+
+    // notes/{subjectCode}/m{module}/{file}.pdf — admin only
+    match /notes/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isPdfUnder25MB();
+      allow delete: if isAdmin();
+    }
+
+    // syllabus/{subjectCode}/syllabus.pdf — admin only
+    match /syllabus/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isPdfUnder25MB();
+      allow delete: if isAdmin();
+    }
+
+    // chat/{roomId}/{file} — images/PDFs shared in chat
+    match /chat/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isMod();
+    }
+  }
+}
