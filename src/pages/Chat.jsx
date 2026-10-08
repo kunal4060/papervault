@@ -247,16 +247,16 @@ export default function Chat() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] max-w-6xl flex-col px-4 pb-4 pt-4 md:h-[calc(100dvh-4rem)]">
+    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] max-w-6xl flex-col px-4 pb-4 pt-4 md:h-[calc(100dvh-4rem)] lg:max-w-7xl lg:px-6 lg:pt-6">
       {/* header */}
-      <div className="mb-3 flex items-baseline justify-between">
+      <div className="mb-3 flex items-baseline justify-between lg:mb-4">
         <div>
           <p className="micro">Community</p>
-          <h1 className="font-display text-2xl font-bold text-text">
+          <h1 className="font-display text-2xl font-bold text-text lg:text-3xl lg:tracking-tight">
             Chat <span className="hl-soft text-accent">rooms</span>
           </h1>
         </div>
-        <span className="font-mono text-[11px] text-text-dim">
+        <span className="rounded-full border border-hairline bg-surface px-3 py-1 font-mono text-[11px] text-text-dim">
           {chatRooms.length} rooms
         </span>
       </div>
@@ -280,25 +280,30 @@ export default function Chat() {
 
       <div className="flex min-h-0 flex-1 gap-4">
         {/* sidebar (desktop) */}
-        <aside className="hidden w-60 shrink-0 flex-col gap-1 lg:flex">
+        <aside className="hidden w-60 shrink-0 flex-col gap-1 lg:flex xl:w-72">
           <p className="micro mb-1 px-2">Rooms</p>
           {chatRooms.map((r) => (
             <button
               key={r.id}
               onClick={() => setRoomId(r.id)}
-              className={`flex min-h-[44px] items-center justify-between rounded-lg border px-3 text-left text-sm transition-colors ${
+              className={`group flex min-h-[48px] items-center gap-2.5 rounded-xl border px-3 text-left text-sm transition-all duration-200 ${
                 roomId === r.id
-                  ? "border-accent-dim bg-accent/10 text-text"
+                  ? "border-accent-dim bg-accent/10 text-text shadow-[inset_0_0_0_1px_rgba(255,178,36,0.25)]"
                   : "border-transparent text-text-dim hover:bg-surface hover:text-text"
               }`}
             >
-              <span className="truncate font-medium">{r.name}</span>
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-mono text-[11px] font-bold transition-colors ${
+                roomId === r.id ? "bg-accent text-canvas" : "bg-surface-plus text-text-dim group-hover:text-text"
+              }`}>
+                {r.type === "lobby" ? "✦" : r.name.trim()[0]}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-medium">{r.name}</span>
               {r.type === "lobby" && (
-                <span className="micro text-[10px]">All</span>
+                <span className="micro shrink-0 text-[10px]">All</span>
               )}
             </button>
           ))}
-          <div className="mt-3 rounded-xl border border-hairline bg-surface p-3">
+          <div className="mt-3 rounded-xl border border-hairline bg-surface p-3.5 lg:p-4">
             <p className="micro mb-1">Tip</p>
             <p className="text-xs leading-relaxed text-text-dim">
               Type <span className="font-mono text-accent">@ai</span> at the
@@ -308,8 +313,8 @@ export default function Chat() {
         </aside>
 
         {/* message pane */}
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-hairline bg-surface">
-          <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-hairline bg-surface lg:rounded-2xl lg:shadow-[0_20px_60px_-24px_rgba(0,0,0,0.7)]">
+          <div className="flex items-center justify-between border-b border-hairline px-4 py-3 lg:px-5 lg:py-3.5">
             <div className="min-w-0">
               <h2 className="truncate text-sm font-semibold text-text">
                 {activeRoom?.name}
@@ -326,7 +331,7 @@ export default function Chat() {
             </span>
           </div>
 
-          <div className="flex-1 space-y-5 overflow-y-auto px-4 py-5">
+          <div className="flex-1 space-y-5 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6">
             {loading ? (
               <div className="space-y-4">
                 {[0, 1, 2].map((i) => (
@@ -377,7 +382,7 @@ export default function Chat() {
               <div className="h-11 rounded-lg bg-surface-plus" />
             </div>
           ) : user ? (
-            <div className="border-t border-hairline p-3">
+            <div className="border-t border-hairline p-3 lg:p-4">
               {attached && (
                 <div className="mb-2 inline-flex items-center gap-2 rounded-lg border border-accent-dim bg-accent/10 px-3 py-1.5 text-xs text-accent">
                   <Icon

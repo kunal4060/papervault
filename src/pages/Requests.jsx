@@ -76,7 +76,7 @@ function RequestCard({ req, hasUpvoted, canUpvote, onUpvote, onLogin }) {
   const fulfilled = !!req.fulfilledBy;
 
   return (
-    <article className="rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-accent-dim">
+    <article className="rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-dim hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:rounded-2xl lg:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-mono text-[13px] font-semibold text-accent">
@@ -188,22 +188,22 @@ export default function Requests() {
   const openCount = requests.filter((r) => !r.fulfilledBy).length;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-16 pt-6">
+    <div className="mx-auto max-w-4xl px-4 pb-16 pt-6 lg:max-w-6xl lg:pt-10">
       {/* header */}
       <p className="micro">Request board</p>
       <div className="mt-1 flex items-start justify-between gap-3">
-        <h1 className="font-display text-2xl font-bold text-text">
+        <h1 className="font-display text-2xl font-bold text-text lg:text-3xl lg:tracking-tight">
           Paper <span className="hl">nahi mila?</span> Request karo.
         </h1>
         <button
           onClick={() => (user ? setShowForm((v) => !v) : signIn())}
-          className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-canvas"
+          className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-canvas shadow-[0_4px_20px_-4px_rgba(255,178,36,0.5)] transition-all duration-200 hover:-translate-y-px hover:bg-[#FFBE4D] lg:px-5"
         >
           <Icon name={showForm ? "close" : "upload"} size={15} />
           {showForm ? "Close" : "Request a paper"}
         </button>
       </div>
-      <p className="mt-2 max-w-xl text-sm text-text-dim">
+      <p className="mt-2 max-w-xl text-sm text-text-dim lg:text-[15px]">
         Koi upload kare jo tumhari request se match kare, to tumhe notification
         milega — <span className="text-text">"Tumhara requested paper aa gaya!"</span>
       </p>
@@ -212,10 +212,12 @@ export default function Requests() {
       {showForm && user && (
         <form
           onSubmit={handleSubmit}
-          className="mt-5 rounded-xl border border-accent-dim/60 bg-surface p-4"
+          className="mt-5 rounded-xl border border-accent-dim/60 bg-surface p-4 lg:rounded-2xl lg:p-6"
         >
           <p className="micro mb-3">New request</p>
 
+          <div className="lg:grid lg:grid-cols-2 lg:gap-5">
+          <div>
           <label className="micro mb-1 block" htmlFor="req-subject">
             Subject
           </label>
@@ -231,6 +233,26 @@ export default function Requests() {
               </option>
             ))}
           </select>
+          </div>
+
+          <div>
+          <label className="micro mb-1 mt-4 block lg:mt-0" htmlFor="req-year">
+            Year
+          </label>
+          <select
+            id="req-year"
+            value={formYear}
+            onChange={(e) => setFormYear(Number(e.target.value))}
+            className="min-h-[44px] w-full rounded-lg border border-hairline bg-canvas px-3 text-sm text-text focus:border-accent-dim focus:outline-none"
+          >
+            {YEARS.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+          </div>
+          </div>
 
           <p className="micro mb-1 mt-4">Exam type</p>
           <div className="flex flex-wrap gap-2">
@@ -250,25 +272,9 @@ export default function Requests() {
             ))}
           </div>
 
-          <label className="micro mb-1 mt-4 block" htmlFor="req-year">
-            Year
-          </label>
-          <select
-            id="req-year"
-            value={formYear}
-            onChange={(e) => setFormYear(Number(e.target.value))}
-            className="min-h-[44px] w-full rounded-lg border border-hairline bg-canvas px-3 text-sm text-text focus:border-accent-dim focus:outline-none sm:w-40"
-          >
-            {YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-
           <button
             type="submit"
-            className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-accent text-sm font-semibold text-canvas sm:w-auto sm:px-6"
+            className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-canvas transition-all duration-200 hover:-translate-y-px hover:bg-[#FFBE4D] sm:w-auto sm:px-6 lg:mt-5"
           >
             <Icon name="send" size={15} />
             Submit request
@@ -301,7 +307,7 @@ export default function Requests() {
             newest first
           </p>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:gap-5">
           {requests.map((r) => (
             <RequestCard
               key={r.id}

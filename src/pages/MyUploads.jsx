@@ -53,7 +53,7 @@ function UploadRow({ upload }) {
   const approved = upload.status === "approved";
 
   return (
-    <Card className="p-5">
+    <Card className="p-5 transition-all duration-200 lg:p-6 lg:hover:-translate-y-0.5 lg:hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.6)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate font-mono text-sm font-semibold text-text">
@@ -154,21 +154,21 @@ export default function MyUploads() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-16 pt-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
+    <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 lg:max-w-5xl lg:pt-10">
+      <div className="mb-6 flex items-start justify-between gap-4 lg:mb-8">
         <div>
           <p className="micro mb-2">History</p>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-text">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-text lg:text-4xl">
             My <span className="hl-soft">Uploads</span>
           </h1>
-          <p className="mt-2 text-sm text-text-dim">
+          <p className="mt-2 text-sm text-text-dim lg:text-[15px]">
             {uploads.length === 0
               ? "Tumhare saare uploads yahan dikhenge."
               : `${uploads.length} upload${uploads.length > 1 ? "s" : ""} ab tak`}
           </p>
         </div>
         <Button
-          className="shrink-0"
+          className="shrink-0 !rounded-xl shadow-[0_4px_20px_-4px_rgba(255,178,36,0.5)] transition-all duration-200 hover:-translate-y-px"
           onClick={() => { window.location.hash = "#upload"; }}
         >
           <Icon name="upload" size={16} />
@@ -178,7 +178,7 @@ export default function MyUploads() {
       </div>
 
       {uploads.length === 0 ? (
-        <Card className="p-10 text-center">
+        <Card className="p-10 text-center lg:mx-auto lg:max-w-md lg:p-12">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-canvas text-text-dim">
             <Icon name="file" size={22} />
           </div>
@@ -197,7 +197,7 @@ export default function MyUploads() {
           </Button>
         </Card>
       ) : (
-        <div className="space-y-3.5">
+        <div className="space-y-3.5 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {uploads.map((u) => (
             <UploadRow key={u.id} upload={u} />
           ))}

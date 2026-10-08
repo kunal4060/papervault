@@ -31,12 +31,16 @@ const ALL = "all";
 
 function PageHead({ eyebrow, title, sub }) {
   return (
-    <div className="pt-6">
+    <div className="pt-6 md:pt-10">
       <p className="micro">{eyebrow}</p>
-      <h1 className="mt-1.5 font-display text-[28px] font-bold leading-tight text-text">
+      <h1 className="mt-1.5 font-display text-[28px] font-bold leading-tight text-text md:mt-2 md:text-[38px] md:tracking-tight">
         {title}
       </h1>
-      {sub ? <p className="mt-1.5 text-sm text-text-dim">{sub}</p> : null}
+      {sub ? (
+        <p className="mt-1.5 max-w-2xl text-sm text-text-dim md:mt-2 md:text-[15px]">
+          {sub}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -98,7 +102,7 @@ function SubjectGrid() {
   }, [subjects, query]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
+    <div className="mx-auto max-w-6xl px-4 pb-16 md:pb-24">
       <PageHead
         eyebrow="Browse"
         title="Papers"
@@ -141,7 +145,7 @@ function SubjectGrid() {
             <p className="micro mb-3">
               {filtered.length} subject{filtered.length === 1 ? "" : "s"}
             </p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
               {filtered.map((s) => (
                 <SubjectCard key={s.id} subject={s} />
               ))}
@@ -209,12 +213,12 @@ function SubjectAiAnalysis({ papers }) {
   const years = [...new Set(papers.filter((p) => p.examType === examTab).map((p) => p.year))].length;
 
   return (
-    <section className="mt-10 rounded-xl border border-hairline bg-surface p-5">
+    <section className="mt-10 rounded-xl border border-hairline bg-surface p-5 md:mt-14 md:p-8">
       <div className="flex items-center gap-2">
         <Icon name="spark" size={18} className="text-accent" />
         <p className="micro">Subject AI analysis</p>
       </div>
-      <h2 className="mt-2 font-display text-xl font-bold text-text">
+      <h2 className="mt-2 font-display text-xl font-bold text-text md:text-2xl">
         Kidhar se <span className="hl-soft">zyada questions</span> aate hain
       </h2>
 
@@ -242,8 +246,8 @@ function SubjectAiAnalysis({ papers }) {
           {examTab} ka abhi koi analyzed paper nahi hai.
         </p>
       ) : (
-        <>
-          <p className="mt-3 text-sm leading-relaxed text-text-dim">
+        <div className="lg:grid lg:grid-cols-[1fr_1.25fr] lg:gap-x-10">
+          <p className="mt-3 text-sm leading-relaxed text-text-dim lg:col-start-1 lg:row-start-1 lg:mt-5 lg:text-[15px] lg:leading-relaxed">
             {examTab} me Module {top.module} ({top.moduleTitle}) se pichle{" "}
             <span className="font-mono font-semibold text-accent">
               {years} saal
@@ -256,7 +260,7 @@ function SubjectAiAnalysis({ papers }) {
             {top.qnums.length > 3 ? "jaise numbers " : ""}yahi se aate hain!
           </p>
 
-          <div className="mt-5 space-y-3.5">
+          <div className="mt-5 space-y-3.5 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:mt-5">
             {aggregate.topics.map((t, i) => (
               <div key={t.module}>
                 <div className="flex items-baseline justify-between gap-2">
@@ -285,14 +289,14 @@ function SubjectAiAnalysis({ papers }) {
               </div>
             ))}
           </div>
-        </>
-      )}
 
-      <p className="mt-5 border-t border-hairline pt-3 text-[12px] text-text-dim">
-        {examTab} aggregate · {aggregate.analyzed} paper
-        {aggregate.analyzed === 1 ? "" : "s"} analyzed · Naya paper approve hote
-        hi update hota hai
-      </p>
+          <p className="mt-5 border-t border-hairline pt-3 text-[12px] text-text-dim lg:col-start-1 lg:row-start-2 lg:mt-6 lg:self-start">
+            {examTab} aggregate · {aggregate.analyzed} paper
+            {aggregate.analyzed === 1 ? "" : "s"} analyzed · Naya paper approve
+            hote hi update hota hai
+          </p>
+        </div>
+      )}
     </section>
   );
 }
@@ -405,21 +409,21 @@ function SubjectDetail({ subjectId }) {
       </div>
 
       {/* Header */}
-      <div className="mt-1">
-        <h1 className="font-display text-[26px] font-bold leading-tight text-text">
+      <div className="mt-1 md:mt-3">
+        <h1 className="font-display text-[26px] font-bold leading-tight text-text md:text-[38px] md:tracking-tight">
           {subject.name}
         </h1>
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5 md:mt-4 md:gap-2">
           {subject.codes.map((code) => (
             <span
               key={code}
-              className="inline-flex items-center rounded-full border border-hairline bg-surface px-3 py-1 font-mono text-[12px] font-semibold text-text"
+              className="inline-flex items-center rounded-full border border-hairline bg-surface px-3 py-1 font-mono text-[12px] font-semibold text-text md:px-3.5 md:py-1.5 md:text-[13px]"
             >
               {code}
             </span>
           ))}
         </div>
-        <p className="mt-2.5 text-[13px] text-text-dim">
+        <p className="mt-2.5 text-[13px] text-text-dim md:mt-3 md:text-sm">
           <span className="font-mono font-semibold text-accent">
             {papers.length}
           </span>{" "}
@@ -512,7 +516,7 @@ function SubjectDetail({ subjectId }) {
                         {g.exam} · {g.papers.length} paper
                         {g.papers.length === 1 ? "" : "s"}
                       </p>
-                      <div className="grid gap-3 md:grid-cols-2">
+                      <div className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
                         {g.papers.map((p) => (
                           <PaperCard
                             key={p.id}

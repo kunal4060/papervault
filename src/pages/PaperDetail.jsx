@@ -89,17 +89,17 @@ function AiAnalysisPanel({ analysis }) {
   );
 
   return (
-    <section className="mt-8 rounded-xl border border-hairline bg-surface p-5">
+    <section className="mt-8 rounded-xl border border-hairline bg-surface p-5 md:mt-10 md:p-8">
       <div className="flex items-center gap-2">
         <Icon name="spark" size={18} className="text-accent" />
         <p className="micro">AI analysis</p>
       </div>
-      <h2 className="mt-2 font-display text-xl font-bold text-text">
+      <h2 className="mt-2 font-display text-xl font-bold text-text md:text-2xl">
         Is paper me <span className="hl-soft">kya aaya tha</span>
       </h2>
 
-      {/* Topic-wise bars */}
-      <div className="mt-5 space-y-4">
+      {/* Topic-wise bars — desktop pe 2-column editorial grid */}
+      <div className="mt-5 space-y-4 md:mt-6 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-5 md:space-y-0">
         {topics.map((t, i) => (
           <div key={t.module}>
             <div className="flex items-baseline justify-between gap-2">
@@ -133,7 +133,7 @@ function AiAnalysisPanel({ analysis }) {
       </div>
 
       {/* Patterns */}
-      <div className="mt-6 grid gap-4 border-t border-hairline pt-5 sm:grid-cols-2">
+      <div className="mt-6 grid gap-4 border-t border-hairline pt-5 sm:grid-cols-2 md:mt-8 md:gap-8 md:pt-6">
         <div>
           <p className="micro mb-2">Marks pattern</p>
           <div className="flex flex-wrap gap-1.5">
@@ -384,7 +384,7 @@ export default function PaperDetail({ paperId }) {
   return (
     <div className="min-h-screen bg-canvas text-text">
       <Navbar />
-      <main className="mx-auto max-w-6xl px-4 pb-16">
+      <main className="mx-auto max-w-6xl px-4 pb-16 md:pb-24">
         <div className="pt-6">
           <a
             href={subject ? `#/papers/${subject.id}` : "#/papers"}
@@ -413,12 +413,12 @@ export default function PaperDetail({ paperId }) {
         ) : (
           <>
             {/* Header */}
-            <div className="mt-2">
+            <div className="mt-2 md:mt-4">
               <p className="micro">Question paper</p>
-              <h1 className="mt-1.5 break-all font-mono text-[20px] font-bold leading-snug text-text">
+              <h1 className="mt-1.5 break-all font-mono text-[20px] font-bold leading-snug text-text md:mt-2 md:text-[28px] md:leading-tight">
                 {paper.fileName}
               </h1>
-              <div className="mt-3 flex flex-wrap gap-1.5">
+              <div className="mt-3 flex flex-wrap gap-1.5 md:mt-4 md:gap-2">
                 <MetaChip accent mono>
                   {subject ? subject.code : paper.subjectCode}
                 </MetaChip>
@@ -427,7 +427,7 @@ export default function PaperDetail({ paperId }) {
                 <MetaChip mono>Slot {paper.slot}</MetaChip>
                 {paper.faculty && <MetaChip>{paper.faculty}</MetaChip>}
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-text-dim">
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-text-dim md:mt-4 md:gap-x-6 md:text-[13px]">
                 <span>
                   Uploaded by{" "}
                   <span className="font-semibold text-text">
@@ -450,63 +450,65 @@ export default function PaperDetail({ paperId }) {
               </div>
             </div>
 
-            {/* Action row */}
-            <div className="mt-5">
-              <div className="flex gap-2">
-                <ActionButton onClick={scrollToViewer} label="Preview">
-                  <Icon name="eye" size={17} />
-                </ActionButton>
-                <ActionButton
-                  href={paper.fileUrl}
-                  primary
-                  label="Download"
-                >
-                  <Icon name="download" size={17} />
-                </ActionButton>
-              </div>
-              <div className="mt-2 flex gap-2">
-                <a
-                  href={shareHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border border-hairline text-sm font-semibold text-text hover:border-text-dim"
-                  aria-label="WhatsApp pe share karo"
-                >
-                  <Icon name="share" size={16} className="text-moss" />
-                  WhatsApp
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setShowReport((v) => !v)}
-                  className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
-                    showReport
-                      ? "border-brick text-brick"
-                      : "border-hairline text-text hover:border-text-dim"
-                  }`}
-                  aria-label="Paper report karo"
-                  aria-expanded={showReport}
-                >
-                  <Icon name="close" size={15} />
-                  Report
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleBookmark}
-                  className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
-                    bookmarked
-                      ? "border-accent text-accent"
-                      : "border-hairline text-text hover:border-text-dim"
-                  }`}
-                  aria-label={bookmarked ? "Bookmark hatao" : "Bookmark karo"}
-                  aria-pressed={bookmarked}
-                >
-                  <Icon
-                    name="bookmark"
-                    size={16}
-                    className={bookmarked ? "fill-current" : ""}
-                  />
-                  {bookmarked ? "Saved" : "Save"}
-                </button>
+            {/* Action row — mobile pe 2 rows, desktop pe ek toolbar */}
+            <div className="mt-5 md:mt-6">
+              <div className="flex flex-col gap-2 md:flex-row">
+                <div className="flex flex-1 gap-2">
+                  <ActionButton onClick={scrollToViewer} label="Preview">
+                    <Icon name="eye" size={17} />
+                  </ActionButton>
+                  <ActionButton
+                    href={paper.fileUrl}
+                    primary
+                    label="Download"
+                  >
+                    <Icon name="download" size={17} />
+                  </ActionButton>
+                </div>
+                <div className="flex flex-1 gap-2">
+                  <a
+                    href={shareHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border border-hairline text-sm font-semibold text-text hover:border-text-dim"
+                    aria-label="WhatsApp pe share karo"
+                  >
+                    <Icon name="share" size={16} className="text-moss" />
+                    WhatsApp
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setShowReport((v) => !v)}
+                    className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
+                      showReport
+                        ? "border-brick text-brick"
+                        : "border-hairline text-text hover:border-text-dim"
+                    }`}
+                    aria-label="Paper report karo"
+                    aria-expanded={showReport}
+                  >
+                    <Icon name="close" size={15} />
+                    Report
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleBookmark}
+                    className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
+                      bookmarked
+                        ? "border-accent text-accent"
+                        : "border-hairline text-text hover:border-text-dim"
+                    }`}
+                    aria-label={bookmarked ? "Bookmark hatao" : "Bookmark karo"}
+                    aria-pressed={bookmarked}
+                  >
+                    <Icon
+                      name="bookmark"
+                      size={16}
+                      className={bookmarked ? "fill-current" : ""}
+                    />
+                    {bookmarked ? "Saved" : "Save"}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -520,23 +522,23 @@ export default function PaperDetail({ paperId }) {
             {/* PDF placeholder — // TODO: pdfjs in-browser viewer yahan aayega */}
             <div
               ref={viewerRef}
-              className="mt-5 scroll-mt-20 rounded-xl border border-dashed border-hairline bg-surface p-8 text-center"
+              className="mt-5 scroll-mt-20 rounded-xl border border-dashed border-hairline bg-surface p-8 text-center md:mt-8 md:p-12"
             >
               <Icon name="file" size={40} className="mx-auto text-text-dim" />
-              <p className="mt-3 font-display text-[16px] font-bold text-text">
+              <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
                 PDF preview
               </p>
               <p className="mt-1 break-all font-mono text-[12px] text-text-dim">
                 {paper.fileName}
               </p>
-              <p className="mx-auto mt-2 max-w-sm text-[13px] text-text-dim">
+              <p className="mx-auto mt-2 max-w-sm text-[13px] text-text-dim md:text-sm">
                 In-browser PDF viewer yahan aayega — page navigation aur zoom
                 ke saath.
               </p>
               <a
                 href={paper.fileUrl}
                 download={paper.fileName}
-                className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas"
+                className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas md:mt-5 md:px-7 md:py-1"
               >
                 <Icon name="download" size={16} />
                 PDF download karo
@@ -548,15 +550,15 @@ export default function PaperDetail({ paperId }) {
 
             {/* Similar papers */}
             {similar.length > 0 && (
-              <section className="mt-10">
+              <section className="mt-10 md:mt-14">
                 <p className="micro">Aur dekho</p>
-                <h2 className="mt-1.5 font-display text-xl font-bold text-text">
+                <h2 className="mt-1.5 font-display text-xl font-bold text-text md:text-2xl">
                   Similar papers
                 </h2>
                 <p className="mt-1 text-sm text-text-dim">
                   Same subject, doosre saal
                 </p>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="mt-4 grid gap-3 md:mt-6 md:grid-cols-2 md:gap-4 lg:grid-cols-4">
                   {similar.map((p) => (
                     <PaperCard
                       key={p.id}

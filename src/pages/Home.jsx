@@ -59,11 +59,11 @@ export default function Home() {
         <StatStrip stats={stats} />
 
         <div className="mx-auto max-w-6xl px-4">
-          <div className="py-6">
+          <div className="py-6 md:py-8">
             <ExamCountdown countdown={nextCountdown()} />
           </div>
 
-          <section className="py-6">
+          <section className="py-6 md:py-10">
             <SectionHeading
               eyebrow="Browse"
               title="Popular subjects"
@@ -73,32 +73,32 @@ export default function Home() {
                 </a>
               }
             />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
               {popular.map((s) => (
                 <SubjectCard key={s.id} subject={s} />
               ))}
             </div>
           </section>
 
-          <section className="py-6">
+          <section className="py-6 md:py-10">
             <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
-            <div className="rounded-xl border border-hairline bg-surface px-4">
+            <div className="rounded-xl border border-hairline bg-surface px-4 md:px-5">
               {trending.map((p) => (
                 <PaperRow key={p.id} paper={p} />
               ))}
             </div>
           </section>
 
-          <section className="py-6">
+          <section className="py-6 md:py-10">
             <AiInsightCard insight={MOCK_GEMINI_ANALYSIS} />
           </section>
 
-          <section className="py-6">
+          <section className="py-6 md:py-10">
             <SectionHeading title="Kaise kaam karta hai" />
             <HowItWorks />
           </section>
 
-          <section className="py-6">
+          <section className="py-6 md:py-10">
             <UploadCta />
           </section>
         </div>

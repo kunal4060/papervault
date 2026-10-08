@@ -29,13 +29,13 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-        <a href="#/" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:h-[4.5rem] lg:px-6">
+        <a href="#/" className="group flex shrink-0 items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent shadow-[0_4px_16px_-4px_rgba(255,178,36,0.55)] transition-transform duration-200 group-hover:-rotate-6 lg:h-10 lg:w-10">
             <Icon name="file" size={18} className="text-canvas" />
           </span>
           <span className="leading-none">
-            <span className="block font-display text-[17px] font-extrabold tracking-tight text-text">
+            <span className="block font-display text-[17px] font-extrabold tracking-tight text-text lg:text-[19px]">
               Paper<span className="text-accent">Vault</span>
             </span>
             <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.22em] text-text-dim">
@@ -44,7 +44,7 @@ export default function Navbar() {
           </span>
         </a>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-1.5 md:flex" aria-label="Primary">
           {links.map((l) => {
             const active = l.match.includes(section);
             return (
@@ -52,22 +52,19 @@ export default function Navbar() {
                 key={l.label}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative rounded-lg px-3.5 py-2 text-[14px] font-medium transition-colors ${
-                  active ? "text-text" : "text-text-dim hover:text-text"
+                className={`rounded-full px-4 py-2 text-[14px] font-medium transition-all duration-200 ${
+                  active
+                    ? "bg-surface-plus text-text shadow-[inset_0_0_0_1px_var(--color-hairline)]"
+                    : "text-text-dim hover:bg-surface hover:text-text"
                 }`}
               >
                 {l.label}
-                <span
-                  className={`absolute inset-x-3.5 -bottom-[15px] h-[3px] rounded-full bg-accent transition-opacity ${
-                    active ? "opacity-100" : "opacity-0"
-                  }`}
-                />
               </a>
             );
           })}
           <a
             href="#/upload"
-            className="ml-3 inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-accent px-4 text-[13.5px] font-bold text-canvas transition-colors hover:bg-[#FFBE4D]"
+            className="ml-3 inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-accent px-5 text-[13.5px] font-bold text-canvas shadow-[0_4px_20px_-4px_rgba(255,178,36,0.5)] transition-all duration-200 hover:-translate-y-px hover:bg-[#FFBE4D] hover:shadow-[0_8px_28px_-4px_rgba(255,178,36,0.65)]"
           >
             <Icon name="upload" size={16} />
             Upload

@@ -31,9 +31,9 @@ export default function PaperCard({ paper, subjectName }) {
   const detailHref = `#/papers/${paper.id}`;
 
   return (
-    <article className="flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-accent-dim hover:bg-surface-plus">
+    <article className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:border-accent-dim hover:bg-surface-plus md:p-5 lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_20px_44px_-22px_rgba(0,0,0,0.85)]">
       <a href={detailHref} className="block min-w-0">
-        <p className="break-all font-mono text-[13px] font-semibold leading-snug text-text">
+        <p className="break-all font-mono text-[13px] font-semibold leading-snug text-text transition-colors group-hover:text-accent">
           {paper.fileName}
         </p>
         <p className="mt-1 truncate text-[13px] text-text-dim">
@@ -51,14 +51,14 @@ export default function PaperCard({ paper, subjectName }) {
       <div className="mt-3 flex items-center gap-4 text-[12px] text-text-dim">
         <span className="inline-flex items-center gap-1.5">
           <Icon name="download" size={14} className="text-accent" />
-          <span className="font-mono font-semibold text-text">
+          <span className="font-mono font-semibold tabular-nums text-text">
             {formatCompact(paper.downloads)}
           </span>
           downloads
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Icon name="eye" size={14} />
-          <span className="font-mono">{formatCompact(paper.views)}</span>
+          <span className="font-mono tabular-nums">{formatCompact(paper.views)}</span>
           views
         </span>
       </div>
@@ -74,7 +74,7 @@ export default function PaperCard({ paper, subjectName }) {
         <a
           href={paper.fileUrl}
           download={paper.fileName}
-          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-accent text-sm font-semibold text-canvas transition-opacity hover:opacity-90"
+          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-accent text-sm font-semibold text-canvas transition-all hover:opacity-90 lg:hover:shadow-[0_8px_28px_-10px_rgba(255,178,36,0.6)]"
         >
           <Icon name="download" size={16} />
           Download

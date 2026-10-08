@@ -39,7 +39,7 @@ export function Button({ variant = "primary", className = "", children, ...props
 export function Card({ className = "", children, ...props }) {
   return (
     <div
-      className={`bg-surface border border-hairline rounded-[12px] ${className}`}
+      className={`bg-surface border border-hairline rounded-[12px] transition-colors ${className}`}
       {...props}
     >
       {children}
@@ -295,8 +295,8 @@ export function ProgressSteps({ steps, current, state }) {
 
 export function LoginGate({ onSignIn, actionText = "yeh page use karne" }) {
   return (
-    <div className="mx-auto max-w-md px-4 py-16">
-      <Card className="p-8 text-center">
+    <div className="mx-auto max-w-md px-4 py-16 md:py-24">
+      <Card className="p-8 text-center md:p-10">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-accent-dim bg-accent/10 text-accent">
           <Icon name="upload" size={22} />
         </div>

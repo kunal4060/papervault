@@ -47,16 +47,16 @@ function SubjectList({ onOpen }) {
   }, [q]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 md:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10">
       <MicroLabel className="mb-1">Vault · Syllabus & Notes</MicroLabel>
-      <h1 className="font-display text-2xl font-bold md:text-3xl">
+      <h1 className="font-display text-2xl font-bold md:text-[34px] md:tracking-tight">
         Syllabus <Highlight soft>code-wise</Highlight>
       </h1>
-      <p className="mt-1 text-sm text-text-dim">
+      <p className="mt-1 text-sm text-text-dim md:mt-2 md:text-[15px]">
         Subject chuno → syllabus PDF, module-wise notes, aur AI question %
       </p>
 
-      <div className="relative mt-5">
+      <div className="relative mt-5 md:mt-6 md:max-w-xl">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -66,13 +66,13 @@ function SubjectList({ onOpen }) {
         />
       </div>
 
-      <div className="mt-4 space-y-2.5">
+      <div className="mt-4 grid grid-cols-1 gap-2.5 md:mt-6 lg:grid-cols-2 lg:gap-3">
         {list.map((s) => (
           <button
             key={s.id}
             type="button"
             onClick={() => onOpen(s.id)}
-            className="flex w-full items-center gap-3 rounded-[12px] border border-hairline bg-surface px-4 py-3.5 text-left transition-colors hover:border-text-dim/60 hover:bg-surface-plus"
+            className="flex w-full items-center gap-3 rounded-[12px] border border-hairline bg-surface px-4 py-3.5 text-left transition-colors hover:border-text-dim/60 hover:bg-surface-plus md:gap-4 md:px-5 md:py-4"
           >
             <span className="shrink-0 rounded-[6px] border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-sm font-bold text-accent">
               {s.code}
@@ -89,7 +89,7 @@ function SubjectList({ onOpen }) {
           </button>
         ))}
         {list.length === 0 && (
-          <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim">
+          <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim lg:col-span-2">
             Koi subject nahi mila. Code check karke dobara try karo.
           </p>
         )}
@@ -185,7 +185,7 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-surface-plus"
+        className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-surface-plus md:px-5"
       >
         <span className="shrink-0 rounded-[6px] bg-surface-plus px-2 py-1 font-mono text-xs font-bold text-accent">
           M{module.number}
@@ -304,27 +304,15 @@ function SubjectDetail({ subjectId, onBack }) {
   const modules = syllabus?.modules ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 md:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10">
       <button
         type="button"
         onClick={onBack}
-        className="mb-4 inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-text-dim hover:text-text"
+        className="mb-4 inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-text-dim hover:text-text md:mb-6"
       >
         <IcoArrowLeft className="h-4 w-4" />
         Subjects
       </button>
-
-      <div className="mb-5">
-        <span className="inline-block rounded-[6px] border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-sm font-bold text-accent">
-          {subject.code}
-        </span>
-        <h1 className="mt-2 font-display text-2xl font-bold md:text-3xl">
-          {subject.name}
-        </h1>
-        <p className="mt-1 font-mono text-xs text-text-dim">
-          {subject.codes.join(" · ")} · Sem {subject.semester} · {subject.program}
-        </p>
-      </div>
 
       {loading ? (
         <div className="space-y-3" aria-label="Loading syllabus">
@@ -336,13 +324,29 @@ function SubjectDetail({ subjectId, onBack }) {
           ))}
         </div>
       ) : (
-        <>
-          {/* 1 — syllabus PDF FIRST */}
-          <SyllabusPdfCard syllabus={syllabus} code={subject.code} />
+        <div className="lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-10">
+          {/* Left — sticky subject identity + syllabus PDF (desktop) */}
+          <div className="lg:sticky lg:top-24">
+            <div className="mb-5 lg:mb-6">
+              <span className="inline-block rounded-[6px] border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-sm font-bold text-accent">
+                {subject.code}
+              </span>
+              <h1 className="mt-2 font-display text-2xl font-bold md:text-[32px] md:leading-tight md:tracking-tight">
+                {subject.name}
+              </h1>
+              <p className="mt-1 font-mono text-xs text-text-dim md:mt-2">
+                {subject.codes.join(" · ")} · Sem {subject.semester} ·{" "}
+                {subject.program}
+              </p>
+            </div>
+
+            {/* 1 — syllabus PDF FIRST */}
+            <SyllabusPdfCard syllabus={syllabus} code={subject.code} />
+          </div>
 
           {/* 2 — modules */}
-          <div className="mt-6 space-y-3">
-            <h2 className="font-display text-lg font-bold">
+          <div className="mt-6 space-y-3 lg:mt-0">
+            <h2 className="font-display text-lg font-bold md:text-xl">
               Modules <span className="text-text-dim">({modules.length})</span>
             </h2>
             {modules.length === 0 && (
@@ -363,7 +367,7 @@ function SubjectDetail({ subjectId, onBack }) {
               />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -196,7 +196,7 @@ function Dropzone({ file, onFile, onClear, error }) {
             setDrag(false);
             if (e.dataTransfer.files?.[0]) onFile(e.dataTransfer.files[0]);
           }}
-          className={`flex w-full flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed px-6 py-10 text-center transition-colors ${
+          className={`flex w-full flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed px-6 py-10 text-center transition-colors lg:rounded-[16px] lg:py-14 ${
             drag ? "border-accent bg-accent/5" : "border-hairline hover:border-text-dim"
           }`}
         >
@@ -447,26 +447,27 @@ export default function Upload() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-16 pt-8">
+    <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 lg:max-w-5xl lg:pt-10">
       {/* header */}
-      <div className="mb-6">
+      <div className="mb-6 lg:mb-8">
         <p className="micro mb-2">Contribute</p>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-text">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-text lg:text-4xl">
           Paper <span className="hl-soft">upload</span> karo
         </h1>
-        <p className="mt-2 text-sm text-text-dim">
+        <p className="mt-2 max-w-xl text-sm text-text-dim lg:text-[15px]">
           Tumhara paper pehle <span className="font-semibold text-text">duplicate check</span> se
           guzrega, phir review ke baad live hoga.
         </p>
       </div>
 
       {phase === "form" && (
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             runCheck();
           }}
-          className="space-y-5"
+          className="min-w-0 space-y-5"
         >
           {reuploadNote && (
             <div className="flex items-start gap-2.5 rounded-[12px] border border-accent-dim bg-accent/5 px-4 py-3">
@@ -533,10 +534,39 @@ export default function Upload() {
             <Icon name="spark" size={16} />
             Duplicate check + submit
           </Button>
-          <p className="text-center text-xs text-text-dim">
+          <p className="text-center text-xs text-text-dim lg:text-left">
             Check order: hash → metadata → similarity → AI verdict. 90%+ uploads pehle 2 steps me clear.
           </p>
         </form>
+
+        {/* desktop sidebar — how the check works + tips */}
+        <aside className="hidden lg:sticky lg:top-24 lg:block">
+          <Card className="p-5">
+            <p className="micro mb-4">Check kaise hota hai</p>
+            <ol className="space-y-4">
+              {PIPE_STEPS.map((s, i) => (
+                <li key={s.key} className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-hairline bg-canvas font-mono text-[11px] font-bold text-accent">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-text">{s.label}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-text-dim">{s.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Card>
+          <Card className="mt-4 p-5">
+            <p className="micro mb-2">Tip</p>
+            <p className="text-xs leading-relaxed text-text-dim">
+              Saaf scan wala PDF upload karo — text readable hoga to check fast hoga.
+              File ka naam automatic ban jayega:{" "}
+              <span className="font-mono text-text-dim/80">CSE3002-CAT2-2025-F1.pdf</span>
+            </p>
+          </Card>
+        </aside>
+        </div>
       )}
 
       {/* ------------------------------ checking ------------------------------ */}

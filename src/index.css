@@ -26,11 +26,22 @@ html {
 
 body { margin: 0; }
 
-::selection { background: rgba(255, 178, 36, 0.35); }
+::selection { background: #FFB224; color: #0C0D10; }
 
 /* thin scrollbars for horizontal chip rails */
 .rail { scrollbar-width: none; }
 .rail::-webkit-scrollbar { display: none; }
+
+/* Tasteful dark scrollbars (desktop) — thin, amber on hover */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-canvas); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-plus);
+  border-radius: 8px;
+  border: 2px solid var(--color-canvas);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-accent-dim); }
+* { scrollbar-width: thin; scrollbar-color: var(--color-surface-plus) var(--color-canvas); }
 
 /* Highlighter swipe — the signature element.
    Wrap key phrases: <span class="hl">highlighted text</span> */

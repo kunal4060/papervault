@@ -18,9 +18,9 @@ export default function SubjectCard({ subject }) {
   return (
     <a
       href={`#/papers/${subject.id}`}
-      className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-accent-dim hover:bg-surface-plus"
+      className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:border-accent-dim hover:bg-surface-plus md:p-5 lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_20px_44px_-22px_rgba(0,0,0,0.85)]"
     >
-      <p className="font-display text-[16px] font-bold leading-snug text-text">
+      <p className="font-display text-[16px] font-bold leading-snug tracking-tight text-text md:text-[17px]">
         {subject.name}
       </p>
 
@@ -28,16 +28,16 @@ export default function SubjectCard({ subject }) {
         {subject.codes.map((code) => (
           <span
             key={code}
-            className="inline-flex items-center rounded-full border border-hairline px-2.5 py-1 font-mono text-[11px] font-medium text-text-dim"
+            className="inline-flex items-center rounded-full border border-hairline px-2.5 py-1 font-mono text-[11px] font-medium text-text-dim transition-colors group-hover:border-accent/30"
           >
             {code}
           </span>
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-hairline pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-hairline pt-3 md:mt-4 md:pt-4">
         <span className="text-[12px] text-text-dim">
-          <span className="font-mono text-[13px] font-semibold text-accent">
+          <span className="font-mono text-[13px] font-semibold tabular-nums text-accent">
             {formatCompact(subject.paperCount)}
           </span>{" "}
           papers
@@ -45,7 +45,7 @@ export default function SubjectCard({ subject }) {
         <Icon
           name="chevR"
           size={16}
-          className="text-text-dim transition-transform group-hover:translate-x-0.5 group-hover:text-accent"
+          className="text-text-dim transition-all group-hover:translate-x-0.5 group-hover:text-accent lg:group-hover:translate-x-1"
         />
       </div>
     </a>
