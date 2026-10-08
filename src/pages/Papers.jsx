@@ -1,15 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Icon from "../components/Icon.jsx";
 import PaperCard from "../components/PaperCard.jsx";
 import SubjectCard from "../components/SubjectCard.jsx";
-import {
-  subjects as ALL_SUBJECTS,
-  getSubjectById,
-  getPapersBySubject,
-} from "../mock/index.js";
-// NOTE: mock se seedha import (mock only mode). firebase/db.js me
-// usePapers/useSubjects hooks available hain real Firebase ke liye.
+import { useSubjects } from "../hooks/useSubjects.js";
+import { usePapers } from "../hooks/usePapers.js";
+import { getSubject } from "../firebase/db.js";
 
 /**
  * PaperVault — Papers page (Archive Noir).
@@ -74,13 +70,11 @@ function SubjectGrid() {
     return new URLSearchParams(hash.slice(qi + 1)).get("q") || "";
   });
 
-  // Mock mode: subjects seedha mock se, code-wise sorted (BACKEND_PLAN §3.1).
+  // Subjects Firestore se (useSubjects hook) — active, code-wise sorted.
+  const { data: rawSubjects, loading } = useSubjects();
   const subjects = useMemo(
-    () =>
-      ALL_SUBJECTS.filter((s) => s.active).sort((a, b) =>
-        a.code.localeCompare(b.code)
-      ),
-    []
+    () => rawSubjects.map((s) => ({ ...s, codes: s.codes ?? [] })),
+    [rawSubjects]
   );
 
   const filtered = useMemo(() => {
@@ -125,7 +119,9 @@ function SubjectGrid() {
       </div>
 
       <div className="mt-6">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-text-dim">Subjects load ho rahe hain…</p>
+        ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-hairline bg-surface p-8 text-center">
             <p className="font-display text-lg font-bold text-text">
               Subject nahi mila
@@ -339,12 +335,37 @@ function groupPapers(papers, yearTab, examFilter, sort) {
 }
 
 function SubjectDetail({ subjectId }) {
-  const subject = getSubjectById(subjectId);
-  // Mock mode: papers seedha mock se (synchronous).
+  // Subject Firestore se (getSubject — inactive = not found).
+  const [subject, setSubject] = useState(null);
+  const [subjectLoading, setSubjectLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setSubjectLoading(true);
+    getSubject(subjectId)
+      .then((s) => {
+        if (!cancelled) {
+          setSubject(s && s.active !== false ? s : null);
+          setSubjectLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSubject(null);
+          setSubjectLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectId]);
+
+  // Approved papers Firestore se (usePapers hook).
+  const { data: rawPapers, loading: papersLoading } = usePapers(subjectId);
   const papers = useMemo(
-    () => (subject ? getPapersBySubject(subjectId) : []),
-    [subject, subjectId]
+    () => rawPapers.map((p) => ({ ...p, downloads: p.downloads ?? 0 })),
+    [rawPapers]
   );
+
   const [yearTab, setYearTab] = useState(ALL);
   // Home search se aaya exam preference (?exam=) → pre-apply, phir clear.
   const [examFilter, setExamFilter] = useState(() => {
@@ -371,6 +392,16 @@ function SubjectDetail({ subjectId }) {
     (n, s) => n + s.groups.reduce((m, g) => m + g.papers.length, 0),
     0
   );
+
+  const loading = subjectLoading || papersLoading;
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 pb-16 lg:max-w-7xl xl:max-w-[1400px]">
+        <p className="pt-10 text-sm text-text-dim">Subject load ho raha hai…</p>
+      </div>
+    );
+  }
 
   if (!subject) {
     return (
@@ -414,7 +445,7 @@ function SubjectDetail({ subjectId }) {
           {subject.name}
         </h1>
         <div className="mt-3 flex flex-wrap gap-1.5 md:mt-4 md:gap-2">
-          {subject.codes.map((code) => (
+          {(subject.codes ?? []).map((code) => (
             <span
               key={code}
               className="inline-flex items-center rounded-full border border-hairline bg-surface px-3 py-1 font-mono text-[12px] font-semibold text-text md:px-3.5 md:py-1.5 md:text-[13px]"

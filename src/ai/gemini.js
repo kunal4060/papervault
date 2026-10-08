@@ -7,9 +7,8 @@
  *
  * Behavior:
  *  - VITE_GEMINI_API_KEY present → real call to the Generative Language API.
- *  - No key → MOCK MODE: returns canned JSON so every flow stays testable.
+ *  - No key → functions THROW an honest error. Never returns fabricated data.
  */
-import { MOCK_GEMINI_DUPLICATE_VERDICT, MOCK_GEMINI_ANALYSIS } from "../mock/index.js";
 
 const API_KEY =
   (typeof import.meta !== "undefined" &&
@@ -22,17 +21,22 @@ const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODE
 /** True when a real key is configured. */
 export const GEMINI_CONNECTED = Boolean(API_KEY);
 
+function requireKey() {
+  if (!GEMINI_CONNECTED) {
+    throw new Error("Gemini API key not configured — set VITE_GEMINI_API_KEY");
+  }
+}
+
 /**
  * Send a prompt to Gemini.
  * @param {string} prompt
  * @param {{ jsonMode?: boolean }} [opts] — ask for a JSON response
- * @returns {Promise<{ text: string, data: any|null, mock: boolean }>}
+ * @returns {Promise<{ text: string, data: any|null }>}
  *   `data` is the parsed JSON when jsonMode is true and parsing succeeds.
+ * @throws when the API key is not configured.
  */
 export async function callGemini(prompt, { jsonMode = true } = {}) {
-  if (!GEMINI_CONNECTED) {
-    return mockGeminiResponse(prompt, jsonMode);
-  }
+  requireKey();
 
   // TODO: wire real API — this path is untested against live quotas; add
   // retries/backoff and server-side rate limiting before production.
@@ -52,7 +56,7 @@ export async function callGemini(prompt, { jsonMode = true } = {}) {
   }
   const json = await res.json();
   const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-  return { text, data: jsonMode ? safeParse(text) : null, mock: false };
+  return { text, data: jsonMode ? safeParse(text) : null };
 }
 
 /** Extract JSON from a model response (handles ```json fences). */
@@ -79,14 +83,10 @@ const EMBED_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/
  * Get an embedding vector for a text snippet (dedup similarity).
  * @param {string} text — keep short (~2000 chars)
  * @returns {Promise<number[]>} embedding vector
+ * @throws when the API key is not configured.
  */
 export async function getEmbedding(text) {
-  if (!GEMINI_CONNECTED) {
-    console.warn(
-      "[gemini] VITE_GEMINI_API_KEY missing — getEmbedding() returning mock vector."
-    );
-    return mockEmbedding(text);
-  }
+  requireKey();
   const res = await fetch(`${EMBED_ENDPOINT}?key=${API_KEY}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -104,12 +104,12 @@ export async function getEmbedding(text) {
 /**
  * Ask Gemini for a structured JSON answer.
  * @param {string} prompt — must instruct JSON-only output
- * @param {any} [fallback=null] — returned in mock mode when provided
  * @returns {Promise<any>} parsed JSON
+ * @throws when the API key is not configured or the response is unparseable.
  */
-export async function generateJSON(prompt, fallback = null) {
-  const { data, mock } = await callGemini(prompt, { jsonMode: true });
-  if (mock && fallback !== null) return fallback;
+export async function generateJSON(prompt) {
+  requireKey();
+  const { data } = await callGemini(prompt, { jsonMode: true });
   if (data === null) {
     throw new Error("Gemini returned unparseable JSON.");
   }
@@ -135,39 +135,4 @@ export function cosineSimilarity(a, b) {
   if (na === 0 || nb === 0) return 0;
   // Clamp: floating error can push slightly outside [-1, 1].
   return Math.min(1, Math.max(0, dot / (Math.sqrt(na) * Math.sqrt(nb))));
-}
-
-/** Deterministic pseudo-embedding — mock only (dev without key). */
-function mockEmbedding(text) {
-  const dims = 64;
-  let h = 2166136261;
-  const out = [];
-  for (let d = 0; d < dims; d++) {
-    h ^= d * 2654435761;
-    for (let i = 0; i < text.length; i += 7) {
-      h = Math.imul(h ^ text.charCodeAt(i + ((d % 7) | 0)), 16777619);
-    }
-    out.push(((h >>> 0) % 2000) / 1000 - 1);
-  }
-  return out;
-}
-
-/**
- * MOCK MODE: canned responses shaped exactly like the real contracts so
- * duplicateCheck.js and paperAnalysis.js work unchanged.
- */
-function mockGeminiResponse(prompt, jsonMode) {
-  const lower = prompt.toLowerCase();
-  let payload;
-  if (lower.includes("duplicate detector") || lower.includes("same question paper")) {
-    payload = MOCK_GEMINI_DUPLICATE_VERDICT;
-  } else {
-    payload = MOCK_GEMINI_ANALYSIS;
-  }
-  const text = JSON.stringify(payload);
-  return Promise.resolve({
-    text,
-    data: jsonMode ? payload : null,
-    mock: true,
-  });
 }

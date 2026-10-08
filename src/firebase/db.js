@@ -1,200 +1,315 @@
 /**
  * PaperVault Firestore data layer. Shapes mirror BACKEND_PLAN.md §3.
  *
- * Everything is currently backed by mock data (src/mock/index.js) so the
- * app runs with zero config. Each function carries a `// TODO: firebase`
- * marker showing the exact Firestore query to swap in.
+ * REAL DATA ONLY — no mock fallback. Firestore is the single source of
+ * truth. When a collection is empty, functions return [] / null and the
+ * UI shows empty states (never fake data, never crashes).
+ *
+ * Query strategy: single-clause Firestore queries + client-side filtering
+ * and sorting. This avoids composite-index errors entirely at this scale.
  */
-import { db, FIREBASE_CONNECTED } from "./config.js";
+import { db } from "./config.js";
 import {
-  subjects as MOCK_SUBJECTS,
-  syllabus as MOCK_SYLLABUS,
-  papers as MOCK_PAPERS,
-  notes as MOCK_NOTES,
-  uploads as MOCK_UPLOADS,
-  requests as MOCK_REQUESTS,
-} from "../mock/index.js";
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp,
+  arrayUnion,
+} from "firebase/firestore";
 
-/** Simulated network latency for mock mode (ms). */
-const MOCK_DELAY = 250;
-const delay = (ms = MOCK_DELAY) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const toRow = (d) => ({ id: d.id, ...d.data() });
 
-/**
- * All active subjects, ordered by primary code.
- * TODO: firebase — query(subjects, where("active","==",true), orderBy("code"))
- */
+/* ------------------------------------------------------------------ */
+/* Subjects (§3.1)                                                     */
+/* ------------------------------------------------------------------ */
+
+/** All active subjects, ordered by primary code. */
 export async function getSubjects() {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return MOCK_SUBJECTS.filter((s) => s.active).sort((a, b) =>
-      a.code.localeCompare(b.code)
-    );
-  }
-  const { collection, query, where, orderBy, getDocs } = await import(
-    "firebase/firestore"
+  const snap = await getDocs(
+    query(collection(db, "subjects"), where("active", "==", true))
   );
-  const q = query(
-    collection(db, "subjects"),
-    where("active", "==", true),
-    orderBy("code")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs
+    .map(toRow)
+    .sort((a, b) => String(a.code ?? "").localeCompare(String(b.code ?? "")));
 }
 
+/** All subjects including inactive (admin). */
+export async function getAllSubjects() {
+  const snap = await getDocs(collection(db, "subjects"));
+  return snap.docs
+    .map(toRow)
+    .sort((a, b) => String(a.code ?? "").localeCompare(String(b.code ?? "")));
+}
+
+/** One subject by id, or null. */
+export async function getSubject(id) {
+  const snap = await getDoc(doc(db, "subjects", id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+/** Create a subject (admin). */
+export async function createSubject({ name, code, codes, program, semester }) {
+  const ref = await addDoc(collection(db, "subjects"), {
+    name,
+    code,
+    codes: codes?.length ? codes : [code],
+    program: program ?? "",
+    semester: semester ?? null,
+    active: true,
+    createdAt: serverTimestamp(),
+  });
+  return { id: ref.id };
+}
+
+/** Update subject fields (admin). */
+export async function updateSubject(id, patch) {
+  await updateDoc(doc(db, "subjects", id), patch);
+}
+
+/** Activate / deactivate a subject (admin). Soft-delete via active flag. */
+export async function setSubjectActive(id, active) {
+  await updateDoc(doc(db, "subjects", id), { active });
+}
+
+/* ------------------------------------------------------------------ */
+/* Syllabus (§3.2A) — doc id = subjectId                               */
+/* ------------------------------------------------------------------ */
+
 /**
- * Get a subject's syllabus (doc id = subjectId).
- * TODO: firebase — doc(db, "syllabus", subjectId)
- * @param {string} subjectId
- * @returns {Promise<Object|null>} { subjectId, modules[], pdfUrl, updatedAt }
+ * @returns {Promise<{subjectId, modules[], pdfUrl, updatedAt}|null>}
  */
 export async function getSyllabus(subjectId) {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return MOCK_SYLLABUS[subjectId] ?? null;
-  }
-  const { doc, getDoc } = await import("firebase/firestore");
   const snap = await getDoc(doc(db, "syllabus", subjectId));
   return snap.exists() ? { subjectId, ...snap.data() } : null;
 }
 
+/** Create/replace a subject's syllabus (admin). */
+export async function saveSyllabus(subjectId, { modules, pdfUrl }) {
+  await setDoc(doc(db, "syllabus", subjectId), {
+    modules: modules ?? [],
+    pdfUrl: pdfUrl ?? "",
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Papers (§3.3)                                                       */
+/* ------------------------------------------------------------------ */
+
 /**
- * Papers for a subject, with optional filters. Approved papers only.
- * TODO: firebase — query(papers, where("subjectId","==",sid),
- *                             where("status","==","approved"),
- *                             orderBy("year","desc"))  ← needs composite index
+ * Approved papers for a subject, with optional filters. Newest first.
  * @param {string} subjectId
- * @param {{year?:number, examType?:string, slot?:string} } [filters]
+ * @param {{year?:number, examType?:string, slot?:string}} [filters]
  */
 export async function getPapers(subjectId, filters = {}) {
   const { year, examType, slot } = filters;
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return MOCK_PAPERS.filter(
+  const snap = await getDocs(
+    query(collection(db, "papers"), where("subjectId", "==", subjectId))
+  );
+  return snap.docs
+    .map(toRow)
+    .filter(
       (p) =>
-        p.subjectId === subjectId &&
         p.status === "approved" &&
         (year ? p.year === year : true) &&
         (examType ? p.examType === examType : true) &&
         (slot ? p.slot === slot : true)
-    ).sort((a, b) => b.year - a.year || b.downloads - a.downloads);
-  }
-  const { collection, query, where, orderBy, getDocs } = await import(
-    "firebase/firestore"
-  );
-  const constraints = [
-    where("subjectId", "==", subjectId),
-    where("status", "==", "approved"),
-    orderBy("year", "desc"),
-  ];
-  if (year) constraints.push(where("year", "==", year));
-  if (examType) constraints.push(where("examType", "==", examType));
-  if (slot) constraints.push(where("slot", "==", slot));
-  const snap = await getDocs(query(collection(db, "papers"), ...constraints));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    )
+    .sort((a, b) => b.year - a.year || (b.downloads ?? 0) - (a.downloads ?? 0));
 }
 
-/**
- * Single paper by id (any status — detail page is public).
- * TODO: firebase — doc(db, "papers", id)
- * @param {string} id
- */
+/** Single paper by id (any status — detail page is public). */
 export async function getPaper(id) {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return MOCK_PAPERS.find((p) => p.id === id) ?? null;
-  }
-  const { doc, getDoc } = await import("firebase/firestore");
   const snap = await getDoc(doc(db, "papers", id));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-/**
- * Notes for a subject, ordered by syllabus module.
- * TODO: firebase — query(notes, where("subjectId","==",sid),
- *                             orderBy("syllabusModule"))  ← composite index
- * @param {string} subjectId
- */
+/** All papers, any status (admin). */
+export async function getAllPapers() {
+  const snap = await getDocs(collection(db, "papers"));
+  return snap.docs
+    .map(toRow)
+    .sort((a, b) => b.year - a.year || (b.downloads ?? 0) - (a.downloads ?? 0));
+}
+
+/** Papers awaiting moderation (admin). */
+export async function getPendingPapers() {
+  const snap = await getDocs(
+    query(collection(db, "papers"), where("status", "==", "pending"))
+  );
+  return snap.docs.map(toRow).sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? 0;
+    return tb - ta;
+  });
+}
+
+/** Create a paper doc (usually status "pending" from uploads). */
+export async function createPaper(data) {
+  const ref = await addDoc(collection(db, "papers"), {
+    ...data,
+    downloads: 0,
+    views: 0,
+    createdAt: serverTimestamp(),
+  });
+  return { id: ref.id };
+}
+
+/** Update paper fields (admin: approve/reject/edit). */
+export async function updatePaper(id, patch) {
+  await updateDoc(doc(db, "papers", id), patch);
+}
+
+/** Delete a paper (admin). */
+export async function deletePaper(id) {
+  await deleteDoc(doc(db, "papers", id));
+}
+
+/** Increment download counter (fire-and-forget safe). */
+export async function bumpDownloads(id) {
+  try {
+    const snap = await getDoc(doc(db, "papers", id));
+    if (snap.exists()) {
+      await updateDoc(doc(db, "papers", id), {
+        downloads: (snap.data().downloads ?? 0) + 1,
+      });
+    }
+  } catch {
+    /* best-effort only */
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Notes (§3.4, admin-only uploads)                                     */
+/* ------------------------------------------------------------------ */
+
+/** Notes for a subject, ordered by syllabus module. */
 export async function getNotes(subjectId) {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return MOCK_NOTES.filter((n) => n.subjectId === subjectId).sort(
-      (a, b) => a.syllabusModule - b.syllabusModule
-    );
-  }
-  const { collection, query, where, orderBy, getDocs } = await import(
-    "firebase/firestore"
+  const snap = await getDocs(
+    query(collection(db, "notes"), where("subjectId", "==", subjectId))
   );
-  const q = query(
-    collection(db, "notes"),
-    where("subjectId", "==", subjectId),
-    orderBy("syllabusModule")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs
+    .map(toRow)
+    .sort((a, b) => (a.syllabusModule ?? 0) - (b.syllabusModule ?? 0));
 }
 
-/**
- * Upload history for one user, newest first (My Uploads page).
- * TODO: firebase — query(uploads, where("userId","==",uid),
- *                             orderBy("createdAt","desc"))  ← composite index
- * @param {string} uid
- */
+/** All notes (admin). */
+export async function getAllNotes() {
+  const snap = await getDocs(collection(db, "notes"));
+  return snap.docs.map(toRow);
+}
+
+/** Create a note (admin). */
+export async function createNote(data) {
+  const ref = await addDoc(collection(db, "notes"), {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+  return { id: ref.id };
+}
+
+/** Delete a note (admin). */
+export async function deleteNote(id) {
+  await deleteDoc(doc(db, "notes", id));
+}
+
+/* ------------------------------------------------------------------ */
+/* Uploads (§3.6 — user upload history)                                 */
+/* ------------------------------------------------------------------ */
+
+/** Upload history for one user, newest first. */
 export async function getMyUploads(uid) {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return MOCK_UPLOADS.filter((u) => u.userId === uid).sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-  }
-  const { collection, query, where, orderBy, getDocs } = await import(
-    "firebase/firestore"
+  const snap = await getDocs(
+    query(collection(db, "uploads"), where("userId", "==", uid))
   );
-  const q = query(
-    collection(db, "uploads"),
-    where("userId", "==", uid),
-    orderBy("createdAt", "desc")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(toRow).sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? 0;
+    return tb - ta;
+  });
 }
 
-/**
- * All paper requests (Request board), newest first.
- * TODO: firebase — query(requests, orderBy("createdAt","desc"))
- */
+/** Record a new upload (status "pending" → moderation queue). */
+export async function createUpload(data) {
+  const ref = await addDoc(collection(db, "uploads"), {
+    ...data,
+    status: "pending",
+    createdAt: serverTimestamp(),
+  });
+  return { id: ref.id };
+}
+
+/* ------------------------------------------------------------------ */
+/* Requests (§3.7 — request board)                                      */
+/* ------------------------------------------------------------------ */
+
+/** All paper requests, newest first. */
 export async function getRequests() {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return [...MOCK_REQUESTS].sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-  }
-  const { collection, query, orderBy, getDocs } = await import(
-    "firebase/firestore"
-  );
   const snap = await getDocs(
     query(collection(db, "requests"), orderBy("createdAt", "desc"))
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(toRow);
 }
 
-/**
- * Submit a report against a paper ("wrong-subject" | "blurry" | "duplicate" | "other").
- * BACKEND_PLAN §3.8.
- * TODO: firebase — addDoc(collection(db, "reports"), {...})
- * @param {{paperId:string, reportedBy:string, reason:string, details?:string}} input
- * @returns {Promise<{id:string}>}
- */
-export async function submitReport({ paperId, reportedBy, reason, details }) {
-  if (!FIREBASE_CONNECTED) {
-    await delay();
-    return { id: `report-mock-${Date.now()}` };
-  }
-  const { collection, addDoc, serverTimestamp } = await import(
-    "firebase/firestore"
+/** Create a request. */
+export async function createRequest({ subjectId, examType, year, uid }) {
+  const ref = await addDoc(collection(db, "requests"), {
+    subjectId,
+    examType,
+    year,
+    requestedBy: [uid],
+    fulfilledBy: null,
+    createdAt: serverTimestamp(),
+  });
+  return { id: ref.id };
+}
+
+/** Upvote a request (adds uid once). */
+export async function upvoteRequest(requestId, uid) {
+  await updateDoc(doc(db, "requests", requestId), {
+    requestedBy: arrayUnion(uid),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Users (§2)                                                          */
+/* ------------------------------------------------------------------ */
+
+/** All users (admin). */
+export async function getUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  return snap.docs.map(toRow);
+}
+
+/** Change a user's role (admin). */
+export async function updateUserRole(uid, role) {
+  await updateDoc(doc(db, "users", uid), { role });
+}
+
+/* ------------------------------------------------------------------ */
+/* Reports (§3.8)                                                      */
+/* ------------------------------------------------------------------ */
+
+/** All reports (admin). */
+export async function getReports() {
+  const snap = await getDocs(
+    query(collection(db, "reports"), orderBy("createdAt", "desc"))
   );
+  return snap.docs.map(toRow);
+}
+
+/** Submit a report against a paper. */
+export async function submitReport({ paperId, reportedBy, reason, details }) {
   const ref = await addDoc(collection(db, "reports"), {
     paperId,
     reportedBy,
@@ -204,4 +319,146 @@ export async function submitReport({ paperId, reportedBy, reason, details }) {
     createdAt: serverTimestamp(),
   });
   return { id: ref.id };
+}
+
+/* ------------------------------------------------------------------ */
+/* Aggregates                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Home-page stat strip — real counts from Firestore. */
+export async function getStats() {
+  const [papersSnap, subjectsSnap, notesSnap] = await Promise.all([
+    getDocs(query(collection(db, "papers"), where("status", "==", "approved"))),
+    getDocs(query(collection(db, "subjects"), where("active", "==", true))),
+    getDocs(collection(db, "notes")),
+  ]);
+  return {
+    papers: papersSnap.size,
+    subjects: subjectsSnap.size,
+    notes: notesSnap.size,
+  };
+}
+
+/** Most-downloaded approved papers (home "trending"). */
+export async function getTrendingPapers(limitN = 6) {
+  const snap = await getDocs(
+    query(collection(db, "papers"), where("status", "==", "approved"))
+  );
+  return snap.docs
+    .map(toRow)
+    .sort((a, b) => (b.downloads ?? 0) - (a.downloads ?? 0))
+    .slice(0, limitN);
+}
+
+/** Course-code / name search over active subjects (client-side). */
+export async function searchSubjects(q) {
+  const queryText = q.trim().toLowerCase();
+  if (!queryText) return [];
+  const subjects = await getSubjects();
+  return subjects.filter(
+    (s) =>
+      s.name?.toLowerCase().includes(queryText) ||
+      s.code?.toLowerCase().includes(queryText) ||
+      (s.codes ?? []).some((c) => c.toLowerCase().includes(queryText))
+  );
+}
+
+/**
+ * Subject detail bundle: subject + syllabus + papers + notes + aggregate
+ * AI stats. Powers the subject page.
+ */
+export async function getSubjectDetail(subjectId) {
+  const [subject, syllabus, papers, notes] = await Promise.all([
+    getSubject(subjectId),
+    getSyllabus(subjectId),
+    getPapers(subjectId),
+    getNotes(subjectId),
+  ]);
+  if (!subject) return null;
+
+  // Aggregate topic percentages across papers' aiAnalysis (subject trend).
+  const topicTotals = {};
+  let paperCount = 0;
+  for (const p of papers) {
+    if (!p.aiAnalysis?.topics?.length) continue;
+    paperCount += 1;
+    for (const t of p.aiAnalysis.topics) {
+      const key = t.module;
+      if (!topicTotals[key]) {
+        topicTotals[key] = {
+          module: t.module,
+          moduleTitle: t.moduleTitle,
+          total: 0,
+          n: 0,
+        };
+      }
+      topicTotals[key].total += t.percentage ?? 0;
+      topicTotals[key].n += 1;
+    }
+  }
+  const aggregateTopics = Object.values(topicTotals)
+    .map((t) => ({
+      module: t.module,
+      moduleTitle: t.moduleTitle,
+      avgPercentage: Math.round(t.total / Math.max(1, t.n)),
+      papersAnalyzed: paperCount,
+    }))
+    .sort((a, b) => b.avgPercentage - a.avgPercentage);
+
+  const years = [...new Set(papers.map((p) => p.year))].sort((a, b) => b - a);
+  const papersByYear = years.map((year) => ({
+    year,
+    papers: papers
+      .filter((p) => p.year === year)
+      .sort((a, b) => (b.downloads ?? 0) - (a.downloads ?? 0)),
+  }));
+
+  return { subject, syllabus, papers, papersByYear, years, notes, aggregateTopics };
+}
+
+/* ------------------------------------------------------------------ */
+/* Chat — chatRooms/{roomId}/messages                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Chat rooms: lobby + one room per active subject.
+ * Derived from Firestore so zero config still yields a working room list.
+ */
+export async function getChatRooms() {
+  const subjects = await getSubjects();
+  return [
+    { id: "lobby", name: "Common Lobby" },
+    ...subjects.map((s) => ({ id: s.id, name: `${s.code} — ${s.name}` })),
+  ];
+}
+
+/** Real-time subscribe to a room's messages. Returns unsubscribe. */
+export function subscribeChatMessages(roomId, cb) {
+  const q = query(
+    collection(db, "chatRooms", roomId, "messages"),
+    orderBy("createdAt", "asc"),
+    limit(200)
+  );
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(toRow), null),
+    (err) => cb([], err)
+  );
+}
+
+/** Send a message to a room. */
+export async function sendChatMessage(roomId, { uid, name, photo, text }) {
+  const ref = await addDoc(collection(db, "chatRooms", roomId, "messages"), {
+    uid,
+    name,
+    photo: photo ?? null,
+    text,
+    createdAt: serverTimestamp(),
+  });
+  return { id: ref.id };
+}
+
+/** Delete a message (own messages / admin). */
+export async function deleteChatMessage(roomId, messageId) {
+  await deleteDoc(doc(db, "chatRooms", roomId, "messages", messageId));
 }

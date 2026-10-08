@@ -1,13 +1,14 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Icon from "../components/Icon.jsx";
 import PaperCard from "../components/PaperCard.jsx";
 import {
-  getPaperById,
-  getPapersBySubject,
-  getSubjectById,
-} from "../mock/index.js";
-// NOTE: mock se seedha import (mock only mode, no Firebase).
+  getPaper,
+  getPapers,
+  getSubject,
+  bumpDownloads,
+  submitReport,
+} from "../firebase/db.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { formatDate } from "../utils/format.js";
 
@@ -50,7 +51,7 @@ function MetaChip({ children, mono = false, accent = false }) {
   );
 }
 
-function ActionButton({ href, onClick, primary = false, children, label }) {
+function ActionButton({ href, onClick, primary = false, disabled = false, children, label }) {
   const cls = primary
     ? "bg-accent text-canvas hover:opacity-90"
     : "border border-hairline text-text hover:border-text-dim";
@@ -70,7 +71,13 @@ function ActionButton({ href, onClick, primary = false, children, label }) {
     );
   }
   return (
-    <button type="button" onClick={onClick} className={`${base} ${cls}`} aria-label={label}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`${base} ${cls} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
+      aria-label={label}
+    >
       {inner}
     </button>
   );
@@ -206,9 +213,7 @@ const REPORT_REASONS = [
   { value: "other", label: "Other" },
 ];
 
-// paperId abhi mock-submit me use nahi hota — Firebase aane pe
-// submitReport({ paperId, ... }) me lagega.
-function ReportPanel({ paperId: _paperId, onClose }) {
+function ReportPanel({ paperId, onClose }) {
   const { user, signIn } = useAuth();
   const [reason, setReason] = useState("wrong-subject");
   const [details, setDetails] = useState("");
@@ -218,11 +223,14 @@ function ReportPanel({ paperId: _paperId, onClose }) {
     e.preventDefault();
     if (!user) return;
     setState("sending");
-    // Mock mode: report ko simulate karo (600ms delay).
-    // Firebase aane pe: await submitReport({ paperId, reportedBy: user.uid,
-    // reason, details: details.trim() }) — firebase/db.js se.
+    // Firestore: reports collection me submit karo.
     try {
-      await new Promise((r) => setTimeout(r, 600));
+      await submitReport({
+        paperId,
+        reportedBy: user.uid,
+        reason,
+        details: details.trim(),
+      });
       setState("done");
     } catch {
       setState("error");
@@ -336,25 +344,86 @@ function ReportPanel({ paperId: _paperId, onClose }) {
 /* ------------------------------------------------------------------ */
 
 export default function PaperDetail({ paperId }) {
-  // Mock mode: paper seedha mock se (synchronous). Firebase aane pe isko
-  // getPaper(paperId) async call me badlo (firebase/db.js).
-  const paper = getPaperById(paperId) ?? null;
+  // Paper Firestore se (async). App.jsx <PaperDetail key={paperId}> se
+  // remount hota hai, phir bhi effect paperId pe re-run hota hai.
+  const [paper, setPaper] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showReport, setShowReport] = useState(false);
-  // App.jsx <PaperDetail key={paperId}> se remount hota hai, isliye lazy
-  // initializer kaafi hai — paperId change pe effect ki zaroorat nahi.
-  const [bookmarked, setBookmarked] = useState(() =>
-    paper ? readBookmarks().includes(paper.id) : false
-  );
+  const [bookmarked, setBookmarked] = useState(false);
   const viewerRef = useRef(null);
 
-  const subject = paper ? getSubjectById(paper.subjectId) : null;
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getPaper(paperId)
+      .then((p) => {
+        if (!cancelled) {
+          setPaper(p);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPaper(null);
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [paperId]);
 
-  const similar = useMemo(() => {
-    if (!paper) return [];
-    return getPapersBySubject(paper.subjectId)
-      .filter((p) => p.id !== paper.id)
-      .sort((a, b) => b.year - a.year || b.downloads - a.downloads)
-      .slice(0, 4);
+  // Bookmark state paper load hone ke baad sync karo.
+  useEffect(() => {
+    setBookmarked(paper ? readBookmarks().includes(paper.id) : false);
+  }, [paper]);
+
+  const [subject, setSubject] = useState(null);
+  useEffect(() => {
+    if (!paper) {
+      setSubject(null);
+      return;
+    }
+    let cancelled = false;
+    getSubject(paper.subjectId)
+      .then((s) => {
+        if (!cancelled) setSubject(s);
+      })
+      .catch(() => {
+        /* subject fail → code fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [paper]);
+
+  const [similar, setSimilar] = useState([]);
+  useEffect(() => {
+    if (!paper) {
+      setSimilar([]);
+      return;
+    }
+    let cancelled = false;
+    getPapers(paper.subjectId)
+      .then((rows) => {
+        if (!cancelled) {
+          setSimilar(
+            rows
+              .filter((p) => p.id !== paper.id)
+              .sort(
+                (a, b) =>
+                  b.year - a.year || (b.downloads ?? 0) - (a.downloads ?? 0)
+              )
+              .slice(0, 4)
+          );
+        }
+      })
+      .catch(() => {
+        /* similar fail → section hide */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [paper]);
 
   function toggleBookmark() {
@@ -373,6 +442,16 @@ export default function PaperDetail({ paperId }) {
 
   function scrollToViewer() {
     viewerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Download: count bump (fire-and-forget), phir fileUrl kholo.
+  function handleDownload(e) {
+    e.preventDefault();
+    if (!paper?.fileUrl) return;
+    bumpDownloads(paper.id).catch(() => {
+      /* count fail → download still opens */
+    });
+    window.open(paper.fileUrl, "_blank", "noopener,noreferrer");
   }
 
   const shareHref = paper
@@ -395,7 +474,9 @@ export default function PaperDetail({ paperId }) {
           </a>
         </div>
 
-        {!paper ? (
+        {loading ? (
+          <p className="pt-10 text-sm text-text-dim">Paper load ho raha hai…</p>
+        ) : !paper ? (
           <div className="mt-4 rounded-xl border border-hairline bg-surface p-8 text-center">
             <p className="font-display text-lg font-bold text-text">
               Paper nahi mila
@@ -462,8 +543,9 @@ export default function PaperDetail({ paperId }) {
                       <Icon name="eye" size={17} />
                     </ActionButton>
                     <ActionButton
-                      href={paper.fileUrl}
+                      onClick={handleDownload}
                       primary
+                      disabled={!paper.fileUrl}
                       label="Download"
                     >
                       <Icon name="download" size={17} />
@@ -576,14 +658,23 @@ export default function PaperDetail({ paperId }) {
                 In-browser PDF viewer yahan aayega — page navigation aur zoom
                 ke saath.
               </p>
-              <a
-                href={paper.fileUrl}
-                download={paper.fileName}
-                className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas md:mt-5 md:px-7 md:py-1"
-              >
-                <Icon name="download" size={16} />
-                PDF download karo
-              </a>
+              {paper.fileUrl && (
+                <a
+                  href={paper.fileUrl}
+                  download={paper.fileName}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    bumpDownloads(paper.id).catch(() => {
+                      /* count fail → download still opens */
+                    });
+                    window.open(paper.fileUrl, "_blank", "noopener,noreferrer");
+                  }}
+                  className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas md:mt-5 md:px-7 md:py-1"
+                >
+                  <Icon name="download" size={16} />
+                  PDF download karo
+                </a>
+              )}
             </div>
 
             {/* AI analysis */}

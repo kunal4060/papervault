@@ -12,8 +12,7 @@
  * can show "Module 3 se Q2, Q5, Q7, Q9 aaye (40%)" instead of vague topics.
  */
 
-import { generateJSON, GEMINI_CONNECTED } from "./gemini.js";
-import { MOCK_GEMINI_ANALYSIS } from "../mock/index.js";
+import { generateJSON } from "./gemini.js";
 
 /**
  * @typedef {object} SyllabusModule
@@ -68,10 +67,8 @@ Return JSON:
   "tip": "one-line study tip" }
 Map EVERY question to a syllabus module. Be precise with question numbers.`;
 
-  const raw = await generateJSON(
-    prompt,
-    GEMINI_CONNECTED ? null : MOCK_GEMINI_ANALYSIS
-  );
+  // Throws an honest error when the key is missing — never fabricates analysis.
+  const raw = await generateJSON(prompt);
   return sanitizeAnalysis(raw, syllabusModules);
 }
 

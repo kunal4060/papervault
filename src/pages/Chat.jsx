@@ -3,18 +3,16 @@
  *
  * Direction A "Archive Noir": dark vault chat. Room rail (mobile chips /
  * desktop sidebar), message pane with auto-scroll, linkified text,
- * attachment chips, @ai mock replies, login-gated send, hover-delete for
- * own messages (mock-local).
+ * login-gated send, delete for own messages.
  *
- * Mock only — powered by src/hooks/useChat.js + src/mock/chat.js.
- * // TODO: firebase — useChat will swap to Firestore real-time.
+ * Live Firestore via src/hooks/useChat.js — real-time messages, no mock.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Icon from "../components/Icon.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useChat } from "../hooks/useChat.js";
-import { chatRooms } from "../mock/index.js";
+import { getChatRooms } from "../firebase/db.js";
 
 /* ------------------------------------------------------------------ */
 /* linkify: http(s) URLs + www. become anchors                          */
@@ -49,9 +47,12 @@ function linkify(text) {
 }
 
 /* ------------------------------------------------------------------ */
-function fmtTime(iso) {
+function fmtTime(v) {
   try {
-    return new Date(iso).toLocaleTimeString("en-IN", {
+    const d =
+      v && typeof v.toDate === "function" ? v.toDate() : new Date(v);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -72,19 +73,17 @@ function initials(name = "?") {
 /* ------------------------------------------------------------------ */
 /* message bubble                                                      */
 /* ------------------------------------------------------------------ */
-function MessageBubble({ msg, isOwn, isAI, onDelete }) {
+function MessageBubble({ msg, isOwn, onDelete }) {
   return (
     <div className="group flex gap-2.5 px-1">
       <div
         className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold ${
-          isAI
-            ? "bg-accent text-canvas"
-            : isOwn
-              ? "bg-surface-plus text-accent"
-              : "bg-surface-plus text-text-dim"
+          isOwn
+            ? "bg-surface-plus text-accent"
+            : "bg-surface-plus text-text-dim"
         }`}
       >
-        {isAI ? <Icon name="spark" size={14} /> : initials(msg.name)}
+        {initials(msg.name)}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -92,11 +91,6 @@ function MessageBubble({ msg, isOwn, isAI, onDelete }) {
           <span className="truncate text-[13px] font-semibold text-text">
             {msg.name}
           </span>
-          {isAI && (
-            <span className="rounded-full border border-accent-dim px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.08em] text-accent">
-              AI
-            </span>
-          )}
           <span className="shrink-0 font-mono text-[10px] text-text-dim">
             {fmtTime(msg.createdAt)}
           </span>
@@ -114,58 +108,45 @@ function MessageBubble({ msg, isOwn, isAI, onDelete }) {
         <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-text">
           {linkify(msg.text)}
         </p>
-
-        {msg.attachments?.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {msg.attachments.map((a, i) => (
-              <span
-                key={i}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-hairline bg-surface px-3 text-sm text-text"
-              >
-                <Icon
-                  name={a.type === "image" ? "image" : "file"}
-                  size={16}
-                  className="shrink-0 text-accent"
-                />
-                <span className="max-w-[180px] truncate font-mono text-xs">
-                  {a.name}
-                </span>
-              </span>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-const AI_REPLIES = [
-  "Mock AI jawab: Ye topic syllabus ke module-wise weightage se match hota hai. Uss paper ka AI analysis kholo — topic breakdown me exact question numbers milenge.",
-  "Mock AI jawab: Chhota summary — pichle 3 saal ke papers me is topic se avg 30–40% questions aaye hain. CAT-2 me Q2/Q5 type questions aksar repeat hote hain. Detail paper page pe milega.",
-];
-
 export default function Chat() {
   const { user, loading: authLoading, signIn } = useAuth();
   const [roomId, setRoomId] = useState("lobby");
-  const { messages, loading, sendMessage } = useChat(roomId);
+  const [rooms, setRooms] = useState([]);
+  const { messages, loading, sendMessage, deleteMessage } = useChat(roomId);
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const [deletedIds, setDeletedIds] = useState(() => new Set());
-  const [aiTyping, setAiTyping] = useState(false);
-  const [attached, setAttached] = useState(null); // {name, type} mock only
-  const [aiExtras, setAiExtras] = useState([]); // mock AI replies in this room
 
   const bottomRef = useRef(null);
 
-  const allVisible = useMemo(() => {
-    const base = messages.filter((m) => !deletedIds.has(m.id));
-    const ai = aiExtras.filter((m) => m.roomId === roomId);
-    return [...base, ...ai].sort(
-      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-    );
-  }, [messages, deletedIds, aiExtras, roomId]);
+  // load rooms: lobby + one per active subject (live Firestore)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await getChatRooms();
+        if (cancelled) return;
+        setRooms(list);
+        // keep selection valid when the list arrives
+        setRoomId((cur) =>
+          list.some((r) => r.id === cur) ? cur : (list[0]?.id ?? "lobby")
+        );
+      } catch (err) {
+        console.error("[Chat] rooms load failed:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Firestore already orders by createdAt asc; copy defensively.
+  const allVisible = useMemo(() => [...messages], [messages]);
 
   // auto-scroll to latest
   useEffect(() => {
@@ -174,7 +155,7 @@ export default function Chat() {
     }
   }, [allVisible.length, loading, roomId]);
 
-  const activeRoom = chatRooms.find((r) => r.id === roomId);
+  const activeRoom = rooms.find((r) => r.id === roomId);
 
   async function handleSend() {
     if (!user || sending) return;
@@ -182,68 +163,21 @@ export default function Chat() {
     if (!text) return;
     setSending(true);
     try {
-      // mock: attachments are stored on a parallel queue keyed by room+text —
-      // useChat's sendMessage takes (text, user) only, so we merge locally
-      // when rendering (see attachFor).
       await sendMessage(text, user);
-      if (attached) {
-        pendingAttachments.push({
-          roomId,
-          text,
-          uid: user.uid,
-          attachments: [
-            { type: attached.type, url: "#", name: attached.name },
-          ],
-        });
-        setAttached(null);
-      }
       setDraft("");
-      if (text.toLowerCase().startsWith("@ai")) {
-        setAiTyping(true);
-        setTimeout(() => {
-          setAiExtras((p) => [
-            ...p,
-            {
-              id: `msg-ai-${Date.now()}`,
-              roomId,
-              uid: "ai-assistant",
-              name: "PaperVault AI",
-              text: AI_REPLIES[
-                Math.floor(Math.random() * AI_REPLIES.length)
-              ],
-              attachments: [],
-              createdAt: new Date().toISOString(),
-            },
-          ]);
-          setAiTyping(false);
-        }, 1000);
-      }
+    } catch (err) {
+      console.error("[Chat] send failed:", err);
     } finally {
       setSending(false);
     }
   }
 
-  // attach mock-sent attachments to the matching mock message
-  function attachFor(m) {
-    if (m.uid === "ai-assistant") return m.attachments;
-    const hit = pendingAttachments.find(
-      (p) => p.roomId === m.roomId && p.text === m.text && p.uid === m.uid
-    );
-    return hit ? hit.attachments : m.attachments;
-  }
-
-  function handleDelete(id) {
-    setDeletedIds((prev) => new Set(prev).add(id));
-  }
-
-  function handleAttach(kind) {
-    if (!user) return;
-    const stamp = new Date().toISOString().slice(11, 16).replace(":", "");
-    setAttached(
-      kind === "image"
-        ? { name: `doubt-${stamp}.png`, type: "image" }
-        : { name: `paper-${stamp}.pdf`, type: "pdf" }
-    );
+  async function handleDelete(id) {
+    try {
+      await deleteMessage(id);
+    } catch (err) {
+      console.error("[Chat] delete failed:", err);
+    }
   }
 
   return (
@@ -257,13 +191,13 @@ export default function Chat() {
           </h1>
         </div>
         <span className="rounded-full border border-hairline bg-surface px-3 py-1 font-mono text-[11px] text-text-dim">
-          {chatRooms.length} rooms
+          {rooms.length} rooms
         </span>
       </div>
 
       {/* room rail (mobile) */}
       <div className="rail -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 lg:hidden">
-        {chatRooms.map((r) => (
+        {rooms.map((r) => (
           <button
             key={r.id}
             onClick={() => setRoomId(r.id)}
@@ -282,7 +216,7 @@ export default function Chat() {
         {/* sidebar (desktop) */}
         <aside className="hidden w-60 shrink-0 flex-col gap-1 lg:flex xl:w-80">
           <p className="micro mb-1 px-2">Rooms</p>
-          {chatRooms.map((r) => (
+          {rooms.map((r) => (
             <button
               key={r.id}
               onClick={() => setRoomId(r.id)}
@@ -295,10 +229,10 @@ export default function Chat() {
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-mono text-[11px] font-bold transition-colors ${
                 roomId === r.id ? "bg-accent text-canvas" : "bg-surface-plus text-text-dim group-hover:text-text"
               }`}>
-                {r.type === "lobby" ? "✦" : r.name.trim()[0]}
+                {r.id === "lobby" ? "✦" : r.name.trim()[0]}
               </span>
               <span className="min-w-0 flex-1 truncate font-medium">{r.name}</span>
-              {r.type === "lobby" && (
+              {r.id === "lobby" && (
                 <span className="micro shrink-0 text-[10px]">All</span>
               )}
             </button>
@@ -306,8 +240,8 @@ export default function Chat() {
           <div className="mt-3 rounded-xl border border-hairline bg-surface p-3.5 lg:p-4">
             <p className="micro mb-1">Tip</p>
             <p className="text-xs leading-relaxed text-text-dim">
-              Type <span className="font-mono text-accent">@ai</span> at the
-              start of a message to ask the AI a doubt.
+              Paper ka link paste karo — automatic clickable ho jayega.
+              Apne messages tum delete kar sakte ho.
             </p>
           </div>
         </aside>
@@ -360,18 +294,11 @@ export default function Chat() {
               allVisible.map((m) => (
                 <MessageBubble
                   key={m.id}
-                  msg={{ ...m, attachments: attachFor(m) }}
-                  isAI={m.uid === "ai-assistant"}
+                  msg={m}
                   isOwn={!!user && m.uid === user.uid}
                   onDelete={handleDelete}
                 />
               ))
-            )}
-            {aiTyping && (
-              <div className="flex items-center gap-2 px-1 text-xs text-text-dim">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-                PaperVault AI is typing…
-              </div>
             )}
             <div ref={bottomRef} />
           </div>
@@ -383,41 +310,7 @@ export default function Chat() {
             </div>
           ) : user ? (
             <div className="border-t border-hairline p-3 lg:p-4">
-              {attached && (
-                <div className="mb-2 inline-flex items-center gap-2 rounded-lg border border-accent-dim bg-accent/10 px-3 py-1.5 text-xs text-accent">
-                  <Icon
-                    name={attached.type === "image" ? "image" : "file"}
-                    size={14}
-                  />
-                  <span className="font-mono">{attached.name}</span>
-                  <button
-                    onClick={() => setAttached(null)}
-                    aria-label="Remove attachment"
-                    className="inline-flex h-6 w-6 items-center justify-center rounded text-accent hover:text-text"
-                  >
-                    <Icon name="close" size={12} />
-                  </button>
-                </div>
-              )}
               <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleAttach("image")}
-                    aria-label="Attach image"
-                    title="Attach image"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-text-dim transition-colors hover:bg-surface-plus hover:text-accent"
-                  >
-                    <Icon name="image" size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleAttach("pdf")}
-                    aria-label="Attach PDF"
-                    title="Attach PDF"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-text-dim transition-colors hover:bg-surface-plus hover:text-accent"
-                  >
-                    <Icon name="paperclip" size={18} />
-                  </button>
-                </div>
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -427,7 +320,7 @@ export default function Chat() {
                       handleSend();
                     }
                   }}
-                  placeholder="@ai doubt poochho ya message likho…"
+                  placeholder="Doubt poochho ya message likho…"
                   className="min-h-[44px] flex-1 rounded-lg border border-hairline bg-canvas px-3 text-sm text-text placeholder:text-text-dim/60 focus:border-accent-dim focus:outline-none"
                 />
                 <button
@@ -463,9 +356,3 @@ export default function Chat() {
     </div>
   );
 }
-
-/**
- * Mock-local attachment store (module scope, like useChat's sentMessages).
- * Shape: { roomId, text, uid, attachments[] }
- */
-const pendingAttachments = [];

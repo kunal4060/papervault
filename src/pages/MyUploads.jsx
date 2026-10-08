@@ -6,13 +6,13 @@
  * StatusChip, reason text for rejected, "View paper" for approved,
  * "Re-upload" for rejected (pre-fills the /upload form).
  *
- * Mock only: reads from uploadsStore.js (localStorage), seeded with one
- * pending / approved / rejected record.
+ * Mock removed: reads live from the `uploads` collection in Firestore
+ * (getMyUploads) — empty collection → clean empty state, never fake data.
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
-import { subjects } from "../mock/index.js";
+import { getMyUploads, getSubjects } from "../firebase/db.js";
 import Icon from "../components/Icon.jsx";
 import {
   Button,
@@ -20,21 +20,34 @@ import {
   LoginGate,
   StatusChip,
 } from "../components/atoms.jsx";
-import {
-  loadUploads,
-  stashReuploadDraft,
-} from "./uploadsStore.js";
+import { stashReuploadDraft } from "./reuploadDraft.js";
 
-function formatDate(iso) {
+/** Firestore Timestamp or ISO string → Date. */
+function toDate(v) {
+  if (!v) return null;
+  if (typeof v.toDate === "function") {
+    try {
+      return v.toDate();
+    } catch {
+      return null;
+    }
+  }
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatDate(v) {
+  const d = toDate(v);
+  if (!d) return "";
   try {
     return new Intl.DateTimeFormat("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric",
       timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
+    }).format(d);
   } catch {
-    return iso?.slice(0, 10) || "";
+    return "";
   }
 }
 
@@ -44,11 +57,7 @@ function formatSize(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function subjectName(id) {
-  return subjects.find((s) => s.id === id)?.name || "Unknown subject";
-}
-
-function UploadRow({ upload }) {
+function UploadRow({ upload, subject }) {
   const rejected = upload.status === "rejected";
   const approved = upload.status === "approved";
 
@@ -60,7 +69,7 @@ function UploadRow({ upload }) {
             {upload.fileName}
           </p>
           <p className="mt-1 text-xs text-text-dim">
-            {subjectName(upload.subjectId)} ·{" "}
+            {subject?.name || "Unknown subject"} ·{" "}
             <span className="font-mono">{upload.subjectCode}</span>
           </p>
         </div>
@@ -120,7 +129,7 @@ function UploadRow({ upload }) {
           <Button
             className="!min-h-[40px] !px-4 !text-[13px]"
             onClick={() => {
-              stashReuploadDraft(upload.id);
+              stashReuploadDraft(upload);
               window.location.hash = "#upload";
             }}
           >
@@ -136,9 +145,34 @@ function UploadRow({ upload }) {
 export default function MyUploads() {
   const { user, loading, signIn } = useAuth();
   const [uploads, setUploads] = useState([]);
+  const [subjectMap, setSubjectMap] = useState(new Map());
+  const [listLoading, setListLoading] = useState(true);
 
   useEffect(() => {
-    if (user) setUploads(loadUploads());
+    if (!user) {
+      setListLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setListLoading(true);
+    (async () => {
+      try {
+        const [rows, subs] = await Promise.all([
+          getMyUploads(user.uid),
+          getSubjects(),
+        ]);
+        if (cancelled) return;
+        setUploads(rows);
+        setSubjectMap(new Map(subs.map((s) => [s.id, s])));
+      } catch (err) {
+        console.error("[MyUploads] load failed:", err);
+      } finally {
+        if (!cancelled) setListLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   if (loading) {
@@ -177,7 +211,11 @@ export default function MyUploads() {
         </Button>
       </div>
 
-      {uploads.length === 0 ? (
+      {listLoading ? (
+        <div className="py-20 text-center">
+          <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-hairline border-t-accent" />
+        </div>
+      ) : uploads.length === 0 ? (
         <Card className="p-10 text-center lg:mx-auto lg:max-w-md lg:p-12">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-canvas text-text-dim">
             <Icon name="file" size={22} />
@@ -199,7 +237,7 @@ export default function MyUploads() {
       ) : (
         <div className="space-y-3.5 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {uploads.map((u) => (
-            <UploadRow key={u.id} upload={u} />
+            <UploadRow key={u.id} upload={u} subject={subjectMap.get(u.subjectId)} />
           ))}
         </div>
       )}

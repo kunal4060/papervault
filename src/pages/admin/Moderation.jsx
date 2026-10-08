@@ -1,17 +1,16 @@
 /**
  * PaperVault — Admin Moderation queue (Direction A "Archive Noir").
- * 100% original. Mobile-first. Mock data only.
+ * 100% original. Mobile-first. Live Firestore data — no mock seeds.
  * Route: #/admin/moderation
  *
  * Har row: PDF placeholder, metadata, uploader, AI verdict text,
  * Approve / Reject (reason select + custom input).
  *
- * // TODO: firebase — pending queue: query(papers,
- * //   where("status","==","pending"), orderBy("createdAt")).
- * // Approve → setDoc status "approved"; Reject → status "rejected" +
- * // rejectReason. AI verdict src/ai/duplicate.js se aata hai.
+ * Pending queue: query(papers, where("status","==","pending")).
+ * Approve → updatePaper status "approved"; Reject → status "rejected"
+ * + rejectionReason.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AdminShell, CodeChip, EmptyState, IcoDoc, IcoCheck, IcoX } from "./adminUi.jsx";
 import {
   Button,
@@ -22,74 +21,22 @@ import {
   TextArea,
   FieldLabel,
 } from "../../components/atoms.jsx";
-import { getSubjectById, getPaperById } from "../../mock/index.js";
+import { getPendingPapers, getAllSubjects, updatePaper } from "../../firebase/db.js";
 import { formatDate } from "../../utils/format.js";
-
-// ---- mock pending uploads (Paper interface §3.3 + AI verdict §5) ------------
-const seedPending = [
-  {
-    id: "upload-p1",
-    subjectId: "subj-ai",
-    subjectCode: "CSE3002",
-    examType: "CAT-2",
-    year: 2025,
-    slot: "F1",
-    faculty: "Dr. S. Rao",
-    fileName: "CSE3002_CAT-2_2025_F1.pdf",
-    fileUrl: "#",
-    uploaderName: "Aarav Mehta",
-    createdAt: "2026-10-07T14:20:00.000Z",
-    aiVerdict: {
-      duplicate: false,
-      confidence: 0.94,
-      reason:
-        "Questions and marks differ from all existing CSE3002 papers — looks unique.",
-    },
-  },
-  {
-    id: "upload-p2",
-    subjectId: "subj-dsa",
-    subjectCode: "CSE2001",
-    examType: "CAT-1",
-    year: 2024,
-    slot: "B2",
-    faculty: "",
-    fileName: "CSE2001_CAT-1_2024_B2.pdf",
-    fileUrl: "#",
-    uploaderName: "Priya Nair",
-    createdAt: "2026-10-07T11:02:00.000Z",
-    aiVerdict: {
-      duplicate: true,
-      confidence: 0.91,
-      duplicateOf: "paper-003",
-      reason:
-        "Text matches an existing CSE2001 CAT-1 2024 paper (91%) — likely the same paper, different scan.",
-    },
-  },
-  {
-    id: "upload-p3",
-    subjectId: "subj-coa",
-    subjectCode: "CSA2001",
-    examType: "FAT",
-    year: 2023,
-    slot: "G1",
-    faculty: "Prof. K. Menon",
-    fileName: "CSA2001_FAT_2023_G1.pdf",
-    fileUrl: "#",
-    uploaderName: "Rohan Verma",
-    createdAt: "2026-10-06T18:45:00.000Z",
-    aiVerdict: {
-      duplicate: false,
-      confidence: 0.78,
-      reason:
-        "File parsed fine, but topic mix (stacks/queues) matches DSA more than COA — subject verify karo before approving.",
-    },
-  },
-];
 
 const REJECT_REASONS = ["Duplicate", "Unreadable", "Wrong subject", "Other"];
 
 function VerdictBox({ verdict }) {
+  if (!verdict) {
+    return (
+      <div className="rounded-[10px] border border-hairline bg-surface-plus px-3.5 py-3">
+        <MicroLabel>AI verdict</MicroLabel>
+        <p className="mt-1 text-sm text-text-dim">
+          Is upload ke liye AI verdict available nahi hai.
+        </p>
+      </div>
+    );
+  }
   return (
     <div
       className={`rounded-[10px] border px-3.5 py-3 ${
@@ -100,30 +47,39 @@ function VerdictBox({ verdict }) {
     >
       <div className="flex items-center justify-between gap-2">
         <MicroLabel>AI verdict</MicroLabel>
-        <span className="font-mono text-[11px] text-text-dim tabular-nums">
-          {Math.round(verdict.confidence * 100)}% confident
-        </span>
+        {verdict.confidence != null && (
+          <span className="font-mono text-[11px] text-text-dim tabular-nums">
+            {Math.round(verdict.confidence * 100)}% confident
+          </span>
+        )}
       </div>
       <p className="mt-1 text-sm text-text">{verdict.reason}</p>
       {verdict.duplicate && verdict.duplicateOf && (
         <p className="mt-1.5 text-xs text-text-dim">
           Possible duplicate of:{" "}
-          <span className="font-mono text-brick">
-            {getPaperById(verdict.duplicateOf)?.fileName ?? verdict.duplicateOf}
-          </span>
+          <span className="font-mono text-brick">{verdict.duplicateOf}</span>
         </p>
       )}
     </div>
   );
 }
 
-function QueueRow({ item, onApprove, onReject }) {
+function QueueRow({ item, subjectName, onApprove, onReject }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState(REJECT_REASONS[0]);
   const [custom, setCustom] = useState("");
-  const subject = getSubjectById(item.subjectId);
+  const [busy, setBusy] = useState(false);
 
   const submitted = formatDate(item.createdAt);
+
+  const doApprove = async () => {
+    setBusy(true);
+    await onApprove(item.id);
+  };
+  const doReject = async () => {
+    setBusy(true);
+    await onReject(item.id, reason, custom);
+  };
 
   return (
     <Card className="p-4 md:p-5">
@@ -136,22 +92,23 @@ function QueueRow({ item, onApprove, onReject }) {
 
         <div className="min-w-0 flex-1">
           <p className="truncate font-mono text-sm font-semibold text-text">
-            {item.fileName}
+            {item.fileName ?? item.id}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-text-dim">
-            <CodeChip>{item.subjectCode}</CodeChip>
+            <CodeChip>{item.subjectCode ?? "—"}</CodeChip>
             <Badge tone={item.examType === "FAT" ? "amber" : "moss"}>
-              {item.examType}
+              {item.examType ?? "—"}
             </Badge>
-            <span className="font-mono tabular-nums">{item.year}</span>
-            <span className="font-mono">Slot {item.slot}</span>
+            <span className="font-mono tabular-nums">{item.year ?? "—"}</span>
+            {item.slot && <span className="font-mono">Slot {item.slot}</span>}
           </div>
           <p className="mt-1.5 truncate text-xs text-text-dim">
-            {subject?.name ?? "—"}
+            {subjectName ?? "—"}
             {item.faculty ? ` · ${item.faculty}` : ""}
           </p>
           <p className="mt-0.5 text-xs text-text-dim">
-            Uploader: <span className="font-medium text-text">{item.uploaderName}</span>{" "}
+            Uploader:{" "}
+            <span className="font-medium text-text">{item.uploaderName ?? "—"}</span>{" "}
             · {submitted}
           </p>
         </div>
@@ -166,15 +123,17 @@ function QueueRow({ item, onApprove, onReject }) {
           <Button
             variant="primary"
             className="flex-1"
-            onClick={() => onApprove(item.id)}
+            onClick={doApprove}
+            disabled={busy}
           >
             <IcoCheck className="h-4 w-4" />
-            Approve
+            {busy ? "Saving…" : "Approve"}
           </Button>
           <Button
             variant="danger"
             className="flex-1"
             onClick={() => setRejecting(true)}
+            disabled={busy}
           >
             <IcoX className="h-4 w-4" />
             Reject
@@ -210,15 +169,12 @@ function QueueRow({ item, onApprove, onReject }) {
               variant="secondary"
               className="flex-1"
               onClick={() => setRejecting(false)}
+              disabled={busy}
             >
               Cancel
             </Button>
-            <Button
-              variant="danger"
-              className="flex-1"
-              onClick={() => onReject(item.id, reason, custom)}
-            >
-              Confirm reject
+            <Button variant="danger" className="flex-1" onClick={doReject} disabled={busy}>
+              {busy ? "Saving…" : "Confirm reject"}
             </Button>
           </div>
         </div>
@@ -228,26 +184,76 @@ function QueueRow({ item, onApprove, onReject }) {
 }
 
 export default function Moderation() {
-  const [queue, setQueue] = useState(seedPending);
+  const [queue, setQueue] = useState([]);
+  const [subjectMap, setSubjectMap] = useState({});
   const [done, setDone] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleApprove = (id) => {
-    const item = queue.find((q) => q.id === id);
-    setQueue((q) => q.filter((x) => x.id !== id));
-    setDone((d) => [{ id, label: `${item.fileName} — approved, ab live hai.`, ok: true }, ...d]);
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [pending, subjects] = await Promise.all([
+        getPendingPapers(),
+        getAllSubjects(),
+      ]);
+      setQueue(pending);
+      const map = {};
+      subjects.forEach((s) => {
+        map[s.id] = s.name;
+      });
+      setSubjectMap(map);
+    } catch (e) {
+      setError(
+        e?.message
+          ? `Moderation queue load nahi hui: ${e.message}`
+          : "Moderation queue load nahi hui."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id, reason, custom) => {
-    const item = queue.find((q) => q.id === id);
-    setQueue((q) => q.filter((x) => x.id !== id));
-    setDone((d) => [
-      {
-        id,
-        label: `${item.fileName} — rejected (${reason})${custom ? `: ${custom}` : ""}.`,
-        ok: false,
-      },
-      ...d,
-    ]);
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleApprove = async (id) => {
+    try {
+      await updatePaper(id, { status: "approved" });
+      const item = queue.find((q) => q.id === id);
+      setQueue((q) => q.filter((x) => x.id !== id));
+      setDone((d) => [
+        { id, label: `${item?.fileName ?? id} — approved, ab live hai.`, ok: true },
+        ...d,
+      ]);
+    } catch (e) {
+      setError(
+        e?.message ? `Approve nahi hua: ${e.message}` : "Approve nahi hua."
+      );
+    }
+  };
+
+  const handleReject = async (id, reason, custom) => {
+    try {
+      const fullReason = custom.trim() ? `${reason} — ${custom.trim()}` : reason;
+      await updatePaper(id, { status: "rejected", rejectionReason: fullReason });
+      const item = queue.find((q) => q.id === id);
+      setQueue((q) => q.filter((x) => x.id !== id));
+      setDone((d) => [
+        {
+          id,
+          label: `${item?.fileName ?? id} — rejected (${fullReason}).`,
+          ok: false,
+        },
+        ...d,
+      ]);
+    } catch (e) {
+      setError(
+        e?.message ? `Reject nahi hua: ${e.message}` : "Reject nahi hua."
+      );
+    }
   };
 
   return (
@@ -257,6 +263,12 @@ export default function Moderation() {
       subtitle="Pending uploads — AI verdict ke saath approve/reject karo"
       badge={queue.length}
     >
+      {error && (
+        <div className="mb-4 rounded-[10px] border border-brick/40 bg-brick/5 px-4 py-3 text-sm text-brick">
+          {error}
+        </div>
+      )}
+
       {done.length > 0 && (
         <div className="mb-4 space-y-2">
           {done.map((d) => (
@@ -274,7 +286,9 @@ export default function Moderation() {
         </div>
       )}
 
-      {queue.length === 0 ? (
+      {loading ? (
+        <p className="py-10 text-center text-sm text-text-dim">Loading…</p>
+      ) : queue.length === 0 ? (
         <EmptyState
           icon={<IcoCheck className="h-8 w-8" />}
           title="Queue clear hai"
@@ -286,6 +300,7 @@ export default function Moderation() {
             <QueueRow
               key={item.id}
               item={item}
+              subjectName={subjectMap[item.subjectId]}
               onApprove={handleApprove}
               onReject={handleReject}
             />

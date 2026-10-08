@@ -99,19 +99,31 @@ export async function checkDuplicate(req) {
     return { isDuplicate: false, reason: "Unique — pehla paper hai." };
   }
 
-  const queryVec = await getEmbedding(textSample);
+  // Embedding step is key-gated: getEmbedding() throws when no key.
+  // On any embedding failure we skip to the metadata-only branch below —
+  // we never fabricate similarity scores.
+  let queryVec = null;
+  try {
+    queryVec = await getEmbedding(textSample);
+  } catch (err) {
+    console.warn("[duplicateCheck] embedding step skipped:", err.message);
+  }
+
   let best = null;
   let bestSim = -1;
-  for (const p of pool) {
-    if (!p.textEmbedding?.length) continue;
-    const sim = cosineSimilarity(queryVec, p.textEmbedding);
-    if (sim > bestSim) {
-      bestSim = sim;
-      best = p;
+  if (queryVec) {
+    for (const p of pool) {
+      if (!p.textEmbedding?.length) continue;
+      const sim = cosineSimilarity(queryVec, p.textEmbedding);
+      if (sim > bestSim) {
+        bestSim = sim;
+        best = p;
+      }
     }
   }
 
-  // No stored embeddings (e.g. legacy papers) → fall back to metadata only.
+  // No embedding available (no key / embed error) or no stored embeddings
+  // (e.g. legacy papers) → fall back to metadata only.
   if (!best) {
     if (metaCandidates.length > 0) {
       const c = metaCandidates[0];
@@ -168,6 +180,13 @@ export async function checkDuplicate(req) {
  * @returns {Promise<{duplicate:boolean, reason:string}>}
  */
 async function geminiVerdict(textB, candidate) {
+  // Without a key there is no AI check — flag honestly for manual review.
+  if (!GEMINI_CONNECTED) {
+    return {
+      duplicate: false,
+      reason: "AI check unavailable — manual review ke liye bheja gaya.",
+    };
+  }
   const textA = (candidate.textSample || "").slice(0, 2000);
   const prompt = `You are a duplicate detector for university question papers.
 Paper A (existing): """${textA}"""
@@ -176,11 +195,7 @@ Are these the SAME question paper? Consider: same questions, same order,
 same marks = duplicate. Different year/exam with different questions = not duplicate.
 Reply in JSON: {"duplicate": true/false, "reason": "one line"}`;
 
-  const fallback = {
-    duplicate: false,
-    reason: "mock mode — manual review recommended",
-  };
-  const out = await generateJSON(prompt, GEMINI_CONNECTED ? null : fallback);
+  const out = await generateJSON(prompt);
 
   return {
     duplicate: Boolean(out.duplicate),

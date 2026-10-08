@@ -1,15 +1,14 @@
 /**
  * PaperVault — Admin Subjects (Direction A "Archive Noir").
- * 100% original. Mobile-first. Mock data only.
+ * 100% original. Mobile-first. Live Firestore data — no mock seeds.
  * Route: #/admin/subjects
  *
  * Table (name, code, codes[], program, semester, active) +
  * new subject form (name, code, codes[], program, semester).
  *
- * // TODO: firebase — collection("subjects"): addDoc for new,
- * // updateDoc for edit/deactivate. Code unique check server-side.
+ * collection("subjects"): addDoc for new, updateDoc for activate/deactivate.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AdminShell, CodeChip } from "./adminUi.jsx";
 import {
   Button,
@@ -19,12 +18,20 @@ import {
   FieldLabel,
   Badge,
 } from "../../components/atoms.jsx";
-import { subjects as seedSubjects } from "../../mock/index.js";
+import {
+  getAllSubjects,
+  getAllPapers,
+  createSubject,
+  setSubjectActive,
+} from "../../firebase/db.js";
 
 const PROGRAMS = ["B.Tech CSE", "B.Tech (All Branches)"];
 
 export default function Subjects() {
-  const [rows, setRows] = useState(seedSubjects);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(null);
   const [form, setForm] = useState({
     name: "",
     code: "",
@@ -36,10 +43,52 @@ export default function Subjects() {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const toggleActive = (id) =>
-    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, active: !r.active } : r)));
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [subjects, papers] = await Promise.all([
+        getAllSubjects(),
+        getAllPapers(),
+      ]);
+      const counts = {};
+      papers.forEach((p) => {
+        if (p.subjectId) counts[p.subjectId] = (counts[p.subjectId] ?? 0) + 1;
+      });
+      setRows(subjects.map((s) => ({ ...s, paperCount: counts[s.id] ?? 0 })));
+    } catch (e) {
+      setError(
+        e?.message ? `Subjects load nahi hue: ${e.message}` : "Subjects load nahi hue."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const addSubject = () => {
+  useEffect(() => {
+    load();
+  }, []);
+
+  const toggleActive = async (id) => {
+    const row = rows.find((r) => r.id === id);
+    if (!row) return;
+    setToggling(id);
+    setError("");
+    try {
+      await setSubjectActive(id, !row.active);
+      setRows((rs) =>
+        rs.map((r) => (r.id === id ? { ...r, active: !r.active } : r))
+      );
+    } catch (e) {
+      setError(
+        e?.message ? `Status update nahi hua: ${e.message}` : "Status update nahi hua."
+      );
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  const addSubject = async () => {
     const name = form.name.trim();
     const code = form.code.trim().toUpperCase();
     const codes = form.codes
@@ -51,26 +100,29 @@ export default function Subjects() {
       return;
     }
     if (!codes.includes(code)) codes.unshift(code);
-    if (rows.some((r) => r.codes.some((c) => codes.includes(c)))) {
+    if (rows.some((r) => (r.codes ?? []).some((c) => codes.includes(c)))) {
       setError("Ye code pehle se kisi subject me hai.");
       return;
     }
-    setRows((rs) => [
-      {
-        id: `subj-${Date.now()}`,
+    setSaving(true);
+    setError("");
+    try {
+      await createSubject({
         name,
         code,
         codes,
         program: form.program,
         semester: Number(form.semester) || 1,
-        active: true,
-        paperCount: 0,
-        createdAt: new Date().toISOString(),
-      },
-      ...rs,
-    ]);
-    setForm({ name: "", code: "", codes: "", program: PROGRAMS[0], semester: "1" });
-    setError("");
+      });
+      setForm({ name: "", code: "", codes: "", program: PROGRAMS[0], semester: "1" });
+      await load();
+    } catch (e) {
+      setError(
+        e?.message ? `Subject add nahi hua: ${e.message}` : "Subject add nahi hua."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -144,72 +196,85 @@ export default function Subjects() {
           </div>
         </div>
         {error && <p className="mt-2 text-sm text-brick">{error}</p>}
-        <Button className="mt-3 w-full md:w-auto" onClick={addSubject}>
-          Add subject
+        <Button className="mt-3 w-full md:w-auto" onClick={addSubject} disabled={saving}>
+          {saving ? "Adding…" : "Add subject"}
         </Button>
       </Card>
 
-      <div className="mt-4 overflow-x-auto rounded-[12px] border border-hairline bg-surface">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-hairline">
-              {["Subject", "Codes", "Program", "Sem", "Status", ""].map((h) => (
-                <th
-                  key={h}
-                  className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-dim"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-hairline">
-            {rows.map((s) => (
-              <tr key={s.id} className={!s.active ? "opacity-50" : ""}>
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-text">{s.name}</div>
-                  <div className="mt-0.5 font-mono text-xs text-text-dim">
-                    {s.paperCount} papers
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    <CodeChip>{s.code}</CodeChip>
-                    {s.codes
-                      .filter((c) => c !== s.code)
-                      .map((c) => (
-                        <span
-                          key={c}
-                          className="inline-flex items-center rounded-[6px] border border-hairline px-1.5 py-0.5 font-mono text-[11px] text-text-dim"
-                        >
-                          {c}
-                        </span>
-                      ))}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-xs text-text-dim">{s.program}</td>
-                <td className="px-4 py-3 font-mono text-xs text-text tabular-nums">
-                  {s.semester}
-                </td>
-                <td className="px-4 py-3">
-                  <Badge tone={s.active ? "moss" : "brick"}>
-                    {s.active ? "Active" : "Hidden"}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    onClick={() => toggleActive(s.id)}
-                    className="min-h-[44px] rounded-[8px] px-3 text-xs font-semibold text-text-dim underline-offset-2 hover:text-text hover:underline"
+      {loading ? (
+        <p className="py-10 text-center text-sm text-text-dim">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim">
+          Abhi koi subject nahi hai — upar form se pehla subject banao.
+        </p>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-[12px] border border-hairline bg-surface">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-hairline">
+                {["Subject", "Codes", "Program", "Sem", "Status", ""].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-dim"
                   >
-                    {s.active ? "Deactivate" : "Activate"}
-                  </button>
-                </td>
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-hairline">
+              {rows.map((s) => (
+                <tr key={s.id} className={!s.active ? "opacity-50" : ""}>
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-text">{s.name}</div>
+                    <div className="mt-0.5 font-mono text-xs text-text-dim">
+                      {s.paperCount} papers
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      <CodeChip>{s.code}</CodeChip>
+                      {(s.codes ?? [])
+                        .filter((c) => c !== s.code)
+                        .map((c) => (
+                          <span
+                            key={c}
+                            className="inline-flex items-center rounded-[6px] border border-hairline px-1.5 py-0.5 font-mono text-[11px] text-text-dim"
+                          >
+                            {c}
+                          </span>
+                        ))}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-text-dim">{s.program}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-text tabular-nums">
+                    {s.semester}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge tone={s.active ? "moss" : "brick"}>
+                      {s.active ? "Active" : "Hidden"}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleActive(s.id)}
+                      disabled={toggling === s.id}
+                      className="min-h-[44px] rounded-[8px] px-3 text-xs font-semibold text-text-dim underline-offset-2 hover:text-text hover:underline disabled:opacity-50"
+                    >
+                      {toggling === s.id
+                        ? "Saving…"
+                        : s.active
+                          ? "Deactivate"
+                          : "Activate"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </AdminShell>
   );
 }

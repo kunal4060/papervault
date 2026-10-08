@@ -8,19 +8,20 @@
  * (PDF only, ≤25MB).
  *
  * Submit → animated pipeline (Hash → Metadata → Similarity → AI verdict,
- * §4 flow) via checkDuplicate (src/ai/duplicateCheck.js — AI Logic agent's;
- * mock mode safe). 3 outcomes:
+ * §4 flow) via checkDuplicate (src/ai/duplicateCheck.js — hash + metadata
+ * only when no Gemini key, honest "manual review" fallback). 3 outcomes:
  *   ✅ unique  → PENDING_REVIEW "review me bheja" + My Uploads link
  *   ❌ duplicate → DUPLICATE_EXACT / DUPLICATE_SIMILAR + existing paper link
  *   ⚠️ error   → BACKEND_PLAN §7 error codes + retry
  *
- * Mock only: upload record is saved to localStorage (uploadsStore.js).
+ * Live data: subjects + approved papers from Firestore, PDF upload to
+ * Firebase Storage, upload record via createUpload() (status: pending).
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
-import { subjects } from "../mock/index.js";
-import { papers as mockPapers } from "../mock/index.js";
+import { getSubjects, getPapers, createUpload } from "../firebase/db.js";
+import { uploadPaperPDF } from "../firebase/storage.js";
 import { checkDuplicate } from "../ai/duplicateCheck.js";
 import { sha256Hex } from "../utils/fileHash.js";
 import { extractText } from "../utils/pdfText.js";
@@ -36,12 +37,8 @@ import {
   ProgressSteps,
   LoginGate,
   OutcomeIcon,
-  StatusChip,
 } from "../components/atoms.jsx";
-import {
-  saveUpload,
-  consumeReuploadDraft,
-} from "./uploadsStore.js";
+import { consumeReuploadDraft } from "./reuploadDraft.js";
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25MB (BACKEND_PLAN §7 FILE_TOO_LARGE)
 const CURRENT_YEAR = 2026;
@@ -58,19 +55,20 @@ const PIPE_STEPS = [
 /* ------------------------- Subject code combobox ------------------------- */
 
 /** One flat option per course code: "CSE3002 — Artificial Intelligence". */
-function codeOptions() {
+function codeOptions(list) {
   const out = [];
-  for (const s of subjects.filter((x) => x.active)) {
-    for (const c of s.codes) out.push({ code: c, subject: s });
+  for (const s of list || []) {
+    const codes = (s.codes && s.codes.length ? s.codes : [s.code]).filter(Boolean);
+    for (const c of codes) out.push({ code: c, subject: s });
   }
   return out.sort((a, b) => a.code.localeCompare(b.code));
 }
 
-function SubjectCombobox({ value, onChange, error }) {
+function SubjectCombobox({ value, onChange, error, options, loading }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const wrapRef = useRef(null);
-  const all = useMemo(() => codeOptions(), []);
+  const all = useMemo(() => codeOptions(options), [options]);
 
   const selected = all.find((o) => o.code === value) || null;
 
@@ -132,7 +130,12 @@ function SubjectCombobox({ value, onChange, error }) {
             />
           </div>
           <ul role="listbox" className="max-h-60 overflow-y-auto p-1.5">
-            {filtered.length === 0 && (
+            {loading && (
+              <li className="px-3 py-6 text-center text-sm text-text-dim">
+                Subjects load ho rahe hain…
+              </li>
+            )}
+            {!loading && filtered.length === 0 && (
               <li className="px-3 py-6 text-center text-sm text-text-dim">
                 Koi subject nahi mila. Dusra code try karo.
               </li>
@@ -273,6 +276,27 @@ export default function Upload() {
   const [fail, setFail] = useState(null); // { code, message }
   const cancelled = useRef(false);
 
+  // live subjects from Firestore
+  const [subjectsList, setSubjectsList] = useState([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelledLoad = false;
+    (async () => {
+      try {
+        const subs = await getSubjects();
+        if (!cancelledLoad) setSubjectsList(subs);
+      } catch (err) {
+        console.error("[Upload] subjects load failed:", err);
+      } finally {
+        if (!cancelledLoad) setSubjectsLoading(false);
+      }
+    })();
+    return () => {
+      cancelledLoad = true;
+    };
+  }, []);
+
   // re-upload draft (from MyUploads "Re-upload")
   useEffect(() => {
     const draft = consumeReuploadDraft();
@@ -292,14 +316,24 @@ export default function Upload() {
 
   const selectedSubject = useMemo(() => {
     if (!code) return null;
-    return subjects.find((s) => s.codes.includes(code)) || null;
-  }, [code]);
+    return (
+      subjectsList.find((s) => {
+        const codes = (s.codes && s.codes.length ? s.codes : [s.code]).filter(Boolean);
+        return codes.includes(code);
+      }) || null
+    );
+  }, [code, subjectsList]);
 
   /* ------------------------------- validation ------------------------------ */
   function validate(nextFile = file) {
     const e = {};
     if (!code) e.code = "Subject select karo.";
-    else if (!subjects.some((s) => s.codes.includes(code)))
+    else if (
+      !subjectsList.some((s) => {
+        const codes = (s.codes && s.codes.length ? s.codes : [s.code]).filter(Boolean);
+        return codes.includes(code);
+      })
+    )
       e.code = "Ye course code kisi subject me nahi hai.";
     if (!examType) e.examType = "Exam type select karo.";
     if (!year) e.year = "Year select karo.";
@@ -350,17 +384,16 @@ export default function Upload() {
 
       // Step 3 — AI verdict (checkDuplicate: hash → metadata → embedding → Gemini)
       setStep(3);
-      const existingPapers = mockPapers
-        .filter((p) => p.subjectId === selectedSubject.id && p.status === "approved")
-        .map((p) => ({
-          id: p.id,
-          fileHash: p.fileHash,
-          subjectId: p.subjectId,
-          examType: p.examType,
-          year: p.year,
-          slot: p.slot,
-          title: `${p.subjectCode} ${p.examType} ${p.year} (${p.slot})`,
-        }));
+      const approved = await getPapers(selectedSubject.id);
+      const existingPapers = approved.map((p) => ({
+        id: p.id,
+        fileHash: p.fileHash,
+        subjectId: p.subjectId,
+        examType: p.examType,
+        year: p.year,
+        slot: p.slot,
+        title: p.title || `${p.subjectCode || ""} ${p.examType} ${p.year} (${p.slot})`,
+      }));
 
       const res = await checkDuplicate({
         fileHash,
@@ -381,21 +414,35 @@ export default function Upload() {
       if (res.isDuplicate) {
         setPhase("duplicate");
       } else {
-        // Unique → PENDING_REVIEW (§7): mock save as pending upload
-        saveUpload({
-          userId: user?.uid || "mock-user",
-          fileName: name,
-          subjectId: selectedSubject.id,
-          subjectCode: code,
-          examType,
-          year: Number(year),
-          slot: slotClean,
-          faculty: faculty.trim(),
-          status: "pending",
-          reason: null,
-          duplicateOf: null,
-          fileSize: file.size,
-        });
+        // Unique → upload PDF to Storage, then record as pending review (§7)
+        try {
+          const { url: fileUrl } = await uploadPaperPDF(file, code, name);
+          if (cancelled.current) return;
+          await createUpload({
+            userId: user.uid,
+            fileName: name,
+            subjectId: selectedSubject.id,
+            subjectCode: code,
+            examType,
+            year: Number(year),
+            slot: slotClean,
+            faculty: faculty.trim(),
+            fileHash,
+            fileUrl,
+            fileSize: file.size,
+            textSample,
+          });
+        } catch (upErr) {
+          if (cancelled.current) return;
+          console.error("[Upload] storage/createUpload failed:", upErr);
+          setFail({
+            code: "UPLOAD_FAILED",
+            message:
+              "Paper unique tha, lekin Storage me upload nahi ho paya. Internet check karke dobara try karo.",
+          });
+          setPhase("error");
+          return;
+        }
         setPhase("success");
       }
     } catch (err) {
@@ -480,7 +527,13 @@ export default function Upload() {
           )}
 
           <FieldLabel label="Subject (course code)" error={errors.code}>
-            <SubjectCombobox value={code} onChange={(c) => { setCode(c); setErrors((p) => ({ ...p, code: undefined })); }} error={errors.code} />
+            <SubjectCombobox
+              value={code}
+              onChange={(c) => { setCode(c); setErrors((p) => ({ ...p, code: undefined })); }}
+              error={errors.code}
+              options={subjectsList}
+              loading={subjectsLoading}
+            />
           </FieldLabel>
 
           <FieldLabel label="Exam type" error={errors.examType}>

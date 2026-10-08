@@ -1,22 +1,18 @@
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import SearchHero from "../components/SearchHero.jsx";
 import SubjectCard from "../components/SubjectCard.jsx";
 import {
   SectionHeading,
   PaperRow,
-  AiInsightCard,
   ExamCountdown,
   StatStrip,
   HowItWorks,
   UploadCta,
   Footer,
 } from "../components/sections.jsx";
-import {
-  subjects,
-  getTrendingPapers,
-  getStats,
-  MOCK_GEMINI_ANALYSIS,
-} from "../mock/index.js";
+import { useSubjects } from "../hooks/useSubjects.js";
+import { getStats, getTrendingPapers } from "../firebase/db.js";
 
 // TODO: firebase — exam dates Firestore academic-calendar se aayenge.
 function nextCountdown() {
@@ -47,16 +43,48 @@ function handleSearch(q, exam) {
 }
 
 export default function Home() {
-  const stats = getStats();
-  const trending = getTrendingPapers().slice(0, 6);
-  const popular = subjects.filter((s) => s.active).slice(0, 8);
+  const { data: subjects } = useSubjects();
+  const [stats, setStats] = useState(null);
+  const [trending, setTrending] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getStats()
+      .then((s) => {
+        if (!cancelled) setStats(s);
+      })
+      .catch(() => {
+        /* stats fail → zeros dikhenge, crash nahi */
+      });
+    getTrendingPapers(6)
+      .then((rows) => {
+        if (!cancelled) {
+          setTrending(
+            rows.map((p) => ({ ...p, downloads: p.downloads ?? 0 }))
+          );
+          setTrendingLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setTrendingLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const popular = useMemo(
+    () => subjects.map((s) => ({ ...s, codes: s.codes ?? [] })).slice(0, 8),
+    [subjects]
+  );
 
   return (
     <div className="min-h-screen bg-canvas text-text">
       <Navbar />
       <main>
         <SearchHero onSearch={handleSearch} />
-        <StatStrip stats={stats} />
+        <StatStrip stats={stats ?? { papers: 0, subjects: 0, notes: 0 }} />
 
         <div className="mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
           <div className="py-6 md:py-8">
@@ -82,15 +110,17 @@ export default function Home() {
 
           <section className="py-6 md:py-10">
             <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
-            <div className="rounded-xl border border-hairline bg-surface px-4 md:px-5 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
-              {trending.map((p) => (
-                <PaperRow key={p.id} paper={p} />
-              ))}
-            </div>
-          </section>
-
-          <section className="py-6 md:py-10">
-            <AiInsightCard insight={MOCK_GEMINI_ANALYSIS} />
+            {!trendingLoading && trending.length === 0 ? (
+              <p className="rounded-xl border border-hairline bg-surface px-4 py-8 text-center text-sm text-text-dim">
+                Abhi koi trending paper nahi hai — pehle papers upload karo.
+              </p>
+            ) : (
+              <div className="rounded-xl border border-hairline bg-surface px-4 md:px-5 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
+                {trending.map((p) => (
+                  <PaperRow key={p.id} paper={p} />
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="py-6 md:py-10">

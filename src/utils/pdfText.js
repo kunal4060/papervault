@@ -1,9 +1,8 @@
 /**
  * PaperVault PDF text extraction (upload flow §4 step 4).
  *
- * Tries real pdf.js first (dynamic import — no hard dependency); falls back
- * to deterministic mock text so the duplicate-check pipeline stays testable
- * without pdf.js installed.
+ * Tries real pdf.js first (dynamic import — no hard dependency); returns an
+ * empty string when extraction fails. Never fabricates text.
  *
  * To enable real extraction: `npm install pdfjs-dist`
  */
@@ -12,7 +11,7 @@
  * Extract up to `maxChars` characters of text from a PDF file.
  * @param {File} file — the uploaded PDF
  * @param {number} [maxChars=2000]
- * @returns {Promise<string>} extracted text
+ * @returns {Promise<string>} extracted text ("" when extraction fails)
  */
 export async function extractText(file, maxChars = 2000) {
   try {
@@ -35,11 +34,12 @@ export async function extractText(file, maxChars = 2000) {
     await pdf.destroy().catch(() => {});
     const text = out.replace(/\s+/g, " ").trim().slice(0, maxChars);
     if (text.length > 50) return text;
-    // Scanned PDF with no text layer → fall through to mock below.
-  } catch {
-    // pdfjs-dist not installed or parse failed — mock keeps pipeline alive.
+    // Scanned PDF with no text layer → report and fall through.
+  } catch (err) {
+    console.warn("[pdfText] extraction failed:", err?.message || err);
   }
-  return mockText(file, maxChars);
+  console.warn("[pdfText] no text extracted");
+  return "";
 }
 
 /**
@@ -50,20 +50,4 @@ export async function extractText(file, maxChars = 2000) {
  */
 export async function extractFullText(file, maxChars = 12000) {
   return extractText(file, maxChars);
-}
-
-/** Deterministic mock text — dev/demo only. */
-async function mockText(file, maxChars) {
-  const name = (file.name || "paper.pdf").replace(/\.pdf$/i, "");
-  const sample = [
-    `VIT-AP University — ${name}`,
-    "Q1. (a) Define an intelligent agent and describe its structure. (b) Compare BFS and DFS with examples. [10 marks]",
-    "Q2. (a) Solve the 8-puzzle using A* search. Show the open and closed lists. (b) Explain minimax with alpha-beta pruning. [10 marks]",
-    "Q3. (a) Convert the following to first-order logic. (b) Prove by resolution. [10 marks]",
-    "Q4. (a) Explain overfitting and two ways to reduce it. (b) Differentiate regression and classification. [10 marks]",
-    "Q5. (a) Describe the perceptron learning rule. (b) Backpropagation: derive the weight update. [10 marks]",
-  ].join("\n");
-  await new Promise((r) => setTimeout(r, 150)); // simulate async work
-  console.warn("[pdfText] using mock text — install pdfjs-dist for real extraction.");
-  return sample.slice(0, maxChars);
 }

@@ -1,15 +1,10 @@
-// TODO: firebase — add real keys to .env
-//
-// PaperVault Firebase connection file. When Tim creates the Firebase
-// project and drops the web-app config into `.env`, flip FIREBASE_CONNECTED
-// to true (it is derived automatically from the env vars below).
-//
-// Steps (one-time, Firebase console):
-//   console.firebase.google.com → Add project "papervault" →
-//   Auth: enable Google sign-in → Firestore: create database (asia-south1) →
-//   Storage: get started (asia-south1) → Project settings → Add web app →
-//   copy the config values into .env (see .env.example in repo root).
-
+/**
+ * PaperVault Firebase connection.
+ *
+ * Connected to project "papervault-a2179" (asia-south1).
+ * Config comes from `.env` (VITE_FIREBASE_*). FIREBASE_CONNECTED is true
+ * when real keys are present — the app runs on live Firestore only.
+ */
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -29,17 +24,13 @@ export const FIREBASE_CONNECTED = Boolean(
   firebaseConfig.apiKey && firebaseConfig.projectId
 );
 
-let app = null;
-if (FIREBASE_CONNECTED) {
-  // TODO: firebase — real init. This path runs only with real .env keys.
-  app = initializeApp(firebaseConfig);
-}
+const app = initializeApp(firebaseConfig);
 
-/** Firebase Auth instance (null in mock mode). */
-export const auth = app ? getAuth(app) : null;
-/** Google sign-in provider (null in mock mode). */
-export const googleProvider = app ? new GoogleAuthProvider() : null;
-/** Firestore instance (null in mock mode). */
-export const db = app ? getFirestore(app) : null;
-/** Firebase Storage instance (null in mock mode). */
-export const storage = app ? getStorage(app) : null;
+/** Firebase Auth instance. */
+export const auth = getAuth(app);
+/** Google sign-in provider. */
+export const googleProvider = new GoogleAuthProvider();
+/** Firestore instance. */
+export const db = getFirestore(app);
+/** Firebase Storage instance. */
+export const storage = getStorage(app);

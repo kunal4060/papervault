@@ -2,65 +2,45 @@
  * PaperVault — Request Board page (`/requests`).
  *
  * Direction A "Archive Noir": dark request cards with mono course codes,
- * exam chips, "I want this too" upvote (local, mock), "Request a paper"
+ * exam chips, "I want this too" upvote (live Firestore), "Request a paper"
  * form, and moss "Available" chips for fulfilled requests.
  *
- * Mock only — data lives in this file (mirrors BACKEND_PLAN.md §3.7
- * PaperRequest). Not in src/mock/ per worker constraints.
- * // TODO: firebase — swap for `requests` collection queries.
+ * Live data: `requests` collection via getRequests/createRequest/
+ * upvoteRequest; subject names via getSubjects (real-only, no mock).
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Icon from "../components/Icon.jsx";
 import { useAuth } from "../hooks/useAuth.js";
-import { subjects, getSubjectById } from "../mock/index.js";
+import {
+  getRequests,
+  createRequest,
+  upvoteRequest,
+  getSubjects,
+} from "../firebase/db.js";
 
 const EXAMS = ["CAT-1", "CAT-2", "FAT", "Lab FAT"];
 const YEARS = [2026, 2025, 2024, 2023, 2022, 2021];
 
-/** Seed requests — shape mirrors BACKEND_PLAN §3.7. */
-const SEED_REQUESTS = [
-  {
-    id: "req-1",
-    subjectId: "subj-os",
-    examType: "FAT",
-    year: 2024,
-    requestedBy: ["user-mock-2", "user-mock-3", "user-mock-4", "user-mock-5", "user-mock-6", "user-mock-7"],
-    fulfilledBy: null,
-    createdAt: "2026-10-05T10:12:00.000Z",
-  },
-  {
-    id: "req-2",
-    subjectId: "subj-dsa",
-    examType: "CAT-2",
-    year: 2025,
-    requestedBy: ["user-mock-3", "user-mock-8", "user-mock-9"],
-    fulfilledBy: null,
-    createdAt: "2026-10-06T14:40:00.000Z",
-  },
-  {
-    id: "req-3",
-    subjectId: "subj-ai",
-    examType: "FAT",
-    year: 2023,
-    requestedBy: ["user-mock-2", "user-mock-3"],
-    fulfilledBy: "paper-mock-11",
-    createdAt: "2026-09-28T09:02:00.000Z",
-  },
-  {
-    id: "req-4",
-    subjectId: "subj-dms",
-    examType: "CAT-1",
-    year: 2025,
-    requestedBy: ["user-mock-5"],
-    fulfilledBy: null,
-    createdAt: "2026-10-07T08:20:00.000Z",
-  },
-];
+/** Firestore Timestamp or ISO string → Date. */
+function toDate(v) {
+  if (!v) return null;
+  if (typeof v.toDate === "function") {
+    try {
+      return v.toDate();
+    } catch {
+      return null;
+    }
+  }
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 
-function fmtDate(iso) {
+function fmtDate(v) {
+  const d = toDate(v);
+  if (!d) return "";
   try {
-    return new Date(iso).toLocaleDateString("en-IN", {
+    return d.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -70,9 +50,8 @@ function fmtDate(iso) {
   }
 }
 
-function RequestCard({ req, hasUpvoted, canUpvote, onUpvote, onLogin }) {
-  const subject = getSubjectById(req.subjectId);
-  const count = req.requestedBy.length;
+function RequestCard({ req, subject, hasUpvoted, canUpvote, onUpvote, onLogin }) {
+  const count = (req.requestedBy ?? []).length;
   const fulfilled = !!req.fulfilledBy;
 
   return (
@@ -144,45 +123,106 @@ function RequestCard({ req, hasUpvoted, canUpvote, onUpvote, onLogin }) {
 
 export default function Requests() {
   const { user, signIn } = useAuth();
-  const [requests, setRequests] = useState(SEED_REQUESTS);
+  const [requests, setRequests] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [upvoted, setUpvoted] = useState(() => new Set());
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState("");
 
   // form state
-  const activeSubjects = useMemo(
-    () => subjects.filter((s) => s.active),
-    []
-  );
-  const [formSubject, setFormSubject] = useState(activeSubjects[0]?.id ?? "");
+  const activeSubjects = useMemo(() => subjects.filter((s) => s.active), [subjects]);
+  const [formSubject, setFormSubject] = useState("");
   const [formExam, setFormExam] = useState("CAT-2");
   const [formYear, setFormYear] = useState(2026);
+  const defaultSubjectSet = useRef(false);
 
-  function handleUpvote(id) {
+  // load requests + subjects
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [rows, subs] = await Promise.all([getRequests(), getSubjects()]);
+        if (cancelled) return;
+        setRequests(rows);
+        setSubjects(subs);
+        const first = subs.filter((s) => s.active)[0];
+        if (first && !defaultSubjectSet.current) {
+          defaultSubjectSet.current = true;
+          setFormSubject(first.id);
+        }
+        // already-upvoted: uid already present in requestedBy
+        if (user) {
+          setUpvoted(
+            new Set(
+              rows
+                .filter((r) => (r.requestedBy ?? []).includes(user.uid))
+                .map((r) => r.id)
+            )
+          );
+        }
+      } catch (err) {
+        console.error("[Requests] load failed:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const subjectMap = useMemo(
+    () => new Map(subjects.map((s) => [s.id, s])),
+    [subjects]
+  );
+
+  async function handleUpvote(id) {
     if (!user || upvoted.has(id)) return;
+    try {
+      await upvoteRequest(id, user.uid);
+    } catch (err) {
+      console.error("[Requests] upvote failed:", err);
+      return;
+    }
     setRequests((prev) =>
       prev.map((r) =>
         r.id === id
-          ? { ...r, requestedBy: [...r.requestedBy, user.uid] }
+          ? { ...r, requestedBy: [...(r.requestedBy ?? []), user.uid] }
           : r
       )
     );
     setUpvoted((prev) => new Set(prev).add(id));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!user) return;
-    const newReq = {
-      id: `req-mock-${Date.now()}`,
-      subjectId: formSubject,
-      examType: formExam,
-      year: formYear,
-      requestedBy: [user.uid],
-      fulfilledBy: null,
-      createdAt: new Date().toISOString(),
-    };
-    setRequests((prev) => [newReq, ...prev]);
-    setShowForm(false);
+    if (!user || !formSubject) return;
+    setFormError("");
+    try {
+      const { id } = await createRequest({
+        subjectId: formSubject,
+        examType: formExam,
+        year: formYear,
+        uid: user.uid,
+      });
+      const newReq = {
+        id,
+        subjectId: formSubject,
+        examType: formExam,
+        year: formYear,
+        requestedBy: [user.uid],
+        fulfilledBy: null,
+        createdAt: new Date().toISOString(),
+      };
+      setRequests((prev) => [newReq, ...prev]);
+      setUpvoted((prev) => new Set(prev).add(id));
+      setShowForm(false);
+    } catch (err) {
+      console.error("[Requests] create failed:", err);
+      setFormError("Request submit nahi hui. Internet check karke dobara try karo.");
+    }
   }
 
   const openCount = requests.filter((r) => !r.fulfilledBy).length;
@@ -227,6 +267,7 @@ export default function Requests() {
             onChange={(e) => setFormSubject(e.target.value)}
             className="min-h-[44px] w-full rounded-lg border border-hairline bg-canvas px-3 text-sm text-text focus:border-accent-dim focus:outline-none"
           >
+            <option value="">Select…</option>
             {activeSubjects.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.code} — {s.name}
@@ -272,9 +313,14 @@ export default function Requests() {
             ))}
           </div>
 
+          {formError && (
+            <p className="mt-3 text-xs font-medium text-brick">{formError}</p>
+          )}
+
           <button
             type="submit"
-            className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-canvas transition-all duration-200 hover:-translate-y-px hover:bg-[#FFBE4D] sm:w-auto sm:px-6 lg:mt-5"
+            disabled={!formSubject}
+            className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-canvas transition-all duration-200 hover:-translate-y-px hover:bg-[#FFBE4D] disabled:opacity-40 sm:w-auto sm:px-6 lg:mt-5"
           >
             <Icon name="send" size={15} />
             Submit request
@@ -307,18 +353,37 @@ export default function Requests() {
             newest first
           </p>
         </div>
-        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:gap-5 xl:grid-cols-3">
-          {requests.map((r) => (
-            <RequestCard
-              key={r.id}
-              req={r}
-              hasUpvoted={upvoted.has(r.id)}
-              canUpvote={!!user}
-              onUpvote={handleUpvote}
-              onLogin={signIn}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="py-16 text-center">
+            <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-hairline border-t-accent" />
+          </div>
+        ) : requests.length === 0 ? (
+          <div className="mx-auto max-w-md rounded-xl border border-hairline bg-surface p-10 text-center lg:p-12">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-canvas text-text-dim">
+              <Icon name="send" size={22} />
+            </div>
+            <h2 className="font-display text-lg font-bold text-text">
+              Abhi koi request nahi hai
+            </h2>
+            <p className="mx-auto mt-2 max-w-xs text-sm text-text-dim">
+              Pehli request banao — koi upload karega to tumhe pata chal jayega.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:gap-5 xl:grid-cols-3">
+            {requests.map((r) => (
+              <RequestCard
+                key={r.id}
+                req={r}
+                subject={subjectMap.get(r.subjectId)}
+                hasUpvoted={upvoted.has(r.id)}
+                canUpvote={!!user}
+                onUpvote={handleUpvote}
+                onLogin={signIn}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

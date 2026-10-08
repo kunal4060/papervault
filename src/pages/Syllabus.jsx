@@ -8,18 +8,12 @@
  *
  * Order (fixed, §3.2A): 1) Syllabus PDF card → 2) Module 1→N accordions →
  * 3) each module's notes → 4) AI % per module ("kidhar se zyada questions").
- *
- * // TODO: firebase — data already comes through firebase/db.js (mock-backed
- * // until FIREBASE_CONNECTED). useSyllabus(subjectId) returns syllabus + notes.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import { useSyllabus } from "../hooks/useSyllabus.js";
-import {
-  subjects,
-  getSubjectById,
-  getSubjectDetail,
-} from "../mock/index.js";
+import { useSubjects } from "../hooks/useSubjects.js";
+import { getSubject, getSubjectDetail } from "../firebase/db.js";
 import {
   Button,
   Card,
@@ -32,19 +26,20 @@ import { IcoDoc, IcoDownload, IcoEye, IcoChevron, IcoArrowLeft, IcoAlert } from 
 // ------------------------------------------------------- subject list ---
 function SubjectList({ onOpen }) {
   const [q, setQ] = useState("");
+  // Subjects Firestore se (useSubjects hook) — active, code-wise sorted.
+  const { data: rawSubjects, loading } = useSubjects();
   const list = useMemo(() => {
     const query = q.trim().toLowerCase();
-    return subjects
-      .filter((s) => s.active)
+    return rawSubjects
       .filter(
         (s) =>
           !query ||
-          s.name.toLowerCase().includes(query) ||
-          s.code.toLowerCase().includes(query) ||
-          s.codes.some((c) => c.toLowerCase().includes(query))
+          (s.name ?? "").toLowerCase().includes(query) ||
+          (s.code ?? "").toLowerCase().includes(query) ||
+          (s.codes ?? []).some((c) => c.toLowerCase().includes(query))
       )
-      .sort((a, b) => a.code.localeCompare(b.code));
-  }, [q]);
+      .sort((a, b) => String(a.code ?? "").localeCompare(String(b.code ?? "")));
+  }, [q, rawSubjects]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10 lg:max-w-7xl xl:max-w-[1400px]">
@@ -67,28 +62,35 @@ function SubjectList({ onOpen }) {
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-2.5 md:mt-6 lg:grid-cols-2 lg:gap-3 xl:grid-cols-3">
-        {list.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onOpen(s.id)}
-            className="flex w-full items-center gap-3 rounded-[12px] border border-hairline bg-surface px-4 py-3.5 text-left transition-colors hover:border-text-dim/60 hover:bg-surface-plus md:gap-4 md:px-5 md:py-4"
-          >
-            <span className="shrink-0 rounded-[6px] border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-sm font-bold text-accent">
-              {s.code}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-text">
-                {s.name}
+        {loading && (
+          <p className="text-sm text-text-dim">Subjects load ho rahe hain…</p>
+        )}
+        {!loading &&
+          list.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => onOpen(s.id)}
+              className="flex w-full items-center gap-3 rounded-[12px] border border-hairline bg-surface px-4 py-3.5 text-left transition-colors hover:border-text-dim/60 hover:bg-surface-plus md:gap-4 md:px-5 md:py-4"
+            >
+              <span className="shrink-0 rounded-[6px] border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-sm font-bold text-accent">
+                {s.code}
               </span>
-              <span className="mt-0.5 block truncate font-mono text-[11px] text-text-dim">
-                {s.codes.join(" · ")} · {s.paperCount} papers
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-text">
+                  {s.name}
+                </span>
+                <span className="mt-0.5 block truncate font-mono text-[11px] text-text-dim">
+                  {(s.codes ?? []).join(" · ")}
+                  {s.paperCount != null
+                    ? ` · ${s.paperCount} papers`
+                    : ""}
+                </span>
               </span>
-            </span>
-            <IcoChevron className="h-4 w-4 -rotate-90 shrink-0 text-text-dim" />
-          </button>
-        ))}
-        {list.length === 0 && (
+              <IcoChevron className="h-4 w-4 -rotate-90 shrink-0 text-text-dim" />
+            </button>
+          ))}
+        {!loading && list.length === 0 && (
           <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim lg:col-span-2">
             Koi subject nahi mila. Code check karke dobara try karo.
           </p>
@@ -238,7 +240,7 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
           {/* topics */}
           <MicroLabel>Topics</MicroLabel>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {module.topics.map((t) => (
+            {(module.topics ?? []).map((t) => (
               <span
                 key={t}
                 className="rounded-full border border-hairline px-2.5 py-1 text-xs text-text-dim"
@@ -269,11 +271,35 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
 
 // ------------------------------------------------------- subject detail ---
 function SubjectDetail({ subjectId, onBack }) {
-  const subject = getSubjectById(subjectId);
-  const { syllabus, notes, loading } = useSyllabus(subjectId);
+  // Subject Firestore se (getSubject — inactive = not found).
+  const [subject, setSubject] = useState(null);
+  const [subjectLoading, setSubjectLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setSubjectLoading(true);
+    getSubject(subjectId)
+      .then((s) => {
+        if (!cancelled) {
+          setSubject(s && s.active !== false ? s : null);
+          setSubjectLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSubject(null);
+          setSubjectLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectId]);
+
+  // Syllabus + notes: useSyllabus hook (Firestore-backed).
+  const { syllabus, notes, loading: sylLoading } = useSyllabus(subjectId);
   const [openModule, setOpenModule] = useState(1);
 
-  // notes grouped by module (from the hook — firebase-backed when connected)
+  // notes grouped by module (from the hook — firebase-backed)
   const notesByModule = useMemo(() => {
     const map = {};
     for (const n of notes) {
@@ -282,15 +308,30 @@ function SubjectDetail({ subjectId, onBack }) {
     return map;
   }, [notes]);
 
-  // AI % per module: aggregate of papers' analyses (mock: getSubjectDetail)
-  const aiByModule = useMemo(() => {
-    const detail = getSubjectDetail(subjectId);
-    const map = {};
-    for (const t of detail?.aggregateTopics ?? []) map[t.module] = t.avgPercentage;
-    return map;
+  // AI % per module: aggregate of papers' analyses (Firestore getSubjectDetail).
+  const [aiByModule, setAiByModule] = useState({});
+  useEffect(() => {
+    let cancelled = false;
+    getSubjectDetail(subjectId)
+      .then((detail) => {
+        if (cancelled) return;
+        const map = {};
+        for (const t of detail?.aggregateTopics ?? []) {
+          map[t.module] = t.avgPercentage;
+        }
+        setAiByModule(map);
+      })
+      .catch(() => {
+        /* AI % fail → modules still render, section hides gracefully */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [subjectId]);
 
-  if (!subject) {
+  const loading = subjectLoading || sylLoading;
+
+  if (!loading && !subject) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 text-center">
         <p className="text-text-dim">Subject nahi mila.</p>
@@ -335,7 +376,7 @@ function SubjectDetail({ subjectId, onBack }) {
                 {subject.name}
               </h1>
               <p className="mt-1 font-mono text-xs text-text-dim md:mt-2">
-                {subject.codes.join(" · ")} · Sem {subject.semester} ·{" "}
+                {(subject.codes ?? []).join(" · ")} · Sem {subject.semester} ·{" "}
                 {subject.program}
               </p>
             </div>
