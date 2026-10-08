@@ -2,8 +2,8 @@
  * PaperVault Firebase connection.
  *
  * Connected to project "papervault-a2179" (asia-south1).
- * Config comes from `.env` (VITE_FIREBASE_*). FIREBASE_CONNECTED is true
- * when real keys are present — the app runs on live Firestore only.
+ * The Firebase WEB config is PUBLIC by design (Google docs) — safe to ship
+ * in client code. Env vars override when present (local dev).
  */
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
@@ -11,15 +11,23 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyALYbrMfJnIudaBuqIGGkrN5oGhbKtj9_Q",
+  authDomain:
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
+    "papervault-a2179.firebaseapp.com",
+  projectId:
+    import.meta.env.VITE_FIREBASE_PROJECT_ID || "papervault-a2179",
+  storageBucket:
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    "papervault-a2179.firebasestorage.app",
+  messagingSenderId:
+    import.meta.env.VITE_FIREBASE_SENDER_ID || "949347290161",
+  appId:
+    import.meta.env.VITE_FIREBASE_APP_ID ||
+    "1:949347290161:web:8404160dcbb9239f6a9910",
 };
 
-/** True only when real config is present in `.env`. */
+/** Always true — app runs on live Firestore only (no mock fallback). */
 export const FIREBASE_CONNECTED = Boolean(
   firebaseConfig.apiKey && firebaseConfig.projectId
 );
