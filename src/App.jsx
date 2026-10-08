@@ -14,6 +14,8 @@ import SyllabusManager from "./pages/admin/SyllabusManager.jsx";
 import NotesManager from "./pages/admin/NotesManager.jsx";
 import PapersManager from "./pages/admin/PapersManager.jsx";
 import Users from "./pages/admin/Users.jsx";
+import AdminLogin from "./pages/admin/Login.jsx";
+import { isAdminLoggedIn, adminLogout } from "./pages/admin/adminAuth.js";
 
 /**
  * PaperVault — tiny hash router (no dependency).
@@ -72,6 +74,10 @@ export default function App() {
   if (head === "chat") return <Chat />;
 
   if (head === "admin") {
+    // Admin login gate — mock credentials: admin / admin
+    if (!isAdminLoggedIn()) {
+      return <AdminLogin onSuccess={() => setRoute(parseHash())} />;
+    }
     const sub = rest[0] ?? "";
     if (sub === "moderation") return <Moderation />;
     if (sub === "subjects") return <Subjects />;
@@ -79,6 +85,11 @@ export default function App() {
     if (sub === "notes") return <NotesManager />;
     if (sub === "papers") return <PapersManager />;
     if (sub === "users") return <Users />;
+    if (sub === "logout") {
+      adminLogout();
+      window.location.hash = "#/";
+      return null;
+    }
     return <Dashboard />;
   }
 

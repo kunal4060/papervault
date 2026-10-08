@@ -161,6 +161,12 @@ export function AdminShell({ active, title, subtitle, badge, children }) {
                 </a>
               );
             })}
+            <a
+              href="#/admin/logout"
+              className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border border-hairline px-4 text-sm font-medium text-text-dim transition-colors hover:border-brick hover:text-brick md:rounded-[10px] md:px-4"
+            >
+              Logout
+            </a>
           </nav>
           <div className="mt-6 min-w-0 md:mt-0">{children}</div>
         </div>
