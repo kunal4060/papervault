@@ -3,7 +3,7 @@ import Icon from "./Icon.jsx";
 
 const chips = ["All", "CAT-1", "CAT-2", "FAT"];
 
-// TODO: onSearch → navigate to /papers?q=...&exam=... (router)
+// Search hero — onSearch(q, exam) parent (Home) me wired hai.
 export default function SearchHero({ onSearch }) {
   const [q, setQ] = useState("");
   const [exam, setExam] = useState("All");

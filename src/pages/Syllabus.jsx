@@ -13,6 +13,7 @@
  * // until FIREBASE_CONNECTED). useSyllabus(subjectId) returns syllabus + notes.
  */
 import { useMemo, useState } from "react";
+import Navbar from "../components/Navbar.jsx";
 import { useSyllabus } from "../hooks/useSyllabus.js";
 import {
   subjects,
@@ -369,17 +370,25 @@ function SubjectDetail({ subjectId, onBack }) {
 }
 
 // ------------------------------------------------------------------ page ---
-export default function Syllabus({ subjectId: initialSubjectId }) {
-  const [selected, setSelected] = useState(initialSubjectId ?? null);
+export default function Syllabus({ subjectId }) {
+  // subjectId seedha URL se aata hai (App.jsx) — koi local state nahi.
+  // SubjectList click → hash change → App re-render → naya subjectId.
+  const openSubject = (id) => {
+    window.location.hash = `#/syllabus/${id}`;
+  };
+
   return (
     <div className="min-h-screen bg-canvas text-text">
-      {selected ? (
+      <Navbar />
+      {subjectId ? (
         <SubjectDetail
-          subjectId={selected}
-          onBack={() => setSelected(null)}
+          subjectId={subjectId}
+          onBack={() => {
+            window.location.hash = "#/syllabus";
+          }}
         />
       ) : (
-        <SubjectList onOpen={setSelected} />
+        <SubjectList onOpen={openSubject} />
       )}
     </div>
   );

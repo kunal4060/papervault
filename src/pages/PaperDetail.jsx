@@ -209,10 +209,10 @@ const REPORT_REASONS = [
 // paperId abhi mock-submit me use nahi hota — Firebase aane pe
 // submitReport({ paperId, ... }) me lagega.
 function ReportPanel({ paperId: _paperId, onClose }) {
-  const { user } = useAuth();
+  const { user, signIn } = useAuth();
   const [reason, setReason] = useState("wrong-subject");
   const [details, setDetails] = useState("");
-  const [state, setState] = useState("idle"); // idle | sending | done | error
+  const [state, setState] = useState("idle"); // idle | sending | done | error | signing-in
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -268,12 +268,21 @@ function ReportPanel({ paperId: _paperId, onClose }) {
           <p className="text-sm text-text-dim">
             Report karne ke liye login zaroori hai.
           </p>
-          <a
-            href="#login"
-            className="mt-3 inline-flex min-h-[44px] items-center rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas"
+          <button
+            type="button"
+            disabled={state === "signing-in"}
+            onClick={async () => {
+              setState("signing-in");
+              try {
+                await signIn();
+              } catch {
+                setState("idle");
+              }
+            }}
+            className="mt-3 inline-flex min-h-[44px] items-center rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas disabled:opacity-60"
           >
-            Login karo
-          </a>
+            {state === "signing-in" ? "Login ho raha hai…" : "Login karo"}
+          </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="mt-4 space-y-2">

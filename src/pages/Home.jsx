@@ -1,8 +1,8 @@
 import Navbar from "../components/Navbar.jsx";
 import SearchHero from "../components/SearchHero.jsx";
+import SubjectCard from "../components/SubjectCard.jsx";
 import {
   SectionHeading,
-  SubjectCard,
   PaperRow,
   AiInsightCard,
   ExamCountdown,
@@ -31,10 +31,17 @@ function nextCountdown() {
 }
 
 // Search → /papers with query params (subject grid pre-filters).
+// Exam preference sessionStorage me bhi save — subject detail page
+// khulne pe exam filter pre-apply hoga.
 function handleSearch(q, exam) {
   const params = new URLSearchParams();
   if (q?.trim()) params.set("q", q.trim());
-  if (exam && exam !== "All") params.set("exam", exam);
+  if (exam && exam !== "All") {
+    params.set("exam", exam);
+    try {
+      sessionStorage.setItem("papervault:exam-pref", exam);
+    } catch {}
+  }
   const qs = params.toString();
   window.location.hash = `#/papers${qs ? `?${qs}` : ""}`;
 }

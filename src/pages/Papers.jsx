@@ -150,7 +150,7 @@ function SubjectGrid() {
 /* Subject AI analysis — aggregate of all papers (§5B "3-saal trend")   */
 /* ------------------------------------------------------------------ */
 
-const EXAM_TYPES = ["CAT-1", "CAT-2", "FAT"];
+const EXAM_TYPES = ["CAT-1", "CAT-2", "FAT", "Lab FAT"];
 
 function SubjectAiAnalysis({ papers }) {
   const [examTab, setExamTab] = useState("CAT-1");
@@ -212,10 +212,11 @@ function SubjectAiAnalysis({ papers }) {
       </h2>
 
       {/* Exam-type tabs */}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
         {EXAM_TYPES.map((exam) => (
           <button
             key={exam}
+            type="button"
             onClick={() => setExamTab(exam)}
             className={`rounded-full border px-4 py-1.5 font-mono text-[12px] font-semibold transition-colors ${
               examTab === exam
@@ -334,7 +335,17 @@ function SubjectDetail({ subjectId }) {
     [subject, subjectId]
   );
   const [yearTab, setYearTab] = useState(ALL);
-  const [examFilter, setExamFilter] = useState(ALL);
+  // Home search se aaya exam preference (?exam=) → pre-apply, phir clear.
+  const [examFilter, setExamFilter] = useState(() => {
+    try {
+      const pref = sessionStorage.getItem("papervault:exam-pref");
+      if (pref) {
+        sessionStorage.removeItem("papervault:exam-pref");
+        if (EXAM_ORDER.includes(pref)) return pref;
+      }
+    } catch {}
+    return ALL;
+  });
   const [sort, setSort] = useState("newest");
 
   const years = useMemo(

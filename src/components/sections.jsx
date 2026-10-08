@@ -18,30 +18,6 @@ export function SectionHeading({ eyebrow, title, action }) {
   );
 }
 
-export function SubjectCard({ subject }) {
-  return (
-    <a
-      href={`#/papers/${subject.id}`}
-      className="group block rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-accent/60"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="rounded-md bg-accent/12 px-2 py-1 font-mono text-[11px] font-bold tracking-wide text-accent">
-          {subject.code}
-        </span>
-        <span className="font-mono text-[11px] text-text-dim">
-          {subject.paperCount} papers
-        </span>
-      </div>
-      <p className="mt-2.5 font-display text-[15px] font-semibold leading-snug text-text">
-        {subject.name}
-      </p>
-      <p className="mt-1.5 inline-flex items-center gap-1 text-[13px] font-semibold text-accent opacity-0 transition-opacity group-hover:opacity-100">
-        Browse <Icon name="chevR" size={14} />
-      </p>
-    </a>
-  );
-}
-
 export function PaperRow({ paper }) {
   return (
     <div className="flex items-center gap-3 border-b border-hairline py-3.5 last:border-0">
@@ -64,18 +40,18 @@ export function PaperRow({ paper }) {
         <a
           href={`#/papers/${paper.id}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-dim transition-colors hover:bg-surface-plus hover:text-text"
-          aria-label="Preview"
-          title="Preview"
+          aria-label="Paper kholo"
+          title="Paper kholo"
         >
           <Icon name="eye" size={19} />
         </a>
         <a
           href={`#/papers/${paper.id}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-dim transition-colors hover:bg-surface-plus hover:text-accent"
-          aria-label="Download"
-          title="Download"
+          aria-label="Details dekho"
+          title="Details dekho"
         >
-          <Icon name="download" size={19} />
+          <Icon name="chevR" size={19} />
         </a>
       </div>
     </div>
@@ -98,6 +74,12 @@ export function AiInsightCard({ insight }) {
 // TODO: compute daysLeft from academic calendar in Firestore.
 export function ExamCountdown({ countdown }) {
   if (!countdown || countdown.daysLeft > 30) return null;
+  const label =
+    countdown.daysLeft === 0
+      ? "aaj se shuru!"
+      : countdown.daysLeft === 1
+        ? "kal se!"
+        : `${countdown.daysLeft} days me`;
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-surface-plus px-4 py-3.5">
       <div className="flex items-center gap-3">
@@ -106,7 +88,7 @@ export function ExamCountdown({ countdown }) {
         </span>
         <div>
           <p className="font-display text-[15px] font-bold text-text">
-            {countdown.exam} in <span className="hl-soft">{countdown.daysLeft} days</span>
+            {countdown.exam} <span className="hl-soft">{label}</span>
           </p>
           <p className="text-xs text-text-dim">{countdown.dateLabel}</p>
         </div>

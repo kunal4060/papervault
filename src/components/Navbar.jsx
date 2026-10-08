@@ -10,7 +10,7 @@ const links = [
 ];
 
 function activeSection() {
-  const raw = window.location.hash.replace(/^#\/?/, "");
+  const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
   return raw.split("/").filter(Boolean)[0] ?? "";
 }
 
