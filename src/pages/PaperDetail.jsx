@@ -7,8 +7,7 @@ import {
   getPapersBySubject,
   getSubjectById,
 } from "../mock/index.js";
-// NOTE: firebase/db.js me broken imports hain (pre-existing, don't-touch) —
-// isliye mock se seedha import (task: mock only, no Firebase).
+// NOTE: mock se seedha import (mock only mode, no Firebase).
 import { useAuth } from "../hooks/useAuth.js";
 import { formatDate } from "../utils/format.js";
 

@@ -73,14 +73,8 @@ function initials(name = "?") {
 /* message bubble                                                      */
 /* ------------------------------------------------------------------ */
 function MessageBubble({ msg, isOwn, isAI, onDelete }) {
-  const [hover, setHover] = useState(false);
-
   return (
-    <div
-      className="group flex gap-2.5 px-1"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
+    <div className="group flex gap-2.5 px-1">
       <div
         className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold ${
           isAI
@@ -106,11 +100,11 @@ function MessageBubble({ msg, isOwn, isAI, onDelete }) {
           <span className="shrink-0 font-mono text-[10px] text-text-dim">
             {fmtTime(msg.createdAt)}
           </span>
-          {isOwn && hover && (
+          {isOwn && (
             <button
               onClick={() => onDelete(msg.id)}
               aria-label="Delete message"
-              className="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-dim opacity-0 transition-opacity hover:bg-surface-plus hover:text-brick group-hover:opacity-100"
+              className="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-dim transition-opacity hover:bg-surface-plus hover:text-brick md:opacity-0 md:group-hover:opacity-100"
             >
               <Icon name="trash" size={15} />
             </button>

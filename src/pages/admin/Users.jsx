@@ -19,6 +19,7 @@ import {
   FieldLabel,
 } from "../../components/atoms.jsx";
 import { users as seedUsers } from "../../mock/index.js";
+import { formatDate } from "../../utils/format.js";
 
 const ROLE_TONES = { admin: "amber", moderator: "moss", user: "moss" };
 
@@ -102,11 +103,7 @@ export default function Users() {
                   {u.uploadCount}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-text-dim">
-                  {new Date(u.createdAt).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {formatDate(u.createdAt)}
                 </td>
               </tr>
             ))}

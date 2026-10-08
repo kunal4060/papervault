@@ -45,7 +45,15 @@ export default function NotesManager() {
     () => getSyllabus(form.subjectId)?.modules ?? [],
     [form.subjectId]
   );
-  const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const setF = (k) => (e) => {
+    const v = e.target.value;
+    setForm((f) => ({
+      ...f,
+      [k]: v,
+      // Subject badla → module reset (purane subject ka module number galat ho sakta hai)
+      ...(k === "subjectId" ? { module: "" } : {}),
+    }));
+  };
 
   const subjectOf = (note) => activeSubjects.find((s) => s.id === note.subjectId);
 

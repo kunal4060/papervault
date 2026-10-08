@@ -205,6 +205,9 @@ export function Highlight({ children, className = "", soft = false, ...props }) 
 
 /* ---- Consolidated from ui-fallback.jsx (Worker B) ---- */
 
+const EXAM_TYPES = ["CAT-1", "CAT-2", "FAT", "Lab FAT"];
+const CHIP_BASE = `${minTouch} inline-flex items-center justify-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors ${focusRing}`;
+
 export function ExamChips({ value, onChange }) {
   return (
     <div

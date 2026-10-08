@@ -3,7 +3,7 @@
  * Mock credentials: user `admin` / password `admin`.
  * 100% original, Direction A "Archive Noir".
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "../../components/Icon.jsx";
 import { Button, Field, Input } from "../../components/atoms.jsx";
 import { adminLogin, isAdminLoggedIn } from "./adminAuth.js";
@@ -12,12 +12,17 @@ export default function AdminLogin({ onSuccess }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
+  const [skipped, setSkipped] = useState(false);
 
-  // Already logged in (e.g. back-button) → skip form.
-  if (isAdminLoggedIn()) {
-    onSuccess();
-    return null;
-  }
+  // Already logged in (e.g. back-button) → skip form (in effect, not render).
+  useEffect(() => {
+    if (isAdminLoggedIn()) {
+      setSkipped(true);
+      onSuccess();
+    }
+  }, [onSuccess]);
+
+  if (skipped) return null;
 
   const submit = (e) => {
     e.preventDefault();

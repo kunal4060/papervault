@@ -299,6 +299,8 @@ export default function Upload() {
   function validate(nextFile = file) {
     const e = {};
     if (!code) e.code = "Subject select karo.";
+    else if (!subjects.some((s) => s.codes.includes(code)))
+      e.code = "Ye course code kisi subject me nahi hai.";
     if (!examType) e.examType = "Exam type select karo.";
     if (!year) e.year = "Year select karo.";
     if (!slot.trim()) e.slot = "Slot likho (e.g. F1).";
@@ -324,6 +326,7 @@ export default function Upload() {
   /* -------------------------------- pipeline ------------------------------- */
   async function runCheck() {
     if (!validate()) return;
+    if (!selectedSubject) return; // validate() already flagged it
     cancelled.current = false;
     setPhase("checking");
     setStep(-1);
@@ -437,10 +440,10 @@ export default function Upload() {
   }
 
   const errorCodeOf = (v) => {
-    if (!v) return null;
+    if (!v) return "DUPLICATE_SIMILAR";
     if (/exact file/i.test(v.reason)) return "DUPLICATE_EXACT";
     if (/similar|duplicate/i.test(v.reason)) return "DUPLICATE_SIMILAR";
-    return null;
+    return "DUPLICATE_SIMILAR";
   };
 
   return (

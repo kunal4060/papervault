@@ -23,6 +23,7 @@ import {
   FieldLabel,
 } from "../../components/atoms.jsx";
 import { getSubjectById, getPaperById } from "../../mock/index.js";
+import { formatDate } from "../../utils/format.js";
 
 // ---- mock pending uploads (Paper interface §3.3 + AI verdict §5) ------------
 const seedPending = [
@@ -122,10 +123,7 @@ function QueueRow({ item, onApprove, onReject }) {
   const [custom, setCustom] = useState("");
   const subject = getSubjectById(item.subjectId);
 
-  const submitted = new Date(item.createdAt).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-  });
+  const submitted = formatDate(item.createdAt);
 
   return (
     <Card className="p-4 md:p-5">

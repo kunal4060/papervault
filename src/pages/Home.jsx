@@ -22,6 +22,7 @@ import {
 function nextCountdown() {
   const exam = { name: "Lab FAT", startsAt: new Date("2026-10-31T00:00:00+05:30") };
   const daysLeft = Math.ceil((exam.startsAt - Date.now()) / 86400000);
+  if (daysLeft < 0) return null; // exam khatam — banner mat dikhao
   return {
     exam: exam.name,
     daysLeft,
@@ -29,10 +30,13 @@ function nextCountdown() {
   };
 }
 
-// TODO: search → /papers?q=&exam= (router)
+// Search → /papers with query params (subject grid pre-filters).
 function handleSearch(q, exam) {
-  window.location.hash = "#/papers";
-  console.log("TODO: search", q, exam);
+  const params = new URLSearchParams();
+  if (q?.trim()) params.set("q", q.trim());
+  if (exam && exam !== "All") params.set("exam", exam);
+  const qs = params.toString();
+  window.location.hash = `#/papers${qs ? `?${qs}` : ""}`;
 }
 
 export default function Home() {

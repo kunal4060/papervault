@@ -70,7 +70,7 @@ function fmtDate(iso) {
   }
 }
 
-function RequestCard({ req, hasUpvoted, canUpvote, onUpvote }) {
+function RequestCard({ req, hasUpvoted, canUpvote, onUpvote, onLogin }) {
   const subject = getSubjectById(req.subjectId);
   const count = req.requestedBy.length;
   const fulfilled = !!req.fulfilledBy;
@@ -125,8 +125,8 @@ function RequestCard({ req, hasUpvoted, canUpvote, onUpvote }) {
           </a>
         ) : (
           <button
-            onClick={() => onUpvote(req.id)}
-            disabled={hasUpvoted || !canUpvote}
+            onClick={() => (canUpvote ? onUpvote(req.id) : onLogin())}
+            disabled={hasUpvoted}
             className={`inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors ${
               hasUpvoted
                 ? "border border-accent-dim bg-accent/10 text-accent"
@@ -309,6 +309,7 @@ export default function Requests() {
               hasUpvoted={upvoted.has(r.id)}
               canUpvote={!!user}
               onUpvote={handleUpvote}
+              onLogin={signIn}
             />
           ))}
         </div>

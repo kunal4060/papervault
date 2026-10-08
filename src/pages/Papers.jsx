@@ -8,8 +8,8 @@ import {
   getSubjectById,
   getPapersBySubject,
 } from "../mock/index.js";
-// NOTE: usePapers/useSubjects hooks firebase/db.js pe hain jisme broken
-// imports hain (pre-existing) — isliye mock se seedha import (task: mock only).
+// NOTE: mock se seedha import (mock only mode). firebase/db.js me
+// usePapers/useSubjects hooks available hain real Firebase ke liye.
 
 /**
  * PaperVault — Papers page (Archive Noir).
@@ -62,7 +62,13 @@ function FilterChip({ active, onClick, children }) {
 /* ------------------------------------------------------------------ */
 
 function SubjectGrid() {
-  const [query, setQuery] = useState("");
+  // Home search se aaya query (?q=) → pre-fill.
+  const [query, setQuery] = useState(() => {
+    const hash = window.location.hash || "";
+    const qi = hash.indexOf("?");
+    if (qi === -1) return "";
+    return new URLSearchParams(hash.slice(qi + 1)).get("q") || "";
+  });
 
   // Mock mode: subjects seedha mock se, code-wise sorted (BACKEND_PLAN §3.1).
   const subjects = useMemo(
