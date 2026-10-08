@@ -4,6 +4,8 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // GitHub Pages project site: https://kunal4060.github.io/papervault/
+  base: '/papervault/',
   build: {
     // firebase SDK is a real (lazy) dependency — bundle stays over the
     // default 500 kB warning line. TODO: code-split firebase + admin chunks.
