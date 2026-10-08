@@ -36,7 +36,8 @@ import { isAdminLoggedIn, adminLogout } from "./pages/admin/adminAuth.js";
  */
 
 function parseHash() {
-  const raw = window.location.hash.replace(/^#\/?/, "");
+  // Query string (?q=...) strip karo — sirf path se route match hota hai.
+  const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
   const parts = raw.split("/").filter(Boolean);
   return { head: parts[0] ?? "", rest: parts.slice(1) };
 }

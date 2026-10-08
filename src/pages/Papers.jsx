@@ -82,12 +82,19 @@ function SubjectGrid() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return subjects;
-    return subjects.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.code.toLowerCase().includes(q) ||
-        s.codes.some((c) => c.toLowerCase().includes(q))
-    );
+    return subjects.filter((s) => {
+      if (s.name.toLowerCase().includes(q)) return true;
+      if (s.code.toLowerCase().includes(q)) return true;
+      if (s.codes.some((c) => c.toLowerCase().includes(q))) return true;
+      // Abbreviation match: "dsa" → "Data Structures and Algorithms"
+      const abbr = s.name
+        .split(/\s+/)
+        .filter((w) => !/^(and|of|the|for|in|on)$/i.test(w))
+        .map((w) => w[0])
+        .join("")
+        .toLowerCase();
+      return abbr.includes(q);
+    });
   }, [subjects, query]);
 
   return (
