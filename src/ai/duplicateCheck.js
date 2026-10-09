@@ -195,10 +195,18 @@ Are these the SAME question paper? Consider: same questions, same order,
 same marks = duplicate. Different year/exam with different questions = not duplicate.
 Reply in JSON: {"duplicate": true/false, "reason": "one line"}`;
 
-  const out = await generateJSON(prompt);
+  let out = null;
+  try {
+    out = await generateJSON(prompt);
+  } catch (err) {
+    return {
+      duplicate: false,
+      reason: `AI check failed (${err?.message || "unknown error"}) — manual review ke liye bheja gaya.`,
+    };
+  }
 
   return {
-    duplicate: Boolean(out.duplicate),
-    reason: String(out.reason || "no reason given").slice(0, 200),
+    duplicate: Boolean(out?.duplicate),
+    reason: String(out?.reason || "no reason given").slice(0, 200),
   };
 }
