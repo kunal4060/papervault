@@ -80,5 +80,11 @@ service cloud.firestore {
       allow read: if isMod();
       allow create: if request.auth != null;
     }
+
+    // Exam countdown settings: public read, admin-only write.
+    match /settings/examCountdown {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
