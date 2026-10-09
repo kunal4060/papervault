@@ -8,7 +8,7 @@ import { AdminShell, StatCard, EmptyState, IcoDoc } from "./adminUi.jsx";
 import { MicroLabel, Card, Highlight } from "../../components/atoms.jsx";
 import {
   getStats,
-  getPendingPapers,
+  getPendingUploads,
   getReports,
   getUsers,
   getTrendingPapers,
@@ -28,7 +28,7 @@ export default function Dashboard() {
       try {
         const [s, pending, reports, users, trending] = await Promise.all([
           getStats(),
-          getPendingPapers(),
+          getPendingUploads(),
           getReports(),
           getUsers(),
           getTrendingPapers(5),
