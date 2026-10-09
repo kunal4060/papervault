@@ -96,7 +96,7 @@ export default function SearchHero({ onSearch }) {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Course code likho… CSE3002"
-                className="min-h-[44px] w-full bg-transparent font-mono text-[15px] text-text outline-none placeholder:text-text-dim/60 md:min-h-[50px] md:text-base"
+                className="min-h-[44px] w-full bg-transparent font-mono text-[15px] text-text outline-none placeholder:text-text-dim/80 md:min-h-[50px] md:text-base"
                 aria-label="Search papers"
               />
               <button
