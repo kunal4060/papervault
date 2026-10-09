@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 import { getMyUploads, getSubjects } from "../firebase/db.js";
 import Icon from "../components/Icon.jsx";
+import Navbar from "../components/Navbar.jsx";
 import {
   Button,
   Card,
@@ -184,10 +185,17 @@ export default function MyUploads() {
   }
 
   if (!user) {
-    return <LoginGate onSignIn={signIn} actionText="upload history dekhne" error={authError} />;
+    return (
+      <div className="min-h-screen bg-canvas text-text">
+        <Navbar />
+        <LoginGate onSignIn={signIn} actionText="upload history dekhne" error={authError} />
+      </div>
+    );
   }
 
   return (
+    <div className="min-h-screen bg-canvas text-text">
+      <Navbar />
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 lg:max-w-5xl lg:pt-10">
       <div className="mb-6 flex items-start justify-between gap-4 lg:mb-8">
         <div>
@@ -241,6 +249,7 @@ export default function MyUploads() {
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }
