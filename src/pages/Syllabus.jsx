@@ -57,7 +57,7 @@ function SubjectList({ onOpen }) {
           onChange={(e) => setQ(e.target.value)}
           placeholder="Code ya naam likho… CSE3002"
           aria-label="Search subjects"
-          className="min-h-[44px] w-full rounded-[10px] border border-hairline bg-surface-plus px-4 font-mono text-sm text-text placeholder:font-body placeholder:text-text-dim/60 focus:border-accent focus:outline-none"
+          className="min-h-[44px] w-full rounded-[10px] border border-hairline bg-surface-plus px-4 font-mono text-sm text-text placeholder:font-body placeholder:text-text-dim/80 focus:border-accent focus:outline-none"
         />
       </div>
 
@@ -135,6 +135,7 @@ function SyllabusPdfCard({ syllabus, code }) {
       <a
         href={syllabus.pdfUrl}
         download
+        aria-label="Download syllabus PDF"
         className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-semibold text-[#0C0D10] transition-colors hover:bg-[#FFBE4D]"
       >
         <IcoDownload className="h-4 w-4" />
