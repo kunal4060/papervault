@@ -15,7 +15,9 @@
  *   ⚠️ error   → BACKEND_PLAN §7 error codes + retry
  *
  * Live data: subjects + approved papers from Firestore, PDF upload to
- * Cloudinary (free tier), upload record via createUpload() (status: pending).
+ * Cloudinary (free tier), upload record via createUpload() — status:
+ * "ai_approved" (AI mode + Gemini ran + unique), "pending" (manual mode or
+ * AI unavailable), "rejected" (AI duplicate detected).
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -473,6 +475,7 @@ export default function Upload() {
     setStep(-1);
     setVerdict(null);
     setAutoName("");
+    setAiApproved(false);
     setFail(null);
   }
 
@@ -661,11 +664,13 @@ export default function Upload() {
             <Icon name="check" size={26} />
           </OutcomeIcon>
           <h2 className="font-display text-xl font-bold text-text">
-            Unique! Review me bhej diya
+            {aiApproved ? "AI approved! Admin review me bhej diya" : "Unique! Review me bhej diya"}
           </h2>
           <p className="mt-2 text-sm text-text-dim">
-            Tumhara paper ab admin/moderator review karega. Approve hote hi vault me live ho jayega.
-            <span className="mt-2 block font-mono text-xs text-text-dim/80">code: PENDING_REVIEW</span>
+            {aiApproved
+              ? "AI ne tumhara paper unique paya aur auto-approve kar diya. Admin final check karke vault me live karega."
+              : "Tumhara paper ab admin/moderator review karega. Approve hote hi vault me live ho jayega."}
+            <span className="mt-2 block font-mono text-xs text-text-dim/80">code: {aiApproved ? "AI_APPROVED" : "PENDING_REVIEW"}</span>
           </p>
           <div className="mt-5 rounded-[10px] border border-hairline bg-canvas px-4 py-3">
             <p className="micro mb-1">Auto filename</p>
