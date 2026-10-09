@@ -119,6 +119,7 @@ const TABS = [
   { id: "notes", label: "Notes", href: "#/admin/notes" },
   { id: "papers", label: "Papers", href: "#/admin/papers" },
   { id: "users", label: "Users", href: "#/admin/users" },
+  { id: "exam", label: "Exam Settings", href: "#/admin/exam" },
 ];
 
 /**
