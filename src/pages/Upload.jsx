@@ -124,7 +124,10 @@ function SubjectCombobox({ value, onChange, error, options, loading }) {
         <div className="absolute inset-x-0 top-full z-30 mt-1.5 overflow-hidden rounded-[10px] border border-hairline bg-surface shadow-2xl">
           <div className="border-b border-hairline p-2">
             <Input
-              autoFocus
+              ref={(el) => {
+                // Desktop pe autofocus, mobile pe keyboard pop se bachne ke liye nahi
+                if (el && window.matchMedia?.("(pointer: fine)").matches) el.focus();
+              }}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="CSE3002 ya Artificial Intelligence…"
