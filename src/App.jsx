@@ -24,7 +24,8 @@ import { isAdminLoggedIn, adminLogout } from "./pages/admin/adminAuth.js";
  *   #/                             → Home
  *   #/papers                       → papers subject grid
  *   #/papers/:subjectId            → subject detail (year tabs, AI analysis)
- *   #/papers/paper-xxx             → paper detail
+ *   #/paper/:paperId               → paper detail (any Firestore id)
+ *   #/papers/paper-xxx             → paper detail (legacy mock ids)
  *   #/syllabus / #/syllabus/:subjectId → syllabus
  *   #/upload                       → upload flow
  *   #/my-uploads                   → upload history
@@ -59,10 +60,17 @@ export default function App() {
   if (head === "papers") {
     const seg = rest[0];
     if (!seg) return <Papers />;
-    // paper ids ("paper-001") → detail; anything else → subject detail.
-    // key={seg} se paper change pe remount (bookmark/report state reset).
+    // Legacy mock ids ("paper-001") → detail; anything else → subject detail.
+    // Real Firestore paper ids use the dedicated #/paper/:paperId route below.
+    // key={seg} se subject change pe remount (filter state reset).
     if (seg.startsWith("paper-")) return <PaperDetail key={seg} paperId={seg} />;
     return <Papers key={seg} subjectId={seg} />;
+  }
+
+  if (head === "paper") {
+    const paperId = rest[0];
+    if (!paperId) return <Papers />;
+    return <PaperDetail key={paperId} paperId={paperId} />;
   }
 
   if (head === "syllabus") {
