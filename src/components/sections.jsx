@@ -29,7 +29,7 @@ export function PaperRow({ paper }) {
       </div>
       <div className="min-w-0 flex-1">
         <a
-          href={`#/papers/${paper.id}`}
+          href={`#/paper/${paper.id}`}
           className="block truncate font-mono text-[13px] font-semibold text-text transition-colors group-hover:text-accent"
         >
           {paper.fileName}
@@ -41,7 +41,7 @@ export function PaperRow({ paper }) {
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <a
-          href={`#/papers/${paper.id}`}
+          href={`#/paper/${paper.id}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-dim transition-all hover:bg-surface-plus hover:text-text md:group-hover:translate-x-0.5"
           aria-label="Paper kholo"
           title="Paper kholo"
@@ -49,7 +49,7 @@ export function PaperRow({ paper }) {
           <Icon name="eye" size={19} />
         </a>
         <a
-          href={`#/papers/${paper.id}`}
+          href={`#/paper/${paper.id}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-dim transition-all hover:bg-surface-plus hover:text-accent md:group-hover:translate-x-1 md:group-hover:text-accent"
           aria-label="Details dekho"
           title="Details dekho"
