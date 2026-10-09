@@ -232,7 +232,11 @@ export default function Chat() {
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-mono text-[11px] font-bold transition-colors ${
                 roomId === r.id ? "bg-accent text-canvas" : "bg-surface-plus text-text-dim group-hover:text-text"
               }`}>
-                {r.id === "lobby" ? "✦" : r.name.trim()[0]}
+                {r.id === "lobby" ? (
+                  <Icon name="spark" size={14} />
+                ) : (
+                  r.name.trim()[0]
+                )}
               </span>
               <span className="min-w-0 flex-1 truncate font-medium">{r.name}</span>
               {r.id === "lobby" && (
@@ -257,7 +261,7 @@ export default function Chat() {
                 {activeRoom?.name}
               </h2>
               <p className="micro text-[10px]">
-                {activeRoom?.type === "lobby"
+                {roomId === "lobby"
                   ? "Everyone · read-only without login"
                   : "Subject room"}
               </p>
