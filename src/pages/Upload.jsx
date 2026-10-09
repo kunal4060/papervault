@@ -421,6 +421,7 @@ export default function Upload() {
           if (cancelled.current) return;
           await createUpload({
             userId: user.uid,
+            uploaderName: user.displayName ?? user.email ?? "Student",
             fileName: name,
             subjectId: selectedSubject.id,
             subjectCode: code,
@@ -432,6 +433,7 @@ export default function Upload() {
             fileUrl,
             fileSize: file.size,
             textSample,
+            aiVerdict: { isDuplicate: res.isDuplicate, reason: res.reason },
           });
         } catch (upErr) {
           if (cancelled.current) return;
