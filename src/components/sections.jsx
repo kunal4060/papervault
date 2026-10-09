@@ -106,11 +106,12 @@ export function ExamCountdown({ countdown }) {
   );
 }
 
-export function StatStrip({ stats }) {
+export function StatStrip({ stats, failed = false }) {
+  const dash = (v) => (failed ? "—" : v);
   const items = [
-    { n: stats.papers.toLocaleString("en-IN"), label: "papers" },
-    { n: String(stats.subjects), label: "subjects" },
-    { n: String(stats.notes), label: "notes" },
+    { n: dash(stats.papers.toLocaleString("en-IN")), label: "papers" },
+    { n: dash(String(stats.subjects)), label: "subjects" },
+    { n: dash(String(stats.notes)), label: "notes" },
     { n: "100%", label: "free" },
   ];
   return (
