@@ -293,7 +293,7 @@ export function ProgressSteps({ steps, current, state }) {
 
 /** Shown on login-required pages when the user is not signed in. */
 
-export function LoginGate({ onSignIn, actionText = "yeh page use karne" }) {
+export function LoginGate({ onSignIn, actionText = "yeh page use karne", error = null }) {
   return (
     <div className="mx-auto max-w-md px-4 py-16 md:py-24">
       <Card className="p-8 text-center md:p-10">
@@ -313,6 +313,11 @@ export function LoginGate({ onSignIn, actionText = "yeh page use karne" }) {
           </svg>
           Google se login karo
         </Button>
+        {error && (
+          <p className="mt-4 text-[13px] text-brick">
+            Login nahi ho paya: {error?.code || error?.message || "unknown error"}. Popup block hua ho toh allow karo aur dobara try karo.
+          </p>
+        )}
       </Card>
     </div>
   );
