@@ -123,7 +123,7 @@ function UploadRow({ upload, subject }) {
         {approved && (
           <Button
             variant="secondary"
-            className="!min-h-[40px] !px-4 !text-[13px]"
+            className="!min-h-[44px] !px-4 !text-[13px]"
             onClick={() => {
               window.location.hash = upload.paperId
                 ? `#/paper/${upload.paperId}`
@@ -136,7 +136,7 @@ function UploadRow({ upload, subject }) {
         )}
         {rejected && (
           <Button
-            className="!min-h-[40px] !px-4 !text-[13px]"
+            className="!min-h-[44px] !px-4 !text-[13px]"
             onClick={() => {
               stashReuploadDraft(upload);
               window.location.hash = "#upload";
