@@ -44,6 +44,21 @@ import {
 import { consumeReuploadDraft } from "./reuploadDraft.js";
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25MB (BACKEND_PLAN §7 FILE_TOO_LARGE)
+
+/**
+ * Magic-byte sniff: file ke pehle 5 bytes "%PDF-" hone chahiye.
+ * Extension/MIME type spoofing se bachne ke liye (client-side first check;
+ * asli enforcement Cloudinary preset ke "Allowed formats" se hota hai).
+ */
+async function isRealPdf(file) {
+  try {
+    const buf = await file.slice(0, 5).arrayBuffer();
+    const head = String.fromCharCode(...new Uint8Array(buf));
+    return head === "%PDF-";
+  } catch {
+    return false;
+  }
+}
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR - i);
 const SLOT_SUGGESTIONS = ["A1", "B2", "C1", "D2", "E1", "F1", "G1", "G2"];
@@ -368,6 +383,11 @@ export default function Upload() {
   async function runCheck() {
     if (!validate()) return;
     if (!selectedSubject) return; // validate() already flagged it
+    // Magic-byte sniff: extension/MIME spoof se bachne ke liye %PDF- header check.
+    if (!(await isRealPdf(file))) {
+      setErrors((p) => ({ ...p, file: "INVALID_FILE — ye asli PDF nahi lagta." }));
+      return;
+    }
     cancelled.current = false;
     setPhase("checking");
     setStep(-1);

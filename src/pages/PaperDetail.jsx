@@ -344,6 +344,17 @@ function ReportPanel({ paperId, onClose }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+/**
+ * fileUrl safety: sirf https Cloudinary URLs allow karo.
+ * Firestore ka URL admin-set hota hai, lekin defense-in-depth ke liye
+ * javascript:/data: URLs ko kabhi href/window.open me mat daalo.
+ */
+function safeFileUrl(u) {
+  return typeof u === "string" && /^https:\/\/res\.cloudinary\.com\//i.test(u)
+    ? u
+    : null;
+}
+
 export default function PaperDetail({ paperId }) {
   // Paper Firestore se (async). App.jsx <PaperDetail key={paperId}> se
   // remount hota hai, phir bhi effect paperId pe re-run hota hai.
@@ -450,11 +461,12 @@ export default function PaperDetail({ paperId }) {
   // Download: count bump (fire-and-forget), phir fileUrl kholo.
   function handleDownload(e) {
     e.preventDefault();
-    if (!paper?.fileUrl) return;
+    const url = safeFileUrl(paper?.fileUrl);
+    if (!url) return;
     bumpDownloads(paper.id).catch(() => {
       /* count fail → download still opens */
     });
-    window.open(paper.fileUrl, "_blank", "noopener,noreferrer");
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   const shareHref = paper
@@ -462,6 +474,9 @@ export default function PaperDetail({ paperId }) {
         `${paper.fileName} — PaperVault se download karo:\n${window.location.href}`
       )}`
     : "#";
+
+  // Sanitized file URL — object embed aur download links isi ko use karte hain.
+  const fileUrl = safeFileUrl(paper?.fileUrl);
 
   return (
     <div className="min-h-screen bg-canvas text-text">
@@ -548,7 +563,7 @@ export default function PaperDetail({ paperId }) {
                     <ActionButton
                       onClick={handleDownload}
                       primary
-                      disabled={!paper.fileUrl}
+                      disabled={!fileUrl}
                       label="Download"
                     >
                       <Icon name="download" size={17} />
@@ -649,9 +664,9 @@ export default function PaperDetail({ paperId }) {
               <div
                 ref={viewerRef}
                 className="mt-5 scroll-mt-20 overflow-hidden rounded-xl border border-hairline bg-surface md:mt-8 lg:mt-0"
-              >                {paper.fileUrl ? (
+              >                {fileUrl ? (
                   <object
-                    data={paper.fileUrl}
+                    data={fileUrl}
                     type="application/pdf"
                     className="h-[70vh] min-h-[420px] w-full bg-canvas md:h-[78vh]"
                     aria-label={`${paper.fileName} PDF preview`}
@@ -665,7 +680,7 @@ export default function PaperDetail({ paperId }) {
                         {paper.fileName}
                       </p>
                       <a
-                        href={paper.fileUrl}
+                        href={fileUrl}
                         download={paper.fileName}
                         onClick={() => {
                           bumpDownloads(paper.id).catch(() => {});

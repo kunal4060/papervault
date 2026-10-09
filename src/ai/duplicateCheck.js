@@ -89,7 +89,7 @@ export async function checkDuplicate(req) {
       p.subjectId === subjectId &&
       p.examType === examType &&
       p.year === year &&
-      p.slot.toLowerCase() === slot.toLowerCase()
+      String(p.slot ?? "").toLowerCase() === String(slot ?? "").toLowerCase()
   );
 
   // — Step 3: embedding similarity ————————————————————————————
