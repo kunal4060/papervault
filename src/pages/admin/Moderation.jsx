@@ -6,7 +6,7 @@
  * Har row: PDF placeholder, metadata, uploader, AI verdict text,
  * Approve / Reject (reason select + custom input).
  *
- * Pending queue: uploads collection (createUpload writes status "pending" there).
+ * Pending queue: uploads collection (status "pending" or "ai_approved").
  * Approve → createPaper() + updateUpload(status "approved", paperId).
  * Reject → updateUpload(status "rejected", rejectionReason).
  */
@@ -21,7 +21,7 @@ import {
   TextArea,
   FieldLabel,
 } from "../../components/atoms.jsx";
-import { getPendingUploads, getAllSubjects, getSyllabus, createPaper, updatePaper, updateUpload } from "../../firebase/db.js";
+import { getPendingUploads, getRejectedUploads, getAllSubjects, getSyllabus, createPaper, updatePaper, updateUpload } from "../../firebase/db.js";
 import { analyzePaper } from "../../ai/paperAnalysis.js";
 import { GEMINI_CONNECTED } from "../../ai/gemini.js";
 import { formatDate } from "../../utils/format.js";
@@ -68,7 +68,7 @@ function VerdictBox({ verdict }) {
   );
 }
 
-function QueueRow({ item, subjectName, onApprove, onReject }) {
+function QueueRow({ item, subjectName, onApprove, onReject, readOnly }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState(REJECT_REASONS[0]);
   const [custom, setCustom] = useState("");
@@ -105,6 +105,16 @@ function QueueRow({ item, subjectName, onApprove, onReject }) {
             </Badge>
             <span className="font-mono tabular-nums">{item.year ?? "—"}</span>
             {item.slot && <span className="font-mono">Slot {item.slot}</span>}
+            {item.aiApproved && (
+              <Badge tone="moss" title="AI ne unique paya — admin confirm kare">
+                AI Approved
+              </Badge>
+            )}
+            {item.status === "rejected" && item.rejectionReason?.startsWith("AI:") && (
+              <Badge tone="brick" title={item.rejectionReason}>
+                AI Rejected
+              </Badge>
+            )}
           </div>
           <p className="mt-1.5 truncate text-xs text-text-dim">
             {subjectName ?? "—"}
@@ -122,7 +132,12 @@ function QueueRow({ item, subjectName, onApprove, onReject }) {
         <VerdictBox verdict={item.aiVerdict} />
       </div>
 
-      {!rejecting ? (
+      {readOnly ? (
+        <div className="mt-3 rounded-[10px] border border-brick/40 bg-brick/5 px-3.5 py-3">
+          <MicroLabel>Reject reason</MicroLabel>
+          <p className="mt-1 text-sm text-text">{item.rejectionReason ?? "—"}</p>
+        </div>
+      ) : !rejecting ? (
         <div className="mt-3 flex gap-2">
           <Button
             variant="primary"
@@ -131,7 +146,7 @@ function QueueRow({ item, subjectName, onApprove, onReject }) {
             disabled={busy}
           >
             <IcoCheck className="h-4 w-4" />
-            {busy ? "Saving…" : "Approve"}
+            {busy ? "Saving…" : item.aiApproved ? "Confirm approve" : "Approve"}
           </Button>
           <Button
             variant="danger"
@@ -189,6 +204,8 @@ function QueueRow({ item, subjectName, onApprove, onReject }) {
 
 export default function Moderation() {
   const [queue, setQueue] = useState([]);
+  const [rejected, setRejected] = useState([]);
+  const [tab, setTab] = useState("all"); // all | pending | ai | rejected
   const [subjectMap, setSubjectMap] = useState({});
   const [done, setDone] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -198,11 +215,13 @@ export default function Moderation() {
     setLoading(true);
     setError("");
     try {
-      const [pending, subjects] = await Promise.all([
+      const [pending, rej, subjects] = await Promise.all([
         getPendingUploads(),
+        getRejectedUploads(),
         getAllSubjects(),
       ]);
       setQueue(pending);
+      setRejected(rej);
       const map = {};
       subjects.forEach((s) => {
         map[s.id] = s.name;
@@ -326,27 +345,88 @@ export default function Moderation() {
         </div>
       )}
 
+      {/* Tabs: All / Pending / AI Approved / Rejected */}
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Moderation queue tabs">
+        {[
+          { id: "all", label: "All", count: queue.length + rejected.length },
+          { id: "pending", label: "Pending", count: queue.filter((q) => !q.aiApproved).length },
+          { id: "ai", label: "AI Approved", count: queue.filter((q) => q.aiApproved).length },
+          { id: "rejected", label: "Rejected", count: rejected.length },
+        ].map((t) => {
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setTab(t.id)}
+              className={`inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors ${
+                isActive
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-hairline text-text-dim hover:border-text-dim hover:text-text"
+              }`}
+            >
+              {t.label}
+              <span className="font-mono text-xs tabular-nums opacity-80">{t.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {loading ? (
         <p className="py-10 text-center text-sm text-text-dim">Loading…</p>
-      ) : queue.length === 0 ? (
-        <EmptyState
-          icon={<IcoCheck className="h-8 w-8" />}
-          title="Queue clear hai"
-          hint="Saare uploads review ho gaye. Naya upload aayega to yahi dikhega."
-        />
-      ) : (
-        <div className="space-y-3">
-          {queue.map((item) => (
-            <QueueRow
-              key={item.id}
-              item={item}
-              subjectName={subjectMap[item.subjectId]}
-              onApprove={handleApprove}
-              onReject={handleReject}
+      ) : tab === "rejected" ? (
+        rejected.length === 0 ? (
+          <EmptyState
+            icon={<IcoX className="h-8 w-8" />}
+            title="Koi rejected upload nahi"
+            hint="Reject kiye gaye uploads yahan dikhenge."
+          />
+        ) : (
+          <div className="space-y-3">
+            {rejected.map((item) => (
+              <QueueRow
+                key={item.id}
+                item={item}
+                subjectName={subjectMap[item.subjectId]}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                readOnly
+              />
+            ))}
+          </div>
+        )
+      ) : (() => {
+        const items =
+          tab === "ai"
+            ? queue.filter((q) => q.aiApproved)
+            : tab === "pending"
+              ? queue.filter((q) => !q.aiApproved)
+              : queue;
+        if (items.length === 0) {
+          return (
+            <EmptyState
+              icon={<IcoCheck className="h-8 w-8" />}
+              title="Queue clear hai"
+              hint="Saare uploads review ho gaye. Naya upload aayega to yahi dikhega."
             />
-          ))}
-        </div>
-      )}
+          );
+        }
+        return (
+          <div className="space-y-3">
+            {items.map((item) => (
+              <QueueRow
+                key={item.id}
+                item={item}
+                subjectName={subjectMap[item.subjectId]}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            ))}
+          </div>
+        );
+      })()}
     </AdminShell>
   );
 }
