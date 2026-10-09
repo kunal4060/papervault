@@ -328,7 +328,7 @@ export default function Chat() {
                     }
                   }}
                   placeholder="Doubt poochho ya message likho…"
-                  className="min-h-[44px] flex-1 rounded-lg border border-hairline bg-canvas px-3 text-sm text-text placeholder:text-text-dim/60 focus:border-accent-dim focus:outline-none"
+                  className="min-h-[44px] flex-1 rounded-lg border border-hairline bg-canvas px-3 text-sm text-text placeholder:text-text-dim/80 focus:border-accent-dim focus:outline-none"
                 />
                 <button
                   onClick={handleSend}
