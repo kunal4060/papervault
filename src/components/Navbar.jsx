@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Icon from "./Icon.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
-// TODO: wire useAuth() — show profile avatar when logged in, Login button otherwise.
+// TODO: profile page — avatar menu abhi My Uploads + Logout deta hai.
 const links = [
   { label: "Papers", href: "#/papers", match: ["papers"] },
   { label: "Syllabus", href: "#/syllabus", match: ["syllabus"] },
@@ -17,6 +18,8 @@ function activeSection() {
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [section, setSection] = useState(activeSection);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { user, loading: authLoading, signIn, signOut } = useAuth();
 
   useEffect(() => {
     const onChange = () => {
@@ -69,6 +72,54 @@ export default function Navbar() {
             <Icon name="upload" size={16} />
             Upload
           </a>
+          {/* Auth: login button ya avatar menu */}
+          {!authLoading &&
+            (user ? (
+              <div className="relative ml-1">
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-plus font-display text-sm font-bold text-accent shadow-[inset_0_0_0_1px_var(--color-hairline)]"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-label="Account menu"
+                  aria-expanded={menuOpen}
+                >
+                  {(user.displayName || user.email || "S").trim().charAt(0).toUpperCase()}
+                </button>
+                {menuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setMenuOpen(false)}
+                      aria-hidden="true"
+                    />
+                    <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-hairline bg-surface shadow-xl">
+                      <p className="truncate border-b border-hairline px-4 py-2.5 text-xs text-text-dim">
+                        {user.displayName || user.email}
+                      </p>
+                      <a
+                        href="#/my-uploads"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm font-medium text-text hover:bg-surface-plus"
+                      >
+                        My uploads
+                      </a>
+                      <button
+                        onClick={() => { setMenuOpen(false); signOut(); }}
+                        className="block w-full px-4 py-3 text-left text-sm font-medium text-text-dim hover:bg-surface-plus hover:text-text"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={signIn}
+                className="ml-1 inline-flex min-h-[40px] items-center rounded-xl px-4 text-[13.5px] font-semibold text-text-dim transition-colors hover:bg-surface hover:text-text"
+              >
+                Login
+              </button>
+            ))}
         </nav>
 
         <button
@@ -108,6 +159,31 @@ export default function Navbar() {
             <Icon name="upload" size={17} />
             Paper upload karo
           </a>
+          {/* Mobile auth links */}
+          {!authLoading &&
+            (user ? (
+              <>
+                <a
+                  href="#/my-uploads"
+                  className="block rounded-lg px-3 py-3 text-[15px] font-medium text-text-dim"
+                >
+                  My uploads
+                </a>
+                <button
+                  onClick={() => { signOut(); setOpen(false); }}
+                  className="block w-full rounded-lg px-3 py-3 text-left text-[15px] font-medium text-text-dim"
+                >
+                  Logout ({(user.displayName || user.email || "").split(" ")[0]})
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => { signIn(); setOpen(false); }}
+                className="mt-2 block w-full rounded-lg border border-hairline px-3 py-3 text-center text-[15px] font-semibold text-text"
+              >
+                Login karo
+              </button>
+            ))}
         </nav>
       )}
     </header>
