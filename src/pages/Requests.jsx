@@ -11,6 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Icon from "../components/Icon.jsx";
+import Navbar from "../components/Navbar.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import {
   getRequests,
@@ -228,6 +229,8 @@ export default function Requests() {
   const openCount = requests.filter((r) => !r.fulfilledBy).length;
 
   return (
+    <div className="min-h-screen bg-canvas text-text">
+      <Navbar />
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-6 lg:max-w-7xl lg:pt-10 xl:max-w-[1400px]">
       {/* header */}
       <p className="micro">Request board</p>
@@ -385,6 +388,7 @@ export default function Requests() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
