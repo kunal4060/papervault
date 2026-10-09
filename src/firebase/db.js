@@ -244,20 +244,20 @@ export async function getMyUploads(uid) {
   });
 }
 
-/** Record a new upload (status "pending" → moderation queue). */
+/** Record a new upload (default status "pending" → moderation queue). */
 export async function createUpload(data) {
   const ref = await addDoc(collection(db, "uploads"), {
     ...data,
-    status: "pending",
+    status: data.status ?? "pending",
     createdAt: serverTimestamp(),
   });
   return { id: ref.id };
 }
 
-/** Uploads awaiting moderation (admin). Newest first. */
+/** Uploads awaiting moderation (admin): manual-pending + AI-approved. Newest first. */
 export async function getPendingUploads() {
   const snap = await getDocs(
-    query(collection(db, "uploads"), where("status", "==", "pending"))
+    query(collection(db, "uploads"), where("status", "in", ["pending", "ai_approved"]))
   );
   return snap.docs.map(toRow).sort((a, b) => {
     const ta = a.createdAt?.toMillis?.() ?? 0;
@@ -269,6 +269,18 @@ export async function getPendingUploads() {
 /** Update an upload doc (admin: approve/reject + paperId link). */
 export async function updateUpload(id, patch) {
   await updateDoc(doc(db, "uploads", id), patch);
+}
+
+/** Rejected uploads (admin history). Newest first. */
+export async function getRejectedUploads() {
+  const snap = await getDocs(
+    query(collection(db, "uploads"), where("status", "==", "rejected"))
+  );
+  return snap.docs.map(toRow).sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? 0;
+    return tb - ta;
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -529,6 +541,51 @@ export async function saveExamCountdown({ examType, startDate, endDate, label })
       startDate,
       endDate,
       label: label ?? "",
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Moderation mode settings (§ — admin-editable, AI vs Manual)         */
+/* doc("settings", "moderation"):                                      */
+/*   { mode: "ai" | "manual", updatedAt }                              */
+/* ------------------------------------------------------------------ */
+
+/** Default shown when the settings doc doesn't exist yet. */
+export const DEFAULT_MODERATION = {
+  mode: "ai",
+};
+
+/** Read the moderation mode (one-shot). Falls back to defaults. */
+export async function getModerationMode() {
+  try {
+    const snap = await getDoc(doc(db, "settings", "moderation"));
+    if (snap.exists()) return { ...DEFAULT_MODERATION, ...snap.data() };
+  } catch {
+    /* fall through to defaults */
+  }
+  return { ...DEFAULT_MODERATION };
+}
+
+/** Realtime listener for moderation mode. Returns unsubscribe. */
+export function subscribeModerationMode(cb) {
+  return onSnapshot(
+    doc(db, "settings", "moderation"),
+    (snap) => {
+      cb(snap.exists() ? { ...DEFAULT_MODERATION, ...snap.data() } : { ...DEFAULT_MODERATION }, null);
+    },
+    (err) => cb({ ...DEFAULT_MODERATION }, err)
+  );
+}
+
+/** Save moderation mode (admin). */
+export async function saveModerationMode(mode) {
+  await setDoc(
+    doc(db, "settings", "moderation"),
+    {
+      mode: mode === "manual" ? "manual" : "ai",
       updatedAt: serverTimestamp(),
     },
     { merge: true }
