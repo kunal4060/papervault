@@ -23,9 +23,13 @@ service cloud.firestore {
     }
 
     // Papers: public read, mod/admin write.
+    // Public can increment downloads/views counters (for stats).
     match /papers/{id} {
       allow read: if true;
-      allow create, update, delete: if isMod();
+      allow create, delete: if isMod();
+      allow update: if isMod() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloads', 'views'])
+      );
     }
 
     // Notes: public read, admin-only write.
