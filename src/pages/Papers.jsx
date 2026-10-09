@@ -130,7 +130,7 @@ function SubjectGrid() {
               Code ya naam dobara check karo — ya request board pe maang lo.
             </p>
             <a
-              href="#requests"
+              href="#/requests"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] border border-hairline px-5 text-sm font-semibold text-text"
             >
               Request a paper
@@ -519,7 +519,7 @@ function SubjectDetail({ subjectId }) {
               Is filter me koi paper nahi hai.
             </p>
             <a
-              href="#requests"
+              href="#/requests"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas"
             >
               Request karo!
