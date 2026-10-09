@@ -62,6 +62,7 @@ function handleSearch(q, exam) {
 export default function Home() {
   const { data: subjects } = useSubjects();
   const [stats, setStats] = useState(null);
+  const [statsFailed, setStatsFailed] = useState(false);
   const [trending, setTrending] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [countdownSettings, setCountdownSettings] = useState(DEFAULT_EXAM_COUNTDOWN);
@@ -81,7 +82,8 @@ export default function Home() {
         if (!cancelled) setStats(s);
       })
       .catch(() => {
-        /* stats fail → zeros dikhenge, crash nahi */
+        // stats fail → "—" dikhega, misleading zeros nahi
+        if (!cancelled) setStatsFailed(true);
       });
     getTrendingPapers(6)
       .then((rows) => {
@@ -110,7 +112,7 @@ export default function Home() {
       <Navbar />
       <main>
         <SearchHero onSearch={handleSearch} />
-        <StatStrip stats={stats ?? { papers: 0, subjects: 0, notes: 0 }} />
+        <StatStrip stats={stats ?? { papers: 0, subjects: 0, notes: 0 }} failed={statsFailed} />
 
         <div className="mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
           <div className="py-6 md:py-8">
@@ -136,7 +138,19 @@ export default function Home() {
 
           <section className="py-6 md:py-10">
             <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
-            {!trendingLoading && trending.length === 0 ? (
+            {trendingLoading ? (
+              <div className="rounded-xl border border-hairline bg-surface px-4 py-3 md:px-5" aria-hidden="true">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3 border-b border-hairline py-3 last:border-b-0">
+                    <div className="h-10 w-10 animate-pulse rounded-lg bg-surface-plus" />
+                    <div className="min-w-0 flex-1">
+                      <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface-plus" />
+                      <div className="mt-2 h-2.5 w-1/2 animate-pulse rounded bg-surface-plus" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : trending.length === 0 ? (
               <p className="rounded-xl border border-hairline bg-surface px-4 py-8 text-center text-sm text-text-dim">
                 Abhi koi trending paper nahi hai — pehle papers upload karo.
               </p>
