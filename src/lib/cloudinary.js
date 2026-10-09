@@ -20,8 +20,9 @@
  * import badalna hai.
  */
 
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
-const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "xndxfpxi";
+const UPLOAD_PRESET =
+  import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "ahgnlkdd";
 
 /** True jab Cloudinary upload ke liye ready hai. */
 export const CLOUDINARY_CONNECTED = Boolean(CLOUD_NAME && UPLOAD_PRESET);
