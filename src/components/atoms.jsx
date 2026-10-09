@@ -104,7 +104,31 @@ export function Select({ className = "", children, ...props }) {
 }
 
 // ---------- Field label + label ----------
-export function FieldLabel({ htmlFor, children, className = "" }) {
+// Two usage patterns:
+//   1) <FieldLabel>Label text</FieldLabel>              — children is the label (admin pages)
+//   2) <FieldLabel label="..." hint="..." error="...">  — children is the field (Upload page)
+export function FieldLabel({ htmlFor, label, hint, error, children, className = "" }) {
+  if (label !== undefined) {
+    return (
+      <div className={className}>
+        <label
+          htmlFor={htmlFor}
+          className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-text-dim"
+        >
+          {label}
+        </label>
+        {children}
+        {hint && !error && (
+          <p className="mt-1 text-xs leading-relaxed text-text-dim">{hint}</p>
+        )}
+        {error && (
+          <p className="mt-1 text-xs font-medium text-brick" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
   return (
     <label
       htmlFor={htmlFor}
