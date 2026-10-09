@@ -21,6 +21,7 @@ export function useAuth() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState("user");
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
     const unsub = onAuthChanged(async (u) => {
@@ -39,8 +40,11 @@ export function useAuth() {
 
   const signIn = useCallback(async () => {
     setLoading(true);
+    setAuthError(null);
     try {
       await signInWithGoogle();
+    } catch (e) {
+      setAuthError(e);
     } finally {
       setLoading(false);
     }
@@ -55,5 +59,5 @@ export function useAuth() {
     }
   }, []);
 
-  return { user, role, loading, signIn, signOut };
+  return { user, role, loading, signIn, signOut, authError };
 }
