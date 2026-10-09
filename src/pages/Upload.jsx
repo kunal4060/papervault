@@ -42,7 +42,7 @@ import {
 import { consumeReuploadDraft } from "./reuploadDraft.js";
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25MB (BACKEND_PLAN §7 FILE_TOO_LARGE)
-const CURRENT_YEAR = 2026;
+const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR - i);
 const SLOT_SUGGESTIONS = ["A1", "B2", "C1", "D2", "E1", "F1", "G1", "G2"];
 
