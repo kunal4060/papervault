@@ -120,6 +120,7 @@ const TABS = [
   { id: "papers", label: "Papers", href: "#/admin/papers" },
   { id: "users", label: "Users", href: "#/admin/users" },
   { id: "exam", label: "Exam Settings", href: "#/admin/exam" },
+  { id: "bulk-import", label: "Bulk Import", href: "#/admin/bulk-import" },
 ];
 
 /**
