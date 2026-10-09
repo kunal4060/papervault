@@ -257,7 +257,7 @@ function Dropzone({ file, onFile, onClear, error }) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function Upload() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, authError } = useAuth();
 
   const [code, setCode] = useState("");
   const [examType, setExamType] = useState("");
@@ -483,7 +483,7 @@ export default function Upload() {
   }
 
   if (!user) {
-    return <LoginGate onSignIn={signIn} actionText="paper upload karne" />;
+    return <LoginGate onSignIn={signIn} actionText="paper upload karne" error={authError} />;
   }
 
   const errorCodeOf = (v) => {
