@@ -102,6 +102,14 @@ function UploadRow({ upload, subject }) {
         </p>
       )}
 
+      {/* AI-approved note */}
+      {upload.status === "ai_approved" && (
+        <p className="mt-3 flex items-start gap-2 text-xs text-text-dim">
+          <Icon name="check" size={14} className="mt-0.5 shrink-0 text-moss" />
+          AI ne auto-approve kar diya — admin final confirm karke live karega.
+        </p>
+      )}
+
       {/* rejected reason */}
       {rejected && (upload.rejectionReason ?? upload.reason) && (
         <div className="mt-3 rounded-[10px] border border-brick/30 bg-brick/5 px-3.5 py-3">
