@@ -103,10 +103,10 @@ function UploadRow({ upload, subject }) {
       )}
 
       {/* rejected reason */}
-      {rejected && upload.reason && (
+      {rejected && (upload.rejectionReason ?? upload.reason) && (
         <div className="mt-3 rounded-[10px] border border-brick/30 bg-brick/5 px-3.5 py-3">
           <p className="micro mb-1">Reject reason</p>
-          <p className="text-sm text-text">{upload.reason}</p>
+          <p className="text-sm text-text">{upload.rejectionReason ?? upload.reason}</p>
         </div>
       )}
 
@@ -118,7 +118,7 @@ function UploadRow({ upload, subject }) {
             className="!min-h-[40px] !px-4 !text-[13px]"
             onClick={() => {
               window.location.hash = upload.paperId
-                ? `#papers/${upload.paperId}`
+                ? `#/paper/${upload.paperId}`
                 : `#papers`;
             }}
           >
