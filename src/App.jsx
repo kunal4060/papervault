@@ -57,6 +57,12 @@ export default function App() {
     return <Papers key={seg} subjectId={seg} />;
   }
 
+  if (head === "paper") {
+    const pid = rest[0];
+    if (pid) return <PaperDetail key={pid} paperId={pid} />;
+    return <Papers />;
+  }
+
   if (head === "syllabus") {
     return <Syllabus subjectId={rest[0] ?? null} />;
   }
