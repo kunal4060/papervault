@@ -113,7 +113,7 @@ export default function SearchHero({ onSearch }) {
                   key={c}
                   type="button"
                   onClick={() => setExam(c)}
-                  className={`min-h-[40px] shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-all ${
+                  className={`min-h-[44px] shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-all ${
                     exam === c
                       ? "border-accent bg-accent/15 text-accent lg:shadow-[0_0_20px_-6px_rgba(255,178,36,0.5)]"
                       : "border-hairline bg-surface text-text-dim hover:border-text-dim/50 hover:text-text"
