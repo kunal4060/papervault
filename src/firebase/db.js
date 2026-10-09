@@ -482,3 +482,55 @@ export async function sendChatMessage(roomId, { uid, name, photo, text }) {
 export async function deleteChatMessage(roomId, messageId) {
   await deleteDoc(doc(db, "chatRooms", roomId, "messages", messageId));
 }
+
+/* ---------------------------------------------------------------- */
+/* Exam countdown settings (§ — admin-editable, Home banner)        */
+/* doc("settings", "examCountdown"):                                */
+/*   { examType, startDate: "YYYY-MM-DD", endDate: "YYYY-MM-DD",    */
+/*     label?, updatedAt }                                          */
+/* ---------------------------------------------------------------- */
+
+/** Default shown when the settings doc doesn't exist yet. */
+export const DEFAULT_EXAM_COUNTDOWN = {
+  examType: "Lab FAT",
+  startDate: "2026-10-31",
+  endDate: "2026-11-06",
+  label: "",
+};
+
+/** Read the exam countdown settings (one-shot). Falls back to defaults. */
+export async function getExamCountdown() {
+  try {
+    const snap = await getDoc(doc(db, "settings", "examCountdown"));
+    if (snap.exists()) return { ...DEFAULT_EXAM_COUNTDOWN, ...snap.data() };
+  } catch {
+    /* fall through to defaults */
+  }
+  return { ...DEFAULT_EXAM_COUNTDOWN };
+}
+
+/** Realtime listener for exam countdown settings. Returns unsubscribe. */
+export function subscribeExamCountdown(cb) {
+  return onSnapshot(
+    doc(db, "settings", "examCountdown"),
+    (snap) => {
+      cb(snap.exists() ? { ...DEFAULT_EXAM_COUNTDOWN, ...snap.data() } : { ...DEFAULT_EXAM_COUNTDOWN }, null);
+    },
+    (err) => cb({ ...DEFAULT_EXAM_COUNTDOWN }, err)
+  );
+}
+
+/** Save exam countdown settings (admin). */
+export async function saveExamCountdown({ examType, startDate, endDate, label }) {
+  await setDoc(
+    doc(db, "settings", "examCountdown"),
+    {
+      examType,
+      startDate,
+      endDate,
+      label: label ?? "",
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
