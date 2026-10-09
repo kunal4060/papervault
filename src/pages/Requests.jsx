@@ -21,7 +21,8 @@ import {
 } from "../firebase/db.js";
 
 const EXAMS = ["CAT-1", "CAT-2", "FAT", "Lab FAT"];
-const YEARS = [2026, 2025, 2024, 2023, 2022, 2021];
+const THIS_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 6 }, (_, i) => THIS_YEAR - i);
 
 /** Firestore Timestamp or ISO string → Date. */
 function toDate(v) {
@@ -135,7 +136,7 @@ export default function Requests() {
   const activeSubjects = useMemo(() => subjects.filter((s) => s.active), [subjects]);
   const [formSubject, setFormSubject] = useState("");
   const [formExam, setFormExam] = useState("CAT-2");
-  const [formYear, setFormYear] = useState(2026);
+  const [formYear, setFormYear] = useState(THIS_YEAR);
   const defaultSubjectSet = useRef(false);
 
   // load requests + subjects
@@ -247,8 +248,7 @@ export default function Requests() {
         </button>
       </div>
       <p className="mt-2 max-w-xl text-sm text-text-dim lg:text-[15px]">
-        Koi upload kare jo tumhari request se match kare, to tumhe notification
-        milega — <span className="text-text">"Tumhara requested paper aa gaya!"</span>
+        Koi upload kare jo tumhari request se match kare, to request board pe <span className="text-moss">"Available"</span> dikhega — nazar rakho!
       </p>
 
       {/* request form */}
