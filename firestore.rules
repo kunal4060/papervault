@@ -86,5 +86,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Moderation mode settings: public read, admin-only write.
+    match /settings/moderation {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
