@@ -80,11 +80,6 @@ export default function AdminLogin({ onSuccess }) {
         <Button type="submit" className="mt-5 w-full">
           Login
         </Button>
-
-        <p className="mt-4 text-center text-[12px] text-text-dim">
-          Mock login — username <span className="font-mono">admin</span>,
-          password <span className="font-mono">admin</span>
-        </p>
       </form>
     </div>
   );
