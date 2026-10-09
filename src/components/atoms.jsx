@@ -66,7 +66,7 @@ export function Chip({ active = false, className = "", children, ...props }) {
 }
 
 // ---------- Form atoms ----------
-const inputBase = `w-full ${minTouch} rounded-[10px] bg-surface-plus border border-hairline text-text placeholder:text-text-dim/60 px-4 text-sm transition-colors hover:border-text-dim/50 focus:border-accent ${focusRing}`;
+const inputBase = `w-full ${minTouch} rounded-[10px] bg-surface-plus border border-hairline text-text placeholder:text-text-dim/80 px-4 text-sm transition-colors hover:border-text-dim/50 focus:border-accent ${focusRing}`;
 
 export function Input({ className = "", ...props }) {
   return <input className={`${inputBase} ${className}`} {...props} />;
@@ -382,23 +382,3 @@ export function Field({ label, hint, error, children }) {
     </div>
   );
 }
-
-/* -------------------------------- StatusChip -------------------------------- */
-
-const STATUS_META = {
-  pending: {
-    label: "Review me hai",
-    cls: "border-accent-dim bg-accent/10 text-accent",
-    icon: "clock",
-  },
-  approved: {
-    label: "Live",
-    cls: "border-moss/30 bg-moss/10 text-moss",
-    icon: "check",
-  },
-  rejected: {
-    label: "Rejected",
-    cls: "border-brick/30 bg-brick/10 text-brick",
-    icon: "close",
-  },
-};
