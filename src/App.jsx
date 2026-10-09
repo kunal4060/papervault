@@ -62,7 +62,7 @@ export default function App() {
     // paper ids ("paper-001") → detail; anything else → subject detail.
     // key={seg} se paper change pe remount (bookmark/report state reset).
     if (seg.startsWith("paper-")) return <PaperDetail key={seg} paperId={seg} />;
-    return <Papers subjectId={seg} />;
+    return <Papers key={seg} subjectId={seg} />;
   }
 
   if (head === "syllabus") {
