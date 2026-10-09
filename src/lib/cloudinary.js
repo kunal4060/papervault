@@ -90,6 +90,16 @@ export async function uploadNotePDF(file, subjectCode, moduleNum, fileName) {
 }
 
 /**
+ * Official syllabus PDF upload karo.
+ * @param {File} file
+ * @param {string} subjectCode e.g. "CSE3002"
+ * @returns {Promise<{path:string, url:string, size:number}>}
+ */
+export async function uploadSyllabusPDF(file, subjectCode) {
+  return uploadPDF(file, `papervault/syllabus/${subjectCode}/syllabus`);
+}
+
+/**
  * File ka download URL nikalo.
  * Cloudinary URLs permanent hote hain — Firestore me `url` field me full
  * secure_url save karo; ye function purane path-style callers ke liye hai.
