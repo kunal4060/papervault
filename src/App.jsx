@@ -14,6 +14,7 @@ import SyllabusManager from "./pages/admin/SyllabusManager.jsx";
 import NotesManager from "./pages/admin/NotesManager.jsx";
 import PapersManager from "./pages/admin/PapersManager.jsx";
 import Users from "./pages/admin/Users.jsx";
+import ExamSettings from "./pages/admin/ExamSettings.jsx";
 import AdminLogin from "./pages/admin/Login.jsx";
 import { isAdminLoggedIn, adminLogout } from "./pages/admin/adminAuth.js";
 
@@ -24,8 +25,7 @@ import { isAdminLoggedIn, adminLogout } from "./pages/admin/adminAuth.js";
  *   #/                             → Home
  *   #/papers                       → papers subject grid
  *   #/papers/:subjectId            → subject detail (year tabs, AI analysis)
- *   #/paper/:paperId               → paper detail (any Firestore id)
- *   #/papers/paper-xxx             → paper detail (legacy mock ids)
+ *   #/papers/paper-xxx             → paper detail
  *   #/syllabus / #/syllabus/:subjectId → syllabus
  *   #/upload                       → upload flow
  *   #/my-uploads                   → upload history
@@ -60,17 +60,10 @@ export default function App() {
   if (head === "papers") {
     const seg = rest[0];
     if (!seg) return <Papers />;
-    // Legacy mock ids ("paper-001") → detail; anything else → subject detail.
-    // Real Firestore paper ids use the dedicated #/paper/:paperId route below.
-    // key={seg} se subject change pe remount (filter state reset).
+    // paper ids ("paper-001") → detail; anything else → subject detail.
+    // key={seg} se paper change pe remount (bookmark/report state reset).
     if (seg.startsWith("paper-")) return <PaperDetail key={seg} paperId={seg} />;
     return <Papers key={seg} subjectId={seg} />;
-  }
-
-  if (head === "paper") {
-    const paperId = rest[0];
-    if (!paperId) return <Papers />;
-    return <PaperDetail key={paperId} paperId={paperId} />;
   }
 
   if (head === "syllabus") {
@@ -94,6 +87,7 @@ export default function App() {
     if (sub === "notes") return <NotesManager />;
     if (sub === "papers") return <PapersManager />;
     if (sub === "users") return <Users />;
+    if (sub === "exam") return <ExamSettings />;
     if (sub === "logout") {
       adminLogout();
       window.location.hash = "#/";
