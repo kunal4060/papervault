@@ -28,7 +28,7 @@ function MetaChip({ children, mono = false }) {
 }
 
 export default function PaperCard({ paper, subjectName }) {
-  const detailHref = `#/papers/${paper.id}`;
+  const detailHref = `#/paper/${paper.id}`;
 
   return (
     <article className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:border-accent-dim hover:bg-surface-plus md:p-5 lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_20px_44px_-22px_rgba(0,0,0,0.85)]">
