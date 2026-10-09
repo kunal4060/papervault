@@ -21,9 +21,16 @@ import {
   getExamCountdown,
   saveExamCountdown,
   DEFAULT_EXAM_COUNTDOWN,
+  getModerationMode,
+  saveModerationMode,
+  DEFAULT_MODERATION,
 } from "../../firebase/db.js";
 
 const EXAM_TYPES = ["CAT-1", "CAT-2", "FAT", "Lab FAT"];
+const MODES = [
+  { id: "ai", label: "AI", hint: "AI unique papers ko auto-approve karega (admin queue me AI badge ke saath aayega)." },
+  { id: "manual", label: "Manual", hint: "Har upload admin approve karega — AI sirf duplicate check karega." },
+];
 
 export default function ExamSettings() {
   const [examType, setExamType] = useState(DEFAULT_EXAM_COUNTDOWN.examType);
@@ -35,16 +42,23 @@ export default function ExamSettings() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  // Moderation mode (AI vs Manual)
+  const [mode, setMode] = useState(DEFAULT_MODERATION.mode);
+  const [modeSaving, setModeSaving] = useState(false);
+  const [modeSaved, setModeSaved] = useState(false);
+  const [modeError, setModeError] = useState("");
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const s = await getExamCountdown();
+        const [s, m] = await Promise.all([getExamCountdown(), getModerationMode()]);
         if (!cancelled) {
           setExamType(s.examType);
           setStartDate(s.startDate);
           setEndDate(s.endDate);
           setLabel(s.label ?? "");
+          setMode(m.mode === "manual" ? "manual" : "ai");
         }
       } catch (e) {
         if (!cancelled) {
@@ -79,6 +93,23 @@ export default function ExamSettings() {
       setError(e?.message ? `Save nahi hua: ${e.message}` : "Save nahi hua.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveMode = async (next) => {
+    if (modeSaving || next === mode) return;
+    setModeSaving(true);
+    setModeError("");
+    setModeSaved(false);
+    try {
+      await saveModerationMode(next);
+      setMode(next);
+      setModeSaved(true);
+      setTimeout(() => setModeSaved(false), 2500);
+    } catch (e) {
+      setModeError(e?.message ? `Mode save nahi hua: ${e.message}` : "Mode save nahi hua.");
+    } finally {
+      setModeSaving(false);
     }
   };
 
@@ -176,6 +207,55 @@ export default function ExamSettings() {
               {saving ? "Saving…" : "Save countdown"}
             </Button>
           </div>
+        </Card>
+      )}
+
+      {!loading && (
+        <Card className="mt-4 max-w-xl p-4 md:p-5">
+          <MicroLabel>Moderation mode</MicroLabel>
+          <p className="mt-1 text-xs text-text-dim">
+            Upload ke baad paper kaise approve hoga — AI ya manual?
+          </p>
+
+          {modeError && (
+            <div className="mt-3 rounded-[10px] border border-brick/40 bg-brick/5 px-4 py-3 text-sm text-brick">
+              {modeError}
+            </div>
+          )}
+          {modeSaved && (
+            <div className="mt-3 rounded-[10px] border border-moss/40 bg-moss/5 px-4 py-3 text-sm text-moss">
+              Mode save ho gaya — naye uploads isi mode se honge.
+            </div>
+          )}
+
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
+            {MODES.map((m) => {
+              const isActive = mode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => saveMode(m.id)}
+                  disabled={modeSaving}
+                  aria-pressed={isActive}
+                  className={`rounded-[10px] border p-3.5 text-left transition-colors ${
+                    isActive
+                      ? "border-accent bg-accent/10"
+                      : "border-hairline bg-surface-plus hover:border-text-dim"
+                  }`}
+                >
+                  <p className={`text-sm font-bold ${isActive ? "text-accent" : "text-text"}`}>
+                    {m.label}
+                    {isActive && modeSaving && "…"}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-text-dim">{m.hint}</p>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-text-dim">
+            Note: Gemini fail ho jaye ya key na ho to upload hamesha manual review me jayega — chahe mode kuch bhi ho.
+          </p>
         </Card>
       )}
     </AdminShell>
