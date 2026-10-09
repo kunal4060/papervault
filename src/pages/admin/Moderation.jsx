@@ -6,9 +6,9 @@
  * Har row: PDF placeholder, metadata, uploader, AI verdict text,
  * Approve / Reject (reason select + custom input).
  *
- * Pending queue: query(papers, where("status","==","pending")).
- * Approve → updatePaper status "approved"; Reject → status "rejected"
- * + rejectionReason.
+ * Pending queue: uploads collection (createUpload writes status "pending" there).
+ * Approve → createPaper() + updateUpload(status "approved", paperId).
+ * Reject → updateUpload(status "rejected", rejectionReason).
  */
 import { useEffect, useState } from "react";
 import { AdminShell, CodeChip, EmptyState, IcoDoc, IcoCheck, IcoX } from "./adminUi.jsx";
@@ -21,7 +21,7 @@ import {
   TextArea,
   FieldLabel,
 } from "../../components/atoms.jsx";
-import { getPendingPapers, getAllSubjects, updatePaper } from "../../firebase/db.js";
+import { getPendingUploads, getAllSubjects, createPaper, updateUpload } from "../../firebase/db.js";
 import { formatDate } from "../../utils/format.js";
 
 const REJECT_REASONS = ["Duplicate", "Unreadable", "Wrong subject", "Other"];
@@ -37,10 +37,12 @@ function VerdictBox({ verdict }) {
       </div>
     );
   }
+  // verdict shape: { isDuplicate, reason } (see Upload.jsx → createUpload)
+  const dup = verdict.isDuplicate ?? verdict.duplicate ?? false;
   return (
     <div
       className={`rounded-[10px] border px-3.5 py-3 ${
-        verdict.duplicate
+        dup
           ? "border-brick/40 bg-brick/5"
           : "border-hairline bg-surface-plus"
       }`}
@@ -54,7 +56,7 @@ function VerdictBox({ verdict }) {
         )}
       </div>
       <p className="mt-1 text-sm text-text">{verdict.reason}</p>
-      {verdict.duplicate && verdict.duplicateOf && (
+      {dup && verdict.duplicateOf && (
         <p className="mt-1.5 text-xs text-text-dim">
           Possible duplicate of:{" "}
           <span className="font-mono text-brick">{verdict.duplicateOf}</span>
@@ -195,7 +197,7 @@ export default function Moderation() {
     setError("");
     try {
       const [pending, subjects] = await Promise.all([
-        getPendingPapers(),
+        getPendingUploads(),
         getAllSubjects(),
       ]);
       setQueue(pending);
@@ -220,12 +222,31 @@ export default function Moderation() {
   }, []);
 
   const handleApprove = async (id) => {
+    const item = queue.find((q) => q.id === id);
+    if (!item) return;
     try {
-      await updatePaper(id, { status: "approved" });
-      const item = queue.find((q) => q.id === id);
+      const paperId = await createPaper({
+        fileName: item.fileName,
+        subjectId: item.subjectId,
+        subjectCode: item.subjectCode,
+        examType: item.examType,
+        year: item.year,
+        slot: item.slot,
+        faculty: item.faculty ?? "",
+        fileUrl: item.fileUrl,
+        fileSize: item.fileSize ?? 0,
+        fileHash: item.fileHash,
+        textSample: item.textSample ?? "",
+        uploaderId: item.userId,
+        uploaderName: item.uploaderName ?? "Student",
+        status: "approved",
+        downloads: 0,
+        views: 0,
+      });
+      await updateUpload(id, { status: "approved", paperId });
       setQueue((q) => q.filter((x) => x.id !== id));
       setDone((d) => [
-        { id, label: `${item?.fileName ?? id} — approved, ab live hai.`, ok: true },
+        { id, label: `${item.fileName ?? id} — approved, ab live hai.`, ok: true },
         ...d,
       ]);
     } catch (e) {
@@ -236,15 +257,16 @@ export default function Moderation() {
   };
 
   const handleReject = async (id, reason, custom) => {
+    const item = queue.find((q) => q.id === id);
+    if (!item) return;
     try {
       const fullReason = custom.trim() ? `${reason} — ${custom.trim()}` : reason;
-      await updatePaper(id, { status: "rejected", rejectionReason: fullReason });
-      const item = queue.find((q) => q.id === id);
+      await updateUpload(id, { status: "rejected", rejectionReason: fullReason });
       setQueue((q) => q.filter((x) => x.id !== id));
       setDone((d) => [
         {
           id,
-          label: `${item?.fileName ?? id} — rejected (${fullReason}).`,
+          label: `${item.fileName ?? id} — rejected (${fullReason}).`,
           ok: false,
         },
         ...d,
