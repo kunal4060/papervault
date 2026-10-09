@@ -78,11 +78,20 @@ function QueueRow({ item, subjectName, onApprove, onReject, readOnly }) {
 
   const doApprove = async () => {
     setBusy(true);
-    await onApprove(item.id);
+    try {
+      await onApprove(item.id);
+    } finally {
+      // item queue se hata to ye row unmount hoga; error pe busy reset
+      setBusy(false);
+    }
   };
   const doReject = async () => {
     setBusy(true);
-    await onReject(item.id, reason, custom);
+    try {
+      await onReject(item.id, reason, custom);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -131,6 +140,19 @@ function QueueRow({ item, subjectName, onApprove, onReject, readOnly }) {
       <div className="mt-3">
         <VerdictBox verdict={item.aiVerdict} />
       </div>
+
+      {/* PDF preview — approve se pehle file dekhna zaroori hai */}
+      {item.fileUrl && (
+        <a
+          href={item.fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] border border-hairline bg-canvas px-4 text-sm font-semibold text-accent hover:border-accent/50"
+        >
+          <IcoDoc className="h-4 w-4" />
+          PDF dekho
+        </a>
+      )}
 
       {readOnly ? (
         <div className="mt-3 rounded-[10px] border border-brick/40 bg-brick/5 px-3.5 py-3">

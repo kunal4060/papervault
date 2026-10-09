@@ -46,7 +46,7 @@ function FilterChip({ active, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-[40px] shrink-0 items-center rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+      className={`inline-flex min-h-[44px] shrink-0 items-center rounded-full border px-4 text-[13px] font-semibold transition-colors ${
         active
           ? "border-accent text-accent"
           : "border-hairline text-text-dim hover:border-text-dim hover:text-text"
@@ -225,7 +225,7 @@ function SubjectAiAnalysis({ papers }) {
             key={exam}
             type="button"
             onClick={() => setExamTab(exam)}
-            className={`rounded-full border px-4 py-1.5 font-mono text-[12px] font-semibold transition-colors ${
+            className={`inline-flex min-h-[44px] items-center rounded-full border px-4 py-1.5 font-mono text-[12px] font-semibold transition-colors ${
               examTab === exam
                 ? "border-accent bg-accent text-[#0C0D10]"
                 : "border-hairline text-text-dim hover:border-accent-dim hover:text-text"
@@ -500,7 +500,7 @@ function SubjectDetail({ subjectId }) {
         <button
           type="button"
           onClick={() => setSort(sort === "newest" ? "downloads" : "newest")}
-          className="inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border border-hairline px-3.5 text-[12px] font-semibold text-text-dim hover:text-text"
+          className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border border-hairline px-3.5 text-[12px] font-semibold text-text-dim hover:text-text"
           aria-label="Sort badlo"
         >
           <Icon name="clock" size={14} />

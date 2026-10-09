@@ -26,6 +26,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Gemini key is injected at BUILD TIME from the repo secret
+          # VITE_GEMINI_API_KEY (never committed). Absent secret = AI features
+          # stay gracefully disabled. The secret MUST hold a key with HTTP
+          # referrer restrictions (see AI_KEY_SETUP.md) — never an
+          # unrestricted key, since Vite inlines it into the public bundle.
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

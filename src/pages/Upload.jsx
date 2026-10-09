@@ -276,6 +276,7 @@ export default function Upload() {
   const [step, setStep] = useState(-1);
   const [verdict, setVerdict] = useState(null); // DuplicateCheckResponse
   const [autoName, setAutoName] = useState("");
+  const [aiApproved, setAiApproved] = useState(false); // true when AI ran the check and found it unique
   const [fail, setFail] = useState(null); // { code, message }
   const cancelled = useRef(false);
 
@@ -410,6 +411,9 @@ export default function Upload() {
       if (cancelled.current) return;
 
       setVerdict(res);
+      // AI actually ran the duplicate verdict and found it unique → show the
+      // AI-approved success variant. Otherwise it's a plain unique result.
+      setAiApproved(res.aiChecked === true && !res.isDuplicate);
       const slotClean = slot.trim().toUpperCase();
       const name = buildPaperFileName(code, examType, year, slotClean);
       setAutoName(name);
@@ -651,7 +655,7 @@ export default function Upload() {
             </p>
           </div>
           <ProgressSteps steps={PIPE_STEPS} current={step} state="running" />
-          <Button variant="ghost" className="mt-4 w-full" onClick={() => { cancelled.current = true; setPhase("form"); setStep(-1); }}>
+          <Button variant="secondary" className="mt-4 w-full" onClick={() => { cancelled.current = true; setPhase("form"); setStep(-1); }}>
             Cancel
           </Button>
         </Card>
