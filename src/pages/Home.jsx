@@ -12,17 +12,34 @@ import {
   Footer,
 } from "../components/sections.jsx";
 import { useSubjects } from "../hooks/useSubjects.js";
-import { getStats, getTrendingPapers } from "../firebase/db.js";
+import { getStats, getTrendingPapers, subscribeExamCountdown, DEFAULT_EXAM_COUNTDOWN } from "../firebase/db.js";
 
-// TODO: firebase — exam dates Firestore academic-calendar se aayenge.
-function nextCountdown() {
-  const exam = { name: "Lab FAT", startsAt: new Date("2026-10-31T00:00:00+05:30") };
-  const daysLeft = Math.ceil((exam.startsAt - Date.now()) / 86400000);
-  if (daysLeft < 0) return null; // exam khatam — banner mat dikhao
+/** Format "2026-10-31" → "31 Oct"; pair → "31 Oct – 6 Nov 2026". */
+function formatDateRange(startDate, endDate) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const fmt = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return iso;
+    return `${d} ${months[m - 1]}`;
+  };
+  const s = fmt(startDate);
+  const e = fmt(endDate);
+  const year = startDate.slice(0, 4);
+  if (startDate === endDate) return `${s} ${year}`;
+  return `${s} – ${e} ${year}`;
+}
+
+/** Build the banner countdown from admin settings. Null = exam over, hide. */
+function buildCountdown(settings) {
+  const startsAt = new Date(`${settings.startDate}T00:00:00+05:30`);
+  const daysLeft = Math.ceil((startsAt - Date.now()) / 86400000);
+  if (Number.isNaN(daysLeft) || daysLeft < 0) return null; // exam khatam — banner mat dikhao
   return {
-    exam: exam.name,
+    exam: settings.examType,
     daysLeft,
-    dateLabel: "31 Oct – 6 Nov 2026 · sab slots",
+    dateLabel: settings.label?.trim()
+      ? settings.label.trim()
+      : `${formatDateRange(settings.startDate, settings.endDate)} · sab slots`,
   };
 }
 
@@ -47,6 +64,15 @@ export default function Home() {
   const [stats, setStats] = useState(null);
   const [trending, setTrending] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
+  const [countdownSettings, setCountdownSettings] = useState(DEFAULT_EXAM_COUNTDOWN);
+
+  useEffect(() => {
+    // Exam countdown — admin settings se live (fallback: defaults).
+    const unsub = subscribeExamCountdown((settings) => {
+      setCountdownSettings(settings);
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,7 +114,7 @@ export default function Home() {
 
         <div className="mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
           <div className="py-6 md:py-8">
-            <ExamCountdown countdown={nextCountdown()} />
+            <ExamCountdown countdown={buildCountdown(countdownSettings)} />
           </div>
 
           <section className="py-6 md:py-10">
