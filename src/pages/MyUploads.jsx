@@ -143,7 +143,7 @@ function UploadRow({ upload, subject }) {
 }
 
 export default function MyUploads() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, authError } = useAuth();
   const [uploads, setUploads] = useState([]);
   const [subjectMap, setSubjectMap] = useState(new Map());
   const [listLoading, setListLoading] = useState(true);
@@ -184,7 +184,7 @@ export default function MyUploads() {
   }
 
   if (!user) {
-    return <LoginGate onSignIn={signIn} actionText="upload history dekhne" />;
+    return <LoginGate onSignIn={signIn} actionText="upload history dekhne" error={authError} />;
   }
 
   return (
