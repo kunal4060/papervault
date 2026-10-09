@@ -27,6 +27,7 @@ import { sha256Hex } from "../utils/fileHash.js";
 import { extractText } from "../utils/pdfText.js";
 import { buildPaperFileName } from "../utils/fileName.js";
 import Icon from "../components/Icon.jsx";
+import Navbar from "../components/Navbar.jsx";
 import {
   Button,
   Card,
@@ -476,14 +477,22 @@ export default function Upload() {
   /* --------------------------------- render --------------------------------- */
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
-        <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-hairline border-t-accent" />
+      <div className="min-h-screen bg-canvas text-text">
+        <Navbar />
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-hairline border-t-accent" />
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return <LoginGate onSignIn={signIn} actionText="paper upload karne" error={authError} />;
+    return (
+      <div className="min-h-screen bg-canvas text-text">
+        <Navbar />
+        <LoginGate onSignIn={signIn} actionText="paper upload karne" error={authError} />
+      </div>
+    );
   }
 
   const errorCodeOf = (v) => {
@@ -494,6 +503,8 @@ export default function Upload() {
   };
 
   return (
+    <div className="min-h-screen bg-canvas text-text">
+      <Navbar />
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 lg:max-w-5xl lg:pt-10">
       {/* header */}
       <div className="mb-6 lg:mb-8">
@@ -732,6 +743,7 @@ export default function Upload() {
           </div>
         </Card>
       )}
+    </div>
     </div>
   );
 }
