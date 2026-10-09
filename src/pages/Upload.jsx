@@ -15,13 +15,13 @@
  *   ⚠️ error   → BACKEND_PLAN §7 error codes + retry
  *
  * Live data: subjects + approved papers from Firestore, PDF upload to
- * Firebase Storage, upload record via createUpload() (status: pending).
+ * Cloudinary (free tier), upload record via createUpload() (status: pending).
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 import { getSubjects, getPapers, createUpload } from "../firebase/db.js";
-import { uploadPaperPDF } from "../firebase/storage.js";
+import { uploadPaperPDF } from "../lib/cloudinary.js"; // Cloudinary (free tier) — was firebase/storage.js
 import { checkDuplicate } from "../ai/duplicateCheck.js";
 import { sha256Hex } from "../utils/fileHash.js";
 import { extractText } from "../utils/pdfText.js";
