@@ -1,9 +1,18 @@
 /**
  * PaperVault Gemini client wrapper. BACKEND_PLAN.md §5.
  *
- * // TODO: wire real API — for production, move these calls to Cloud Functions
- * (§6: same request/response contract, frontend unchanged). Client-side calls
- * are for the MVP only.
+ * SECURITY — READ BEFORE ADDING A KEY:
+ * Vite inlines VITE_* env vars into the PUBLIC JS bundle, so the key is
+ * visible to anyone who opens the site. That is ONLY acceptable because the
+ * key MUST have HTTP referrer restrictions in Google Cloud Console
+ * (APIs & Services → Credentials → this key → Application restrictions →
+ * HTTP referrers → https://kunal4060.github.io/*, API restrictions →
+ * Generative Language API only). With that restriction, a stolen key is
+ * useless outside the site — this is Google's documented pattern for
+ * browser-side API keys.
+ * NEVER put an unrestricted key in VITE_GEMINI_API_KEY. See AI_KEY_SETUP.md.
+ * For production, move these calls to Cloud Functions (§6: same
+ * request/response contract, frontend unchanged).
  *
  * Behavior:
  *  - VITE_GEMINI_API_KEY present → real call to the Generative Language API.
