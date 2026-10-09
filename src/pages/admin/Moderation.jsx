@@ -21,7 +21,9 @@ import {
   TextArea,
   FieldLabel,
 } from "../../components/atoms.jsx";
-import { getPendingUploads, getAllSubjects, createPaper, updateUpload } from "../../firebase/db.js";
+import { getPendingUploads, getAllSubjects, getSyllabus, createPaper, updatePaper, updateUpload } from "../../firebase/db.js";
+import { analyzePaper } from "../../ai/paperAnalysis.js";
+import { GEMINI_CONNECTED } from "../../ai/gemini.js";
 import { formatDate } from "../../utils/format.js";
 
 const REJECT_REASONS = ["Duplicate", "Unreadable", "Wrong subject", "Other"];
@@ -244,6 +246,22 @@ export default function Moderation() {
         views: 0,
       });
       await updateUpload(id, { status: "approved", paperId });
+      // Best-effort AI analysis — never blocks approval. Needs Gemini key +
+      // syllabus modules + extracted text; skips silently otherwise.
+      try {
+        if (GEMINI_CONNECTED && item.textSample && item.subjectId) {
+          const syllabus = await getSyllabus(item.subjectId);
+          if (syllabus?.modules?.length) {
+            const analysis = await analyzePaper({
+              paperText: item.textSample,
+              syllabusModules: syllabus.modules,
+            });
+            await updatePaper(paperId, { aiAnalysis: analysis });
+          }
+        }
+      } catch {
+        /* analysis is optional — approval already succeeded */
+      }
       setQueue((q) => q.filter((x) => x.id !== id));
       setDone((d) => [
         { id, label: `${item.fileName ?? id} — approved, ab live hai.`, ok: true },
