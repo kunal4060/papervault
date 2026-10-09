@@ -7,6 +7,7 @@ import {
   getPapers,
   getSubject,
   bumpDownloads,
+  bumpViews,
   submitReport,
 } from "../firebase/db.js";
 import { useAuth } from "../hooks/useAuth.js";
@@ -376,6 +377,8 @@ export default function PaperDetail({ paperId }) {
   // Bookmark state paper load hone ke baad sync karo.
   useEffect(() => {
     setBookmarked(paper ? readBookmarks().includes(paper.id) : false);
+    // View count — atomic increment, best-effort.
+    if (paper?.id) bumpViews(paper.id).catch(() => {});
   }, [paper]);
 
   const [subject, setSubject] = useState(null);
