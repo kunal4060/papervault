@@ -21,8 +21,7 @@ import {
   Select,
 } from "../../components/atoms.jsx";
 import { getAllSubjects, getSyllabus, saveSyllabus } from "../../firebase/db.js";
-import { storage } from "../../firebase/config.js";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadSyllabusPDF } from "../../lib/cloudinary.js";
 
 function ModuleEditor({ module, onChange, onRemove }) {
   const topicsText = (module.topics ?? []).join(", ");
@@ -154,10 +153,7 @@ export default function SyllabusManager() {
     setUploading(true);
     setError("");
     try {
-      const path = `syllabus/${subject.code}/syllabus.pdf`;
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, f, { contentType: "application/pdf" });
-      const url = await getDownloadURL(storageRef);
+      const { url } = await uploadSyllabusPDF(f, subject.code);
       setPdfUrl(url);
       setPdfName(f.name);
       // PDF ka URL turant save karo taaki modules ke saath sync me rahe
