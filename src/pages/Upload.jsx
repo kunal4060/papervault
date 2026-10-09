@@ -704,7 +704,7 @@ export default function Upload() {
               </p>
               <button
                 type="button"
-                onClick={() => { window.location.hash = `#papers/${verdict.duplicateOf}`; }}
+                onClick={() => { window.location.hash = `#/paper/${verdict.duplicateOf}`; }}
                 className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent"
               >
                 <Icon name="eye" size={16} />
