@@ -25,6 +25,7 @@ import {
   onSnapshot,
   serverTimestamp,
   arrayUnion,
+  increment,
 } from "firebase/firestore";
 
 const toRow = (d) => ({ id: d.id, ...d.data() });
@@ -175,15 +176,19 @@ export async function deletePaper(id) {
   await deleteDoc(doc(db, "papers", id));
 }
 
-/** Increment download counter (fire-and-forget safe). */
+/** Increment download counter (atomic — no read-modify-write race). */
 export async function bumpDownloads(id) {
   try {
-    const snap = await getDoc(doc(db, "papers", id));
-    if (snap.exists()) {
-      await updateDoc(doc(db, "papers", id), {
-        downloads: (snap.data().downloads ?? 0) + 1,
-      });
-    }
+    await updateDoc(doc(db, "papers", id), { downloads: increment(1) });
+  } catch {
+    /* best-effort only */
+  }
+}
+
+/** Increment view counter (atomic — fire-and-forget). */
+export async function bumpViews(id) {
+  try {
+    await updateDoc(doc(db, "papers", id), { views: increment(1) });
   } catch {
     /* best-effort only */
   }
@@ -247,6 +252,23 @@ export async function createUpload(data) {
     createdAt: serverTimestamp(),
   });
   return { id: ref.id };
+}
+
+/** Uploads awaiting moderation (admin). Newest first. */
+export async function getPendingUploads() {
+  const snap = await getDocs(
+    query(collection(db, "uploads"), where("status", "==", "pending"))
+  );
+  return snap.docs.map(toRow).sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? 0;
+    return tb - ta;
+  });
+}
+
+/** Update an upload doc (admin: approve/reject + paperId link). */
+export async function updateUpload(id, patch) {
+  await updateDoc(doc(db, "uploads", id), patch);
 }
 
 /* ------------------------------------------------------------------ */
@@ -378,10 +400,8 @@ export async function getSubjectDetail(subjectId) {
 
   // Aggregate topic percentages across papers' aiAnalysis (subject trend).
   const topicTotals = {};
-  let paperCount = 0;
   for (const p of papers) {
     if (!p.aiAnalysis?.topics?.length) continue;
-    paperCount += 1;
     for (const t of p.aiAnalysis.topics) {
       const key = t.module;
       if (!topicTotals[key]) {
@@ -401,7 +421,7 @@ export async function getSubjectDetail(subjectId) {
       module: t.module,
       moduleTitle: t.moduleTitle,
       avgPercentage: Math.round(t.total / Math.max(1, t.n)),
-      papersAnalyzed: paperCount,
+      papersAnalyzed: t.n,
     }))
     .sort((a, b) => b.avgPercentage - a.avgPercentage);
 
