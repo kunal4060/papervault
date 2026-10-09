@@ -28,9 +28,7 @@ import {
   createNote,
   deleteNote,
 } from "../../firebase/db.js";
-import { uploadNotePDF } from "../../firebase/storage.js";
-import { storage } from "../../firebase/config.js";
-import { ref, deleteObject } from "firebase/storage";
+import { uploadNotePDF } from "../../lib/cloudinary.js";
 
 export default function NotesManager() {
   const [rows, setRows] = useState([]);
@@ -146,18 +144,12 @@ export default function NotesManager() {
   };
 
   const confirmDelete = async (id) => {
-    const note = rows.find((r) => r.id === id);
     setError("");
     try {
       await deleteNote(id);
-      // Storage file cleanup — best effort
-      if (note?.filePath) {
-        try {
-          await deleteObject(ref(storage, note.filePath));
-        } catch {
-          /* best-effort only */
-        }
-      }
+      // Note: Cloudinary file cleanup client-side possible nahi hai
+      // (unsigned uploads ke liye API secret chahiye) — file Cloudinary
+      // dashboard se delete karna hoga. Doc delete hi kaafi hai.
       setRows((rs) => rs.filter((r) => r.id !== id));
     } catch (e) {
       setError(
