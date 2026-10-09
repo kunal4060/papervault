@@ -178,6 +178,7 @@ export function StatusChip({ status, className = "", ...props }) {
   const map = {
     approved: { tone: "moss", label: "Verified" },
     verified: { tone: "moss", label: "Verified" },
+    ai_approved: { tone: "moss", label: "AI Approved" },
     pending: { tone: "amber", label: "Pending" },
     rejected: { tone: "brick", label: "Rejected" },
   };
