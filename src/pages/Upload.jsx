@@ -15,18 +15,21 @@
  *   ⚠️ error   → BACKEND_PLAN §7 error codes + retry
  *
  * Live data: subjects + approved papers from Firestore, PDF upload to
- * Firebase Storage, upload record via createUpload() (status: pending).
+ * Cloudinary (free tier), upload record via createUpload() — status:
+ * "ai_approved" (AI mode + Gemini ran + unique), "pending" (manual mode or
+ * AI unavailable), "rejected" (AI duplicate detected).
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 import { getSubjects, getPapers, createUpload } from "../firebase/db.js";
-import { uploadPaperPDF } from "../firebase/storage.js";
+import { uploadPaperPDF } from "../lib/cloudinary.js"; // Cloudinary (free tier) — was firebase/storage.js
 import { checkDuplicate } from "../ai/duplicateCheck.js";
 import { sha256Hex } from "../utils/fileHash.js";
 import { extractText } from "../utils/pdfText.js";
 import { buildPaperFileName } from "../utils/fileName.js";
 import Icon from "../components/Icon.jsx";
+import Navbar from "../components/Navbar.jsx";
 import {
   Button,
   Card,
@@ -41,7 +44,7 @@ import {
 import { consumeReuploadDraft } from "./reuploadDraft.js";
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25MB (BACKEND_PLAN §7 FILE_TOO_LARGE)
-const CURRENT_YEAR = 2026;
+const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR - i);
 const SLOT_SUGGESTIONS = ["A1", "B2", "C1", "D2", "E1", "F1", "G1", "G2"];
 
@@ -257,7 +260,7 @@ function Dropzone({ file, onFile, onClear, error }) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function Upload() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, authError } = useAuth();
 
   const [code, setCode] = useState("");
   const [examType, setExamType] = useState("");
@@ -420,6 +423,7 @@ export default function Upload() {
           if (cancelled.current) return;
           await createUpload({
             userId: user.uid,
+            uploaderName: user.displayName ?? user.email ?? "Student",
             fileName: name,
             subjectId: selectedSubject.id,
             subjectCode: code,
@@ -431,6 +435,7 @@ export default function Upload() {
             fileUrl,
             fileSize: file.size,
             textSample,
+            aiVerdict: { isDuplicate: res.isDuplicate, reason: res.reason },
           });
         } catch (upErr) {
           if (cancelled.current) return;
@@ -470,20 +475,29 @@ export default function Upload() {
     setStep(-1);
     setVerdict(null);
     setAutoName("");
+    setAiApproved(false);
     setFail(null);
   }
 
   /* --------------------------------- render --------------------------------- */
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
-        <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-hairline border-t-accent" />
+      <div className="min-h-screen bg-canvas text-text">
+        <Navbar />
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-hairline border-t-accent" />
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return <LoginGate onSignIn={signIn} actionText="paper upload karne" />;
+    return (
+      <div className="min-h-screen bg-canvas text-text">
+        <Navbar />
+        <LoginGate onSignIn={signIn} actionText="paper upload karne" error={authError} />
+      </div>
+    );
   }
 
   const errorCodeOf = (v) => {
@@ -494,6 +508,8 @@ export default function Upload() {
   };
 
   return (
+    <div className="min-h-screen bg-canvas text-text">
+      <Navbar />
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 lg:max-w-5xl lg:pt-10">
       {/* header */}
       <div className="mb-6 lg:mb-8">
@@ -648,11 +664,13 @@ export default function Upload() {
             <Icon name="check" size={26} />
           </OutcomeIcon>
           <h2 className="font-display text-xl font-bold text-text">
-            Unique! Review me bhej diya
+            {aiApproved ? "AI approved! Admin review me bhej diya" : "Unique! Review me bhej diya"}
           </h2>
           <p className="mt-2 text-sm text-text-dim">
-            Tumhara paper ab admin/moderator review karega. Approve hote hi vault me live ho jayega.
-            <span className="mt-2 block font-mono text-xs text-text-dim/80">code: PENDING_REVIEW</span>
+            {aiApproved
+              ? "AI ne tumhara paper unique paya aur auto-approve kar diya. Admin final check karke vault me live karega."
+              : "Tumhara paper ab admin/moderator review karega. Approve hote hi vault me live ho jayega."}
+            <span className="mt-2 block font-mono text-xs text-text-dim/80">code: {aiApproved ? "AI_APPROVED" : "PENDING_REVIEW"}</span>
           </p>
           <div className="mt-5 rounded-[10px] border border-hairline bg-canvas px-4 py-3">
             <p className="micro mb-1">Auto filename</p>
@@ -691,7 +709,7 @@ export default function Upload() {
               </p>
               <button
                 type="button"
-                onClick={() => { window.location.hash = `#papers/${verdict.duplicateOf}`; }}
+                onClick={() => { window.location.hash = `#/paper/${verdict.duplicateOf}`; }}
                 className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent"
               >
                 <Icon name="eye" size={16} />
@@ -732,6 +750,7 @@ export default function Upload() {
           </div>
         </Card>
       )}
+    </div>
     </div>
   );
 }

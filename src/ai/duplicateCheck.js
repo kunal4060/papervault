@@ -47,6 +47,9 @@ export const SIM_DOUBTFUL = 0.85;
  * @property {string} reason — human-readable, shown in upload history
  * @property {string} [duplicateOf] — paperId when duplicate
  * @property {string} [duplicateTitle] — title of the matched paper
+ * @property {boolean} [aiChecked] — true when the Gemini verdict step
+ *   actually ran (doubtful band). Undefined/false = AI wasn't needed or
+ *   couldn't run — treat as manual-review.
  */
 
 /**
@@ -158,11 +161,13 @@ export async function checkDuplicate(req) {
         reason: `AI check: duplicate lagta hai — ${verdict.reason}`,
         duplicateOf: best.id,
         duplicateTitle: best.title,
+        aiChecked: true,
       };
     }
     return {
       isDuplicate: false,
       reason: `AI check: alag paper hai — ${verdict.reason}`,
+      aiChecked: verdict.aiChecked === true,
     };
   }
 
@@ -177,7 +182,8 @@ export async function checkDuplicate(req) {
  * Exact prompt from BACKEND_PLAN.md §5.3.
  * @param {string} textB — new upload's text sample
  * @param {{title:string, textSample?:string}} candidate — existing paper
- * @returns {Promise<{duplicate:boolean, reason:string}>}
+ * @returns {Promise<{duplicate:boolean, reason:string, aiChecked:boolean}>}
+ *   aiChecked is true only when Gemini actually ran and answered.
  */
 async function geminiVerdict(textB, candidate) {
   // Without a key there is no AI check — flag honestly for manual review.
@@ -185,6 +191,7 @@ async function geminiVerdict(textB, candidate) {
     return {
       duplicate: false,
       reason: "AI check unavailable — manual review ke liye bheja gaya.",
+      aiChecked: false,
     };
   }
   const textA = (candidate.textSample || "").slice(0, 2000);
@@ -195,10 +202,20 @@ Are these the SAME question paper? Consider: same questions, same order,
 same marks = duplicate. Different year/exam with different questions = not duplicate.
 Reply in JSON: {"duplicate": true/false, "reason": "one line"}`;
 
-  const out = await generateJSON(prompt);
+  let out = null;
+  try {
+    out = await generateJSON(prompt);
+  } catch (err) {
+    return {
+      duplicate: false,
+      reason: `AI check failed (${err?.message || "unknown error"}) — manual review ke liye bheja gaya.`,
+      aiChecked: false,
+    };
+  }
 
   return {
-    duplicate: Boolean(out.duplicate),
-    reason: String(out.reason || "no reason given").slice(0, 200),
+    duplicate: Boolean(out?.duplicate),
+    reason: String(out?.reason || "no reason given").slice(0, 200),
+    aiChecked: true,
   };
 }

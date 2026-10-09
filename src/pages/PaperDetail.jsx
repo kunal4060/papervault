@@ -7,6 +7,7 @@ import {
   getPapers,
   getSubject,
   bumpDownloads,
+  bumpViews,
   submitReport,
 } from "../firebase/db.js";
 import { useAuth } from "../hooks/useAuth.js";
@@ -376,6 +377,8 @@ export default function PaperDetail({ paperId }) {
   // Bookmark state paper load hone ke baad sync karo.
   useEffect(() => {
     setBookmarked(paper ? readBookmarks().includes(paper.id) : false);
+    // View count — atomic increment, best-effort.
+    if (paper?.id) bumpViews(paper.id).catch(() => {});
   }, [paper]);
 
   const [subject, setSubject] = useState(null);
@@ -642,40 +645,50 @@ export default function PaperDetail({ paperId }) {
                   />
                 )}
 
-                {/* PDF placeholder — // TODO: pdfjs in-browser viewer yahan aayega */}
-                <div
-                  ref={viewerRef}
-                  className="mt-5 scroll-mt-20 rounded-xl border border-dashed border-hairline bg-surface p-8 text-center md:mt-8 md:p-12 lg:mt-0"
-                >
-              <Icon name="file" size={40} className="mx-auto text-text-dim" />
-              <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
-                PDF preview
-              </p>
-              <p className="mt-1 break-all font-mono text-[12px] text-text-dim">
-                {paper.fileName}
-              </p>
-              <p className="mx-auto mt-2 max-w-sm text-[13px] text-text-dim md:text-sm">
-                In-browser PDF viewer yahan aayega — page navigation aur zoom
-                ke saath.
-              </p>
-              {paper.fileUrl && (
-                <a
-                  href={paper.fileUrl}
-                  download={paper.fileName}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    bumpDownloads(paper.id).catch(() => {
-                      /* count fail → download still opens */
-                    });
-                    window.open(paper.fileUrl, "_blank", "noopener,noreferrer");
-                  }}
-                  className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas md:mt-5 md:px-7 md:py-1"
-                >
-                  <Icon name="download" size={16} />
-                  PDF download karo
-                </a>
-              )}
-            </div>
+                {/* PDF preview — native browser embed (no extra dependency) */}
+              <div
+                ref={viewerRef}
+                className="mt-5 scroll-mt-20 overflow-hidden rounded-xl border border-hairline bg-surface md:mt-8 lg:mt-0"
+              >                {paper.fileUrl ? (
+                  <object
+                    data={paper.fileUrl}
+                    type="application/pdf"
+                    className="h-[70vh] min-h-[420px] w-full bg-canvas md:h-[78vh]"
+                    aria-label={`${paper.fileName} PDF preview`}
+                  >
+                    <div className="p-8 text-center md:p-12">
+                      <Icon name="file" size={40} className="mx-auto text-text-dim" />
+                      <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
+                        Preview nahi khul paya
+                      </p>
+                      <p className="mt-1 break-all font-mono text-[12px] text-text-dim">
+                        {paper.fileName}
+                      </p>
+                      <a
+                        href={paper.fileUrl}
+                        download={paper.fileName}
+                        onClick={() => {
+                          bumpDownloads(paper.id).catch(() => {});
+                        }}
+                        className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas md:mt-5 md:px-7"
+                      >
+                        <Icon name="download" size={16} />
+                        PDF download karo
+                      </a>
+                    </div>
+                  </object>
+                ) : (
+                  <div className="p-8 text-center md:p-12">
+                    <Icon name="file" size={40} className="mx-auto text-text-dim" />
+                    <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
+                      PDF available nahi hai
+                    </p>
+                    <p className="mt-1 break-all font-mono text-[12px] text-text-dim">
+                      {paper.fileName}
+                    </p>
+                  </div>
+                )}
+              </div>
 
             {/* AI analysis */}
             <AiAnalysisPanel analysis={paper.aiAnalysis} />

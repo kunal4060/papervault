@@ -7,15 +7,7 @@ import Upload from "./pages/Upload.jsx";
 import MyUploads from "./pages/MyUploads.jsx";
 import Requests from "./pages/Requests.jsx";
 import Chat from "./pages/Chat.jsx";
-import Dashboard from "./pages/admin/Dashboard.jsx";
-import Moderation from "./pages/admin/Moderation.jsx";
-import Subjects from "./pages/admin/Subjects.jsx";
-import SyllabusManager from "./pages/admin/SyllabusManager.jsx";
-import NotesManager from "./pages/admin/NotesManager.jsx";
-import PapersManager from "./pages/admin/PapersManager.jsx";
-import Users from "./pages/admin/Users.jsx";
-import AdminLogin from "./pages/admin/Login.jsx";
-import { isAdminLoggedIn, adminLogout } from "./pages/admin/adminAuth.js";
+import AdminGate from "./pages/admin/AdminGate.jsx";
 
 /**
  * PaperVault — tiny hash router (no dependency).
@@ -62,7 +54,7 @@ export default function App() {
     // paper ids ("paper-001") → detail; anything else → subject detail.
     // key={seg} se paper change pe remount (bookmark/report state reset).
     if (seg.startsWith("paper-")) return <PaperDetail key={seg} paperId={seg} />;
-    return <Papers subjectId={seg} />;
+    return <Papers key={seg} subjectId={seg} />;
   }
 
   if (head === "syllabus") {
@@ -75,23 +67,9 @@ export default function App() {
   if (head === "chat") return <Chat />;
 
   if (head === "admin") {
-    // Admin login gate — mock credentials: admin / admin
-    if (!isAdminLoggedIn()) {
-      return <AdminLogin onSuccess={() => setRoute(parseHash())} />;
-    }
+    // Admin gate — Firebase Google auth + users/{uid}.role === "admin".
     const sub = rest[0] ?? "";
-    if (sub === "moderation") return <Moderation />;
-    if (sub === "subjects") return <Subjects />;
-    if (sub === "syllabus") return <SyllabusManager />;
-    if (sub === "notes") return <NotesManager />;
-    if (sub === "papers") return <PapersManager />;
-    if (sub === "users") return <Users />;
-    if (sub === "logout") {
-      adminLogout();
-      window.location.hash = "#/";
-      return null;
-    }
-    return <Dashboard />;
+    return <AdminGate key="admin" sub={sub} />;
   }
 
   return <Home />;

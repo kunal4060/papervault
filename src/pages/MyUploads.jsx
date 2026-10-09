@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 import { getMyUploads, getSubjects } from "../firebase/db.js";
 import Icon from "../components/Icon.jsx";
+import Navbar from "../components/Navbar.jsx";
 import {
   Button,
   Card,
@@ -101,11 +102,19 @@ function UploadRow({ upload, subject }) {
         </p>
       )}
 
+      {/* AI-approved note */}
+      {upload.status === "ai_approved" && (
+        <p className="mt-3 flex items-start gap-2 text-xs text-text-dim">
+          <Icon name="check" size={14} className="mt-0.5 shrink-0 text-moss" />
+          AI ne auto-approve kar diya — admin final confirm karke live karega.
+        </p>
+      )}
+
       {/* rejected reason */}
-      {rejected && upload.reason && (
+      {rejected && (upload.rejectionReason ?? upload.reason) && (
         <div className="mt-3 rounded-[10px] border border-brick/30 bg-brick/5 px-3.5 py-3">
           <p className="micro mb-1">Reject reason</p>
-          <p className="text-sm text-text">{upload.reason}</p>
+          <p className="text-sm text-text">{upload.rejectionReason ?? upload.reason}</p>
         </div>
       )}
 
@@ -117,7 +126,7 @@ function UploadRow({ upload, subject }) {
             className="!min-h-[40px] !px-4 !text-[13px]"
             onClick={() => {
               window.location.hash = upload.paperId
-                ? `#papers/${upload.paperId}`
+                ? `#/paper/${upload.paperId}`
                 : `#papers`;
             }}
           >
@@ -143,7 +152,7 @@ function UploadRow({ upload, subject }) {
 }
 
 export default function MyUploads() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, authError } = useAuth();
   const [uploads, setUploads] = useState([]);
   const [subjectMap, setSubjectMap] = useState(new Map());
   const [listLoading, setListLoading] = useState(true);
@@ -184,10 +193,17 @@ export default function MyUploads() {
   }
 
   if (!user) {
-    return <LoginGate onSignIn={signIn} actionText="upload history dekhne" />;
+    return (
+      <div className="min-h-screen bg-canvas text-text">
+        <Navbar />
+        <LoginGate onSignIn={signIn} actionText="upload history dekhne" error={authError} />
+      </div>
+    );
   }
 
   return (
+    <div className="min-h-screen bg-canvas text-text">
+      <Navbar />
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 lg:max-w-5xl lg:pt-10">
       <div className="mb-6 flex items-start justify-between gap-4 lg:mb-8">
         <div>
@@ -241,6 +257,7 @@ export default function MyUploads() {
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }

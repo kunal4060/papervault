@@ -61,11 +61,12 @@ service cloud.firestore {
       allow update: if isAdmin();
     }
 
-    // Chat: public read, logged-in write, mod delete.
+    // Chat: public read, logged-in write, own-message or mod delete.
     match /chatRooms/{room}/messages/{msg} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow delete: if isMod();
+      allow delete: if isMod() ||
+        (request.auth != null && resource.data.uid == request.auth.uid);
     }
 
     // Paper requests: public read, logged-in create/update (upvotes).
@@ -78,6 +79,18 @@ service cloud.firestore {
     match /reports/{id} {
       allow read: if isMod();
       allow create: if request.auth != null;
+    }
+
+    // Exam countdown settings: public read, admin-only write.
+    match /settings/examCountdown {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Moderation mode settings: public read, admin-only write.
+    match /settings/moderation {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
