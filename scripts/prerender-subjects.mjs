@@ -11,6 +11,7 @@
  *     full app (BrowserRouter takes over from the real URL).
  *
  * Run: `node scripts/prerender-subjects.mjs` (wired into `npm run build`).
+ * Trigger rebuild: pages-deploy refresh.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
