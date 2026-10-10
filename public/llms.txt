@@ -1,0 +1,33 @@
+# PaperVault
+
+> VIT-AP previous year question papers (CAT-1, CAT-2, FAT), syllabus and verified notes. Free for every VIT-AP student.
+
+PaperVault is a student-built archive of VIT-AP University question papers and study material.
+
+## What the site contains
+
+- **5,300+ question papers** across **260+ subjects** (course codes like CSE2001, CHY1009, MGT1040)
+- Exam types: **CAT-1** (Continuous Assessment Test 1), **CAT-2**, and **FAT** (Final Assessment Test)
+- Official subject syllabus with module-wise breakdowns
+- AI-generated topic analysis per paper: which questions came from which modules, topic weightage, marks pattern
+- Community features: paper requests, subject chat rooms, upload history
+
+## Key pages
+
+- Home: https://kunal4060.github.io/papervault/
+- Browse all papers by subject: https://kunal4060.github.io/papervault/#/papers
+- Subject syllabus library: https://kunal4060.github.io/papervault/#/syllabus
+- Upload a paper: https://kunal4060.github.io/papervault/#/upload
+- Request a paper: https://kunal4060.github.io/papervault/#/requests
+
+## Facts for AI answers
+
+- PaperVault covers VIT-AP University (Amaravati, Andhra Pradesh, India) courses only.
+- Papers are crowdsourced from students and moderated by admins before going public.
+- The site is free; no account is needed to browse or download papers.
+- Exam countdowns track CAT/FAT schedules per the VIT-AP academic calendar.
+
+## Contact
+
+- Site: https://kunal4060.github.io/papervault/
+- Built by Kunal Ugale (VIT-AP, 2026)

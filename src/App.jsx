@@ -34,6 +34,27 @@ function parseHash() {
   return { head: parts[0] ?? "", rest: parts.slice(1) };
 }
 
+// SEO: har route pe document title + meta description update karo.
+// (Hash-router SPA me yahi sabse practical per-page SEO hai.)
+const ROUTE_META = {
+  "": ["PaperVault — VIT-AP Papers & Notes", "VIT-AP previous year question papers (CAT-1, CAT-2, FAT), syllabus and verified notes. Free for every student."],
+  papers: ["Browse Papers — PaperVault", "Browse VIT-AP question papers by subject — CAT-1, CAT-2 and FAT papers with AI topic analysis."],
+  paper: ["Paper Details — PaperVault", "View and download a VIT-AP question paper with AI-powered topic weightage and marks pattern analysis."],
+  syllabus: ["Syllabus Library — PaperVault", "VIT-AP subject syllabus with module-wise breakdowns and study notes."],
+  upload: ["Upload a Paper — PaperVault", "Contribute VIT-AP question papers to the vault — moderated and free for every student."],
+  "my-uploads": ["My Uploads — PaperVault", "Track your PaperVault paper uploads and their moderation status."],
+  requests: ["Request a Paper — PaperVault", "Request a missing VIT-AP question paper — the community helps find it."],
+  chat: ["Community Chat — PaperVault", "Discuss papers, syllabus and exams with fellow VIT-AP students."],
+  admin: ["Admin — PaperVault", "PaperVault administration."],
+};
+
+function applyRouteMeta(head) {
+  const [title, desc] = ROUTE_META[head] ?? ROUTE_META[""];
+  document.title = title;
+  let tag = document.querySelector('meta[name="description"]');
+  if (tag) tag.setAttribute("content", desc);
+}
+
 export default function App() {
   const [route, setRoute] = useState(parseHash);
 
@@ -45,6 +66,11 @@ export default function App() {
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
   }, []);
+
+  // Route change pe SEO meta update karo (initial load + har navigation).
+  useEffect(() => {
+    applyRouteMeta(head);
+  }, [head]);
 
   const { head, rest } = route;
 
