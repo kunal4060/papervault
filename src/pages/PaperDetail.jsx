@@ -12,6 +12,7 @@ import {
 } from "../firebase/db.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { formatDate } from "../utils/format.js";
+import { callGemini, GEMINI_CONNECTED } from "../ai/gemini.js";
 
 /**
  * PaperVault — Paper detail page (Archive Noir). /papers/:id
@@ -199,6 +200,97 @@ function AiAnalysisPanel({ analysis }) {
         Analysis based on this paper · Updated{" "}
         {formatDate(analysis.analyzedAt)}
       </p>
+    </section>
+  );
+}
+
+/* AI Summary generator — on-demand summary via Gemini (§5B)            */
+/* Shows when no pre-computed aiAnalysis exists.                        */
+/* ------------------------------------------------------------------ */
+
+function AiSummaryGenerator({ paper }) {
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Don't show if pre-computed analysis exists
+  if (paper?.aiAnalysis?.topics?.length) return null;
+
+  async function generate() {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!GEMINI_CONNECTED) {
+        throw new Error("AI abhi available nahi hai — thodi der me try karo.");
+      }
+      const prompt = `You are a helpful study assistant for VIT-AP students. Write a short, practical exam-prep summary in simple Hinglish (mix of Hindi and English, friendly tone) for this question paper:
+
+Subject: ${paper.subjectName || paper.subjectId || "Unknown"}
+Course Code: ${paper.courseCode || paper.subjectId || "N/A"}
+Exam Type: ${paper.examType || "N/A"}
+Year: ${paper.year || "N/A"}
+Slot: ${paper.slot || "N/A"}
+
+Keep it concise (4-6 lines): what kind of paper this is, how to prepare for it, and one practical tip. Do NOT invent specific questions or topics — keep it general and honest. Respond in plain text, no JSON.`;
+      const { text } = await callGemini(prompt, { jsonMode: false });
+      if (!text?.trim()) throw new Error("Kuch mila nahi — phir se try karo.");
+      setSummary(text.trim());
+    } catch (e) {
+      setError(e.message || "Summary banane me problem hui.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="mt-8 rounded-xl border border-hairline bg-surface p-5 md:mt-10 md:p-8">
+      <div className="flex items-center gap-2">
+        <Icon name="spark" size={18} className="text-accent" />
+        <p className="micro">AI summary</p>
+      </div>
+      <h2 className="mt-2 font-display text-xl font-bold text-text md:text-2xl">
+        Is paper ka <span className="hl-soft">quick summary</span>
+      </h2>
+
+      {!summary && !loading && (
+        <div className="mt-4">
+          <p className="text-[14px] text-text-dim">
+            AI se is paper ke baare me ek chhota summary banao — exam prep me kaam aayega.
+          </p>
+          <button
+            onClick={generate}
+            className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-semibold text-black transition hover:brightness-110"
+          >
+            <Icon name="spark" size={16} />
+            AI Summary Banao
+          </button>
+        </div>
+      )}
+
+      {loading && (
+        <div className="mt-4 flex items-center gap-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <p className="text-[14px] text-text-dim">Summary ban raha hai...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-brick/40 bg-brick/10 px-4 py-3">
+          <p className="text-[14px] text-brick">{error}</p>
+          <button
+            onClick={generate}
+            className="mt-2 text-[13px] font-semibold text-accent hover:underline"
+          >
+            Phir se try karo
+          </button>
+        </div>
+      )}
+
+      {summary && (
+        <div className="mt-4 rounded-lg border border-accent-dim/60 bg-surface-plus px-4 py-3.5">
+          <p className="text-[14px] leading-relaxed text-text whitespace-pre-wrap">{summary}</p>
+        </div>
+      )}
     </section>
   );
 }
@@ -707,6 +799,9 @@ export default function PaperDetail({ paperId }) {
 
             {/* AI analysis */}
             <AiAnalysisPanel analysis={paper.aiAnalysis} />
+
+            {/* AI summary generator (when no pre-computed analysis) */}
+            <AiSummaryGenerator paper={paper} />
               </div>
             </div>
 
