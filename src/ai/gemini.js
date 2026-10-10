@@ -24,7 +24,7 @@ const API_KEY =
     import.meta.env?.VITE_GEMINI_API_KEY) ||
   (typeof process !== "undefined" && process.env?.VITE_GEMINI_API_KEY) ||
   "";
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-3.8-flash";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 /** True when a real key is configured. */
