@@ -13,7 +13,10 @@ import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import { useSyllabus } from "../hooks/useSyllabus.js";
 import { useSubjects } from "../hooks/useSubjects.js";
-import { getSubject, getSubjectDetail } from "../firebase/db.js";
+import {
+  getSubjectDetail,
+  resolveSubject,
+} from "../firebase/db.js";
 import {
   Button,
   Card,
@@ -272,22 +275,27 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
 
 // ------------------------------------------------------- subject detail ---
 function SubjectDetail({ subjectId, onBack }) {
-  // Subject Firestore se (getSubject — inactive = not found).
+  // Subject Firestore se — doc id YA course code dono chalte hain
+  // (resolveSubject; inactive = not found).
   const [subject, setSubject] = useState(null);
   const [subjectLoading, setSubjectLoading] = useState(true);
+  const [resolvedId, setResolvedId] = useState(null);
   useEffect(() => {
     let cancelled = false;
     setSubjectLoading(true);
-    getSubject(subjectId)
+    setResolvedId(null);
+    resolveSubject(subjectId)
       .then((s) => {
         if (!cancelled) {
           setSubject(s && s.active !== false ? s : null);
+          setResolvedId(s && s.active !== false ? s.id : null);
           setSubjectLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setSubject(null);
+          setResolvedId(null);
           setSubjectLoading(false);
         }
       });
@@ -296,8 +304,8 @@ function SubjectDetail({ subjectId, onBack }) {
     };
   }, [subjectId]);
 
-  // Syllabus + notes: useSyllabus hook (Firestore-backed).
-  const { syllabus, notes, loading: sylLoading } = useSyllabus(subjectId);
+  // Syllabus + notes: useSyllabus hook (Firestore-backed) — resolved doc id se.
+  const { syllabus, notes, loading: sylLoading } = useSyllabus(resolvedId);
   const [openModule, setOpenModule] = useState(1);
 
   // notes grouped by module (from the hook — firebase-backed)
@@ -313,7 +321,8 @@ function SubjectDetail({ subjectId, onBack }) {
   const [aiByModule, setAiByModule] = useState({});
   useEffect(() => {
     let cancelled = false;
-    getSubjectDetail(subjectId)
+    if (!resolvedId) return;
+    getSubjectDetail(resolvedId)
       .then((detail) => {
         if (cancelled) return;
         const map = {};

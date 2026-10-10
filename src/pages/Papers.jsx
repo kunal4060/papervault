@@ -6,7 +6,7 @@ import PaperCard from "../components/PaperCard.jsx";
 import SubjectCard from "../components/SubjectCard.jsx";
 import { useSubjects } from "../hooks/useSubjects.js";
 import { usePapers } from "../hooks/usePapers.js";
-import { getSubject } from "../firebase/db.js";
+import { resolveSubject } from "../firebase/db.js";
 
 /**
  * PaperVault — Papers page (Archive Noir).
@@ -332,22 +332,27 @@ function groupPapers(papers, yearTab, examFilter, sort) {
 }
 
 function SubjectDetail({ subjectId }) {
-  // Subject Firestore se (getSubject — inactive = not found).
+  // Subject Firestore se — doc id YA course code dono chalte hain
+  // (resolveSubject; inactive = not found).
   const [subject, setSubject] = useState(null);
   const [subjectLoading, setSubjectLoading] = useState(true);
+  const [resolvedId, setResolvedId] = useState(null);
   useEffect(() => {
     let cancelled = false;
     setSubjectLoading(true);
-    getSubject(subjectId)
+    setResolvedId(null);
+    resolveSubject(subjectId)
       .then((s) => {
         if (!cancelled) {
           setSubject(s && s.active !== false ? s : null);
+          setResolvedId(s && s.active !== false ? s.id : null);
           setSubjectLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setSubject(null);
+          setResolvedId(null);
           setSubjectLoading(false);
         }
       });
@@ -356,8 +361,8 @@ function SubjectDetail({ subjectId }) {
     };
   }, [subjectId]);
 
-  // Approved papers Firestore se (usePapers hook).
-  const { data: rawPapers, loading: papersLoading } = usePapers(subjectId);
+  // Approved papers Firestore se (usePapers hook) — resolved doc id se.
+  const { data: rawPapers, loading: papersLoading } = usePapers(resolvedId);
   const papers = useMemo(
     () => rawPapers.map((p) => ({ ...p, downloads: p.downloads ?? 0 })),
     [rawPapers]

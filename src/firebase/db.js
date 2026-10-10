@@ -58,6 +58,38 @@ export async function getSubject(id) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
+/**
+ * Resolve a subject by Firestore doc id OR course code (e.g. "CSE2001").
+ * Course-code URLs (/papers/CSE2001) are the SEO-friendly format — this makes
+ * them work in the SPA exactly like the opaque-id URLs.
+ */
+export async function resolveSubject(idOrCode) {
+  const key = String(idOrCode ?? "").trim();
+  if (!key) return null;
+  const byId = await getSubject(key);
+  if (byId) return byId;
+  const code = key.toUpperCase();
+  const snap = await getDocs(
+    query(collection(db, "subjects"), where("code", "==", code), limit(1))
+  );
+  if (!snap.empty) {
+    const d = snap.docs[0];
+    return { id: d.id, ...d.data() };
+  }
+  const snap2 = await getDocs(
+    query(
+      collection(db, "subjects"),
+      where("codes", "array-contains", code),
+      limit(1)
+    )
+  );
+  if (!snap2.empty) {
+    const d = snap2.docs[0];
+    return { id: d.id, ...d.data() };
+  }
+  return null;
+}
+
 /** Create a subject (admin). */
 export async function createSubject({ name, code, codes, program, semester }) {
   const ref = await addDoc(collection(db, "subjects"), {
