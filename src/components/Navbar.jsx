@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/useAuth.js";
 // TODO: profile page — avatar menu abhi My Uploads + Logout deta hai.
 const links = [
   { label: "Papers", to: "/papers", match: ["papers"] },
-  { label: "Syllabus", to: "/syllabus", match: ["syllabus"] },
+  { label: "Notes", to: "/syllabus", match: ["syllabus"] },
   { label: "Requests", to: "/requests", match: ["requests"] },
   { label: "Chat", to: "/chat", match: ["chat"] },
 ];

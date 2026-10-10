@@ -45,7 +45,7 @@ const ROUTE_META = {
   "/": ["PaperVault — VIT-AP Papers & Notes", "VIT-AP previous year question papers (CAT-1, CAT-2, FAT), syllabus and verified notes. Free for every student."],
   "/papers": ["Browse Papers — PaperVault", "Browse VIT-AP question papers by subject — CAT-1, CAT-2 and FAT papers with AI topic analysis."],
   "/paper": ["Paper Details — PaperVault", "View and download a VIT-AP question paper with AI-powered topic weightage and marks pattern analysis."],
-  "/syllabus": ["Syllabus Library — PaperVault", "VIT-AP subject syllabus with module-wise breakdowns and study notes."],
+  "/syllabus": ["Notes Library — PaperVault", "VIT-AP subject notes with module-wise breakdowns and topic-wise study material."],
   "/upload": ["Upload a Paper — PaperVault", "Contribute VIT-AP question papers to the vault — moderated and free for every student."],
   "/my-uploads": ["My Uploads — PaperVault", "Track your PaperVault paper uploads and their moderation status."],
   "/requests": ["Request a Paper — PaperVault", "Request a missing VIT-AP question paper — the community helps find it."],
@@ -78,7 +78,7 @@ function RouteMeta() {
     if (sm) {
       const code = decodeURIComponent(sm[1]).toUpperCase();
       applyMeta(
-        `${code} Syllabus — PaperVault`,
+        `${code} Notes — PaperVault`,
         `${code} VIT-AP syllabus with module-wise breakdown and study notes.`
       );
       return;

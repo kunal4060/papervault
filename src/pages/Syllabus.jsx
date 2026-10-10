@@ -46,9 +46,9 @@ function SubjectList({ onOpen }) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10 lg:max-w-7xl xl:max-w-[1400px]">
-      <MicroLabel className="mb-1">Vault · Syllabus & Notes</MicroLabel>
+      <MicroLabel className="mb-1">Vault · Notes</MicroLabel>
       <h1 className="font-display text-2xl font-bold md:text-[34px] md:tracking-tight">
-        Syllabus <Highlight soft>code-wise</Highlight>
+        Notes <Highlight soft>code-wise</Highlight>
       </h1>
       <p className="mt-1 text-sm text-text-dim md:mt-2 md:text-[15px]">
         Subject chuno → syllabus PDF, module-wise notes, aur AI question %
