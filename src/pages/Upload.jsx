@@ -21,6 +21,7 @@
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 import { getSubjects, getPapers, createUpload } from "../firebase/db.js";
 import { uploadPaperPDF } from "../lib/cloudinary.js"; // Cloudinary (free tier) — was firebase/storage.js

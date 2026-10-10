@@ -10,6 +10,7 @@
  * 3) each module's notes → 4) AI % per module ("kidhar se zyada questions").
  */
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import { useSyllabus } from "../hooks/useSyllabus.js";
 import { useSubjects } from "../hooks/useSubjects.js";
