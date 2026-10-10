@@ -10,6 +10,7 @@
  * 3) each module's notes → 4) AI % per module ("kidhar se zyada questions").
  */
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import { useSyllabus } from "../hooks/useSyllabus.js";
 import { useSubjects } from "../hooks/useSubjects.js";
@@ -74,13 +75,13 @@ function SubjectList({ onOpen }) {
               key={s.id}
               type="button"
               onClick={() => onOpen(s.id)}
-              className="flex w-full items-center gap-3 rounded-[12px] border border-hairline bg-surface px-4 py-3.5 text-left transition-colors hover:border-text-dim/60 hover:bg-surface-plus md:gap-4 md:px-5 md:py-4"
+              className="metallic-card flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-all hover:scale-[1.01] md:gap-4 md:px-5 md:py-4"
             >
-              <span className="shrink-0 rounded-[6px] border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-sm font-bold text-accent">
+              <span className="shrink-0 rounded-lg border border-hairline-bright bg-surface-plus px-2.5 py-1 font-mono text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 {s.code}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-text">
+                <span className="block truncate text-sm font-semibold text-white">
                   {s.name}
                 </span>
                 <span className="mt-0.5 block truncate font-mono text-[11px] text-text-dim">
@@ -337,7 +338,7 @@ function SubjectDetail({ subjectId, onBack }) {
     return () => {
       cancelled = true;
     };
-  }, [subjectId]);
+  }, [subjectId, resolvedId]);
 
   const loading = subjectLoading || sylLoading;
 

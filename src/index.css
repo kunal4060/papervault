@@ -1,16 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: #0C0D10;
-  --color-surface: #14161A;
-  --color-surface-plus: #1C1F24;
-  --color-hairline: #26292F;
-  --color-text: #EDEAE4;
-  --color-text-dim: #9BA0A8;
-  --color-accent: #FFB224;
-  --color-accent-dim: #8A5E14;
-  --color-moss: #4CC38A;
-  --color-brick: #F26D5F;
+  /* Premium Monochrome Palette */
+  --color-canvas: #050505;        /* Deep black */
+  --color-canvas-subtle: #0A0A0A; /* Rich black */
+  --color-surface: #121212;       /* Dark charcoal */
+  --color-surface-plus: #1B1B1B;  /* Graphite */
+  --color-surface-hover: #222222; /* Elevated graphite */
+  --color-hairline: #262626;      /* Dark gray */
+  --color-hairline-bright: #383838;
+  --color-text-dim: #737373;      /* Medium gray */
+  --color-text-muted: #B8B8B8;    /* Light gray */
+  --color-text: #F2F2F2;          /* Off-white */
+  --color-white: #FFFFFF;         /* Pure white */
+
+  /* Platinum / Monochrome Primary Accent */
+  --color-accent: #FFFFFF;
+  --color-accent-dim: #737373;
+  --color-accent-subtle: #1F1F1F;
+
+  /* Functional status indicators */
+  --color-moss: #34D399;
+  --color-brick: #F87171;
 
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -19,74 +30,164 @@
 
 html {
   font-family: var(--font-body);
-  background: var(--color-canvas);
+  background-color: var(--color-canvas);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body { margin: 0; }
+body {
+  margin: 0;
+  background-color: var(--color-canvas);
+  overflow-x: hidden;
+}
 
-::selection { background: #FFB224; color: #0C0D10; }
+::selection {
+  background: #FFFFFF;
+  color: #050505;
+}
 
-/* thin scrollbars for horizontal chip rails */
-.rail { scrollbar-width: none; }
-.rail::-webkit-scrollbar { display: none; }
+/* Thin scrollbars */
+.rail {
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
 
-/* Tasteful dark scrollbars (desktop) — thin, amber on hover */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--color-canvas); }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
 ::-webkit-scrollbar-thumb {
   background: var(--color-surface-plus);
-  border-radius: 8px;
+  border-radius: 4px;
   border: 2px solid var(--color-canvas);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--color-accent-dim); }
-* { scrollbar-width: thin; scrollbar-color: var(--color-surface-plus) var(--color-canvas); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-hairline-bright);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-plus) var(--color-canvas);
+}
 
-/* Highlighter swipe — the signature element.
-   Wrap key phrases: <span class="hl">highlighted text</span> */
+/* Editorial Monochromatic Highlighter */
 .hl {
   position: relative;
   display: inline-block;
   z-index: 0;
-  color: var(--color-canvas);
-  font-weight: 700;
-  padding: 0 0.25em;
+  color: #050505;
+  font-weight: 800;
+  padding: 0 0.3em;
+  letter-spacing: -0.01em;
 }
 .hl::before {
   content: "";
   position: absolute;
   inset: 0.08em -0.1em;
-  background: var(--color-accent);
-  opacity: 0.9;
-  transform: skew(-8deg) rotate(-0.5deg);
-  border-radius: 2px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #D8D8D8 100%);
+  border-radius: 3px;
   z-index: -1;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.16);
 }
-/* Subtle variant for dark backgrounds behind text (no invert) */
-.hl-soft { position: relative; display: inline-block; z-index: 0; }
+
+.hl-soft {
+  position: relative;
+  display: inline-block;
+  z-index: 0;
+}
 .hl-soft::before {
   content: "";
   position: absolute;
-  inset: 0.1em -0.15em;
-  background: var(--color-accent);
-  opacity: 0.28;
-  transform: skew(-8deg);
+  inset: 0.1em -0.2em;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.45);
   border-radius: 2px;
   z-index: -1;
 }
 
-/* Micro-label: 11px uppercase tracked */
+/* Micro-label */
 .micro {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   color: var(--color-text-dim);
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 
-/* Focus visibility */
+/* 3D and Metallic Surfaces */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.metallic-card {
+  background: linear-gradient(160deg, #161616 0%, #0D0D0D 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, 0.8),
+              inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 24px 48px -18px rgba(0, 0, 0, 0.9),
+              inset 0 1px 0 rgba(255, 255, 255, 0.18),
+              0 0 30px -12px rgba(255, 255, 255, 0.08);
+}
+
+.metallic-button {
+  background: linear-gradient(180deg, #FFFFFF 0%, #E2E2E2 100%);
+  color: #050505;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-button:hover {
+  background: #FFFFFF;
+  box-shadow: 0 6px 24px rgba(255, 255, 255, 0.28),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.metallic-button-secondary {
+  background: linear-gradient(180deg, #1C1C1C 0%, #121212 100%);
+  border: 1px solid #2B2B2B;
+  color: #F2F2F2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-button-secondary:hover {
+  border-color: #404040;
+  background: #202020;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* Accessible Focus */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid #FFFFFF;
   outline-offset: 2px;
+}
+
+/* Reduced Motion Fallback */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

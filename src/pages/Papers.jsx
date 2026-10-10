@@ -30,11 +30,11 @@ function PageHead({ eyebrow, title, sub }) {
   return (
     <div className="pt-6 md:pt-10">
       <p className="micro">{eyebrow}</p>
-      <h1 className="mt-1.5 font-display text-[28px] font-bold leading-tight text-text md:mt-2 md:text-[38px] md:tracking-tight">
+      <h1 className="mt-1.5 font-display text-[28px] font-bold leading-tight text-white md:mt-2 md:text-[38px] md:tracking-tight">
         {title}
       </h1>
       {sub ? (
-        <p className="mt-1.5 max-w-2xl text-sm text-text-dim md:mt-2 md:text-[15px]">
+        <p className="mt-1.5 max-w-2xl text-sm text-text-muted md:mt-2 md:text-[15px]">
           {sub}
         </p>
       ) : null}
@@ -47,10 +47,10 @@ function FilterChip({ active, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-[44px] shrink-0 items-center rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+      className={`inline-flex min-h-[42px] shrink-0 items-center rounded-full border px-4 text-[13px] font-semibold transition-all duration-200 ${
         active
-          ? "border-accent text-accent"
-          : "border-hairline text-text-dim hover:border-text-dim hover:text-text"
+          ? "border-white bg-white text-canvas shadow-[0_2px_12px_rgba(255,255,255,0.22)]"
+          : "border-hairline bg-surface text-text-dim hover:border-hairline-bright hover:text-white"
       }`}
     >
       {children}
@@ -206,13 +206,13 @@ function SubjectAiAnalysis({ papers }) {
   const years = [...new Set(papers.filter((p) => p.examType === examTab).map((p) => p.year))].length;
 
   return (
-    <section className="mt-10 rounded-xl border border-hairline bg-surface p-5 md:mt-14 md:p-8">
+    <section className="metallic-card mt-10 rounded-2xl p-5 md:mt-14 md:p-8">
       <div className="flex items-center gap-2">
-        <Icon name="spark" size={18} className="text-accent" />
-        <p className="micro">Subject AI analysis</p>
+        <Icon name="spark" size={18} className="text-white" />
+        <p className="micro text-text-muted">Subject AI analysis</p>
       </div>
-      <h2 className="mt-2 font-display text-xl font-bold text-text md:text-2xl">
-        Kidhar se <span className="hl-soft">zyada questions</span> aate hain
+      <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">
+        Kidhar se <span className="hl">zyada questions</span> aate hain
       </h2>
 
       {/* Exam-type tabs */}
@@ -222,10 +222,10 @@ function SubjectAiAnalysis({ papers }) {
             key={exam}
             type="button"
             onClick={() => setExamTab(exam)}
-            className={`inline-flex min-h-[44px] items-center rounded-full border px-4 py-1.5 font-mono text-[12px] font-semibold transition-colors ${
+            className={`inline-flex min-h-[42px] items-center rounded-full border px-4 py-1.5 font-mono text-[12px] font-semibold transition-all ${
               examTab === exam
-                ? "border-accent bg-accent text-[#0C0D10]"
-                : "border-hairline text-text-dim hover:border-accent-dim hover:text-text"
+                ? "border-white bg-white text-canvas shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+                : "border-hairline bg-surface text-text-dim hover:border-hairline-bright hover:text-white"
             }`}
           >
             {exam}
@@ -240,13 +240,13 @@ function SubjectAiAnalysis({ papers }) {
         </p>
       ) : (
         <div className="lg:grid lg:grid-cols-[1fr_1.25fr] lg:gap-x-10">
-          <p className="mt-3 text-sm leading-relaxed text-text-dim lg:col-start-1 lg:row-start-1 lg:mt-5 lg:text-[15px] lg:leading-relaxed">
+          <p className="mt-3 text-sm leading-relaxed text-text-muted lg:col-start-1 lg:row-start-1 lg:mt-5 lg:text-[15px] lg:leading-relaxed">
             {examTab} me Module {top.module} ({top.moduleTitle}) se pichle{" "}
-            <span className="font-mono font-semibold text-accent">
+            <span className="font-mono font-semibold text-white">
               {years} saal
             </span>{" "}
             me avg{" "}
-            <span className="font-mono font-semibold text-accent">
+            <span className="font-mono font-semibold text-white">
               {top.avg}%
             </span>{" "}
             questions — {top.qnums.slice(0, 3).join(", ")}{" "}
@@ -257,20 +257,22 @@ function SubjectAiAnalysis({ papers }) {
             {aggregate.topics.map((t, i) => (
               <div key={t.module}>
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="min-w-0 truncate text-[13px] text-text">
+                  <p className="min-w-0 truncate text-[13px] text-white">
                     <span className="mr-1.5 font-mono text-[12px] font-semibold text-text-dim">
                       M{t.module}
                     </span>
                     {t.moduleTitle}
                   </p>
-                  <p className="shrink-0 font-mono text-[13px] font-semibold text-text">
+                  <p className="shrink-0 font-mono text-[13px] font-semibold text-white">
                     {t.avg}
                     <span className="text-text-dim">%</span>
                   </p>
                 </div>
-                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface-plus">
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-plus">
                   <div
-                    className={`h-full rounded-full ${i === 0 ? "bg-accent" : "bg-accent-dim"}`}
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      i === 0 ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.4)]" : "bg-text-muted/60"
+                    }`}
                     style={{ width: `${Math.min(100, t.avg)}%` }}
                   />
                 </div>

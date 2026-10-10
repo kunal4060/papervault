@@ -1,10 +1,11 @@
 import { useState } from "react";
 import Icon from "./Icon.jsx";
+import HeroScene from "./3d/HeroScene.jsx";
+import Card3D from "./3d/Card3D.jsx";
 
 const chips = ["All", "CAT-1", "CAT-2", "FAT"];
 
-// Archive index card — desktop-only decorative visual (aria-hidden).
-// Koi logic nahi, sirf "vault" feel ke liye.
+// Archive index card — desktop interactive 3D element.
 function ArchiveStack() {
   const rows = [
     ["CAT-1", "2024", "18"],
@@ -12,80 +13,102 @@ function ArchiveStack() {
     ["FAT", "2025", "31"],
   ];
   return (
-    <div aria-hidden="true" className="relative hidden h-[400px] select-none lg:block">
-      {/* peeche ki slips */}
-      <div className="absolute left-10 top-10 h-[300px] w-[240px] rotate-[8deg] rounded-lg border border-hairline bg-surface" />
-      <div className="absolute left-5 top-5 h-[300px] w-[240px] rotate-[-5deg] rounded-lg border border-hairline bg-surface-plus" />
-      {/* index card */}
-      <div className="absolute left-0 top-0 w-[250px] rounded-xl border border-hairline bg-[#15181D] p-5 shadow-[0_32px_64px_-24px_rgba(0,0,0,0.85)]">
-        <div className="flex items-center justify-between">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-text-dim">
-            Vault index
-          </p>
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+    <div aria-hidden="true" className="relative hidden select-none lg:block">
+      <Card3D maxTilt={9} scale={1.02} className="w-[280px]">
+        {/* Layered sheets behind */}
+        <div className="absolute -left-3 -top-3 h-full w-full rotate-[-4deg] rounded-2xl border border-hairline bg-surface-plus/60 backdrop-blur-sm -z-10" />
+        <div className="absolute -left-6 -top-6 h-full w-full rotate-[-8deg] rounded-2xl border border-hairline bg-surface/40 backdrop-blur-sm -z-20" />
+
+        {/* Primary Monochromatic Index Card */}
+        <div className="metallic-card relative rounded-2xl p-6 shadow-[0_32px_64px_-20px_rgba(0,0,0,0.9)]">
+          <div className="flex items-center justify-between border-b border-hairline pb-3.5">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-text-dim">
+              VAULT INDEX // 01
+            </span>
+            <span className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+          </div>
+
+          <div className="mt-4">
+            <p className="font-display text-[26px] font-extrabold tracking-tight text-white">
+              CSE3002
+            </p>
+            <p className="mt-0.5 font-mono text-[12px] text-text-muted">
+              Artificial Intelligence
+            </p>
+          </div>
+
+          <div className="mt-5 space-y-2.5 border-t border-hairline pt-4">
+            {rows.map(([e, y, n]) => (
+              <div
+                key={e}
+                className="flex items-center justify-between font-mono text-[11px]"
+              >
+                <span className="text-text-dim">
+                  {e} &middot; {y}
+                </span>
+                <span className="font-semibold text-white">{n} papers</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex items-center justify-between border-t border-hairline pt-4">
+            <span className="inline-flex items-center rounded-md border border-hairline-bright bg-surface-plus px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-text">
+              VERIFIED
+            </span>
+            <span className="font-mono text-[10px] text-text-dim">
+              EST. 2026
+            </span>
+          </div>
         </div>
-        <p className="mt-4 font-display text-[22px] font-extrabold tracking-tight text-text">
-          CSE3002
-        </p>
-        <p className="mt-0.5 font-mono text-[11px] text-text-dim">
-          Artificial Intelligence
-        </p>
-        <div className="mt-4 space-y-2.5 border-t border-hairline pt-4">
-          {rows.map(([e, y, n]) => (
-            <div key={e} className="flex items-center justify-between font-mono text-[11px]">
-              <span className="text-text-dim">
-                {e} &middot; {y}
-              </span>
-              <span className="font-semibold text-accent">{n} papers</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4">
-          <span className="hl-soft px-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-text">
-            Verified
-          </span>
-        </p>
-      </div>
-      {/* neeche mono caption */}
-      <p className="absolute bottom-0 left-0 font-mono text-[10px] uppercase tracking-[0.22em] text-text-dim/70">
-        Est. 2026 &middot; VIT-AP
-      </p>
+      </Card3D>
     </div>
   );
 }
 
-// Search hero — onSearch(q, exam) parent (Home) me wired hai.
 export default function SearchHero({ onSearch }) {
   const [q, setQ] = useState("");
   const [exam, setExam] = useState("All");
 
   return (
-    <section className="relative overflow-hidden border-b border-hairline">
-      {/* desktop ambience: amber glow + dot texture */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden lg:block">
-        <div className="absolute -top-48 right-[-8%] h-[520px] w-[520px] rounded-full bg-accent/[0.07] blur-[130px]" />
-        <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.055)_1px,transparent_0)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_75%_65%_at_70%_15%,black,transparent)]" />
+    <section className="relative overflow-hidden border-b border-hairline bg-canvas">
+      {/* 3D WebGL Hero Canvas Layer */}
+      <HeroScene />
+
+      {/* Atmospheric depth lighting */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 hidden lg:block"
+      >
+        <div className="absolute right-0 top-0 h-[600px] w-[600px] rounded-full bg-white/[0.02] blur-[150px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.035)_1px,transparent_0)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,black,transparent)]" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-10 md:pb-16 md:pt-16 lg:max-w-7xl lg:pb-24 lg:pt-24 xl:max-w-[1400px]">
-        <div className="lg:grid lg:grid-cols-[1fr_300px] lg:items-center lg:gap-14 xl:grid-cols-[1fr_340px] xl:gap-24">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-12 pt-12 md:pb-20 md:pt-20 lg:max-w-7xl lg:pb-28 lg:pt-28 xl:max-w-[1400px]">
+        <div className="lg:grid lg:grid-cols-[1fr_320px] lg:items-center lg:gap-16 xl:grid-cols-[1fr_360px] xl:gap-24">
           <div className="min-w-0">
-            <p className="mb-4 flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-accent md:text-xs">
-              <span className="inline-block h-1.5 w-1.5 bg-accent" />
-              VIT-AP &middot; Previous year papers
-            </p>
-            <h1 className="font-display text-[32px] font-extrabold leading-[1.14] tracking-tight text-text md:text-[54px] md:leading-[1.06] lg:text-[64px]">
+            {/* Monospace Eyebrow */}
+            <div className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-hairline bg-surface/60 px-3 py-1 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                VIT-AP &middot; Previous Year Papers & Notes
+              </span>
+            </div>
+
+            {/* Editorial Headline */}
+            <h1 className="font-display text-[32px] font-extrabold leading-[1.12] tracking-tight text-white sm:text-[42px] md:text-[54px] md:leading-[1.05] lg:text-[64px]">
               Har paper. Har subject.
               <br />
               <span className="hl">Ek hi vault me.</span>
             </h1>
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-text-dim md:text-base lg:max-w-2xl lg:text-[17px]">
-              CAT-1, CAT-2 aur FAT ke previous year papers plus verified notes —
-              bina login, bilkul free. Raat ke 2 baje bhi, dark mode me.
+
+            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-text-muted sm:text-base lg:max-w-2xl lg:text-[17px]">
+              CAT-1, CAT-2 aur FAT ke previous year question papers plus verified notes —
+              bina login, bilkul free. Fast preview, direct download aur AI topic weightage ke saath.
             </p>
 
+            {/* Monolithic Search Interface */}
             <form
-              className="mt-7 flex max-w-2xl items-center gap-2 rounded-2xl border border-hairline bg-surface p-2 pl-4 transition-shadow focus-within:border-accent/70 lg:focus-within:shadow-[0_16px_56px_-20px_rgba(255,178,36,0.35)]"
+              className="mt-8 flex max-w-2xl items-center gap-2 rounded-2xl border border-hairline bg-surface/90 p-2 pl-4 backdrop-blur-xl transition-all duration-300 focus-within:border-white/80 focus-within:shadow-[0_12px_40px_rgba(255,255,255,0.08)]"
               onSubmit={(e) => {
                 e.preventDefault();
                 onSearch?.(q, exam);
@@ -95,28 +118,32 @@ export default function SearchHero({ onSearch }) {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Course code likho… CSE3002"
-                className="min-h-[44px] w-full bg-transparent font-mono text-[15px] text-text outline-none placeholder:text-text-dim/80 md:min-h-[50px] md:text-base"
-                aria-label="Search papers"
+                placeholder="Course code likho… jaise CSE3002 ya MAT2001"
+                className="min-h-[44px] w-full bg-transparent font-mono text-[15px] text-white outline-none placeholder:text-text-dim md:min-h-[50px] md:text-base"
+                aria-label="Search papers by course code"
               />
               <button
                 type="submit"
-                className="min-h-[44px] shrink-0 rounded-xl bg-accent px-6 text-sm font-bold text-canvas transition-all hover:bg-[#FFBE4D] md:min-h-[50px] md:px-8 lg:hover:shadow-[0_8px_28px_-8px_rgba(255,178,36,0.6)]"
+                className="metallic-button min-h-[44px] shrink-0 rounded-xl px-6 text-sm font-bold text-canvas shadow-[0_2px_12px_rgba(255,255,255,0.2)] md:min-h-[50px] md:px-8"
               >
                 Search
               </button>
             </form>
 
-            <div className="rail mt-4 flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
+            {/* Filter Chips */}
+            <div className="rail mt-4 flex items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
+              <span className="hidden font-mono text-[11px] uppercase tracking-wider text-text-dim md:inline-block mr-1">
+                Filter:
+              </span>
               {chips.map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setExam(c)}
-                  className={`min-h-[44px] shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-all ${
+                  className={`min-h-[42px] shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-all duration-200 ${
                     exam === c
-                      ? "border-accent bg-accent/15 text-accent lg:shadow-[0_0_20px_-6px_rgba(255,178,36,0.5)]"
-                      : "border-hairline bg-surface text-text-dim hover:border-text-dim/50 hover:text-text"
+                      ? "border-white bg-white text-canvas shadow-[0_2px_14px_rgba(255,255,255,0.25)]"
+                      : "border-hairline bg-surface/80 text-text-dim hover:border-hairline-bright hover:text-white"
                   }`}
                 >
                   {c}
@@ -125,6 +152,7 @@ export default function SearchHero({ onSearch }) {
             </div>
           </div>
 
+          {/* 3D Archive Interactive Card */}
           <ArchiveStack />
         </div>
       </div>

@@ -1,11 +1,17 @@
 /**
  * PaperVault PDF text extraction (upload flow §4 step 4).
  *
- * Tries real pdf.js first (dynamic import — no hard dependency); returns an
- * empty string when extraction fails. Never fabricates text.
- *
- * To enable real extraction: `npm install pdfjs-dist`
+ * Uses Mozilla PDF.js (pdfjs-dist) with Vite worker URL handling.
+ * Extracts text from an uploaded PDF file for duplicate detection and AI analysis.
+ * Returns an empty string when extraction fails. Never fabricates text.
  */
+import * as pdfjs from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+// Configure PDF.js worker for the current Vite environment
+if (typeof window !== "undefined" && pdfjs?.GlobalWorkerOptions) {
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+}
 
 /**
  * Extract up to `maxChars` characters of text from a PDF file.
@@ -15,15 +21,13 @@
  */
 export async function extractText(file, maxChars = 2000) {
   try {
-    // Dynamic import: works whether or not pdfjs-dist is installed.
-    const pdfjs = await import(/* @vite-ignore */ "pdfjs-dist");
-    if (pdfjs?.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
-      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        /* @vite-ignore */ "pdfjs-dist/build/pdf.worker.min.mjs",
-        import.meta.url
-      ).toString();
-    }
-    const pdf = await pdfjs.getDocument(await file.arrayBuffer()).promise;
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjs.getDocument({
+      data: arrayBuffer,
+      useSystemFonts: true,
+      isEvalSupported: false,
+    });
+    const pdf = await loadingTask.promise;
     let out = "";
     const n = Math.min(pdf.numPages, 10); // first 10 pages are enough for dedup
     for (let p = 1; p <= n && out.length < maxChars; p++) {

@@ -45,8 +45,10 @@ function readBookmarks() {
 function MetaChip({ children, mono = false, accent = false }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-medium ${
-        accent ? "border-accent-dim text-accent" : "border-hairline text-text-dim"
+      className={`inline-flex items-center rounded-md border px-2.5 py-1 text-[12px] font-medium ${
+        accent
+          ? "border-hairline-bright bg-surface-plus font-mono text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+          : "border-hairline bg-surface text-text-muted"
       } ${mono ? "font-mono" : ""}`}
     >
       {children}
@@ -56,16 +58,16 @@ function MetaChip({ children, mono = false, accent = false }) {
 
 function ActionButton({ href, onClick, primary = false, disabled = false, children, label }) {
   const cls = primary
-    ? "bg-accent text-canvas hover:opacity-90"
-    : "border border-hairline text-text hover:border-text-dim";
+    ? "metallic-button text-canvas font-bold shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+    : "metallic-button-secondary font-semibold text-text";
   const inner = (
     <>
       {children}
-      <span className="text-sm font-semibold">{label}</span>
+      <span className="text-sm">{label}</span>
     </>
   );
   const base =
-    "inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] px-4 transition-all";
+    "inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-4 transition-all";
   if (href) {
     return (
       <a href={href} className={`${base} ${cls}`} aria-label={label}>
@@ -99,13 +101,13 @@ function AiAnalysisPanel({ analysis }) {
   );
 
   return (
-    <section className="mt-8 rounded-xl border border-hairline bg-surface p-5 md:mt-10 md:p-8">
+    <section className="metallic-card mt-8 rounded-2xl p-5 md:mt-10 md:p-8">
       <div className="flex items-center gap-2">
-        <Icon name="spark" size={18} className="text-accent" />
-        <p className="micro">AI analysis</p>
+        <Icon name="spark" size={18} className="text-white" />
+        <p className="micro text-text-muted">AI analysis</p>
       </div>
-      <h2 className="mt-2 font-display text-xl font-bold text-text md:text-2xl">
-        Is paper me <span className="hl-soft">kya aaya tha</span>
+      <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">
+        Is paper me <span className="hl">kya aaya tha</span>
       </h2>
 
       {/* Topic-wise bars — desktop pe 2-column editorial grid */}
@@ -113,20 +115,22 @@ function AiAnalysisPanel({ analysis }) {
         {topics.map((t, i) => (
           <div key={t.module}>
             <div className="flex items-baseline justify-between gap-2">
-              <p className="min-w-0 truncate text-[13px] font-medium text-text">
+              <p className="min-w-0 truncate text-[13px] font-medium text-white">
                 <span className="mr-1.5 font-mono text-[12px] font-semibold text-text-dim">
                   M{t.module}
                 </span>
                 {t.moduleTitle}
               </p>
-              <p className="shrink-0 font-mono text-[13px] font-bold text-text">
+              <p className="shrink-0 font-mono text-[13px] font-bold text-white">
                 {t.percentage}
                 <span className="font-medium text-text-dim">%</span>
               </p>
             </div>
-            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface-plus">
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-plus">
               <div
-                className={`h-full rounded-full ${i === 0 ? "bg-accent" : "bg-accent-dim"}`}
+                className={`h-full rounded-full transition-all duration-500 ${
+                  i === 0 ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.4)]" : "bg-text-muted/60"
+                }`}
                 style={{ width: `${Math.min(100, t.percentage)}%` }}
               />
             </div>
@@ -647,9 +651,9 @@ export default function PaperDetail({ paperId }) {
             <div className="lg:mt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
               {/* Sidebar — mobile pe actions toolbar, desktop pe sticky rail */}
               <aside className="mt-5 md:mt-6 lg:order-2 lg:sticky lg:top-24 lg:mt-0">
-                <div className="rounded-xl border border-hairline bg-surface p-4 md:p-5">
+                <div className="metallic-card rounded-2xl p-4 md:p-5">
                   <p className="micro mb-3 hidden lg:block">Actions</p>
-                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                  <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-1">
                     <ActionButton onClick={scrollToViewer} label="Preview">
                       <Icon name="eye" size={17} />
                     </ActionButton>
@@ -665,7 +669,7 @@ export default function PaperDetail({ paperId }) {
                       href={shareHref}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border border-hairline text-sm font-semibold text-text hover:border-text-dim"
+                      className="metallic-button-secondary inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all"
                       aria-label="WhatsApp pe share karo"
                     >
                       <Icon name="share" size={16} className="text-moss" />
@@ -674,10 +678,10 @@ export default function PaperDetail({ paperId }) {
                     <button
                       type="button"
                       onClick={() => setShowReport((v) => !v)}
-                      className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
+                      className={`inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-all ${
                         showReport
-                          ? "border-brick text-brick"
-                          : "border-hairline text-text hover:border-text-dim"
+                          ? "border-brick bg-brick/10 text-brick"
+                          : "metallic-button-secondary"
                       }`}
                       aria-label="Paper report karo"
                       aria-expanded={showReport}
@@ -688,10 +692,10 @@ export default function PaperDetail({ paperId }) {
                     <button
                       type="button"
                       onClick={toggleBookmark}
-                      className={`inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-[10px] border text-sm font-semibold transition-colors ${
+                      className={`inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-all ${
                         bookmarked
-                          ? "border-accent text-accent"
-                          : "border-hairline text-text hover:border-text-dim"
+                          ? "border-white bg-surface-plus text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
+                          : "metallic-button-secondary"
                       }`}
                       aria-label={bookmarked ? "Bookmark hatao" : "Bookmark karo"}
                       aria-pressed={bookmarked}
@@ -706,8 +710,8 @@ export default function PaperDetail({ paperId }) {
                   </div>
                 </div>
 
-                {/* Details card — desktop sidebar only (mobile pe header me hai) */}
-                <div className="mt-4 hidden rounded-xl border border-hairline bg-surface p-5 lg:block">
+                {/* Details card — desktop sidebar only */}
+                <div className="metallic-card mt-4 hidden rounded-2xl p-5 lg:block">
                   <p className="micro mb-3">Details</p>
                   <dl className="space-y-2.5 text-[13px]">
                     <div className="flex items-center justify-between gap-2">
