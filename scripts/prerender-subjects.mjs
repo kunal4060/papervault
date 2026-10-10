@@ -1,7 +1,8 @@
 /**
  * PaperVault — build-time prerender of subject pages (SEO/GEO unlock).
  *
- * Reads src/data/bulkManifest.json (248 subjects, 5024 papers) and writes one
+ * Reads src/data/seoSubjects.json (stable union of ALL imported papers —
+ * NEVER replace this file with a per-batch import manifest) and writes one
  * static HTML file per subject to dist/papers/<CODE>/index.html AFTER
  * `vite build` runs. Each page contains:
  *   - real <title>, meta description, OG tags, canonical (github.io)
@@ -11,7 +12,6 @@
  *     full app (BrowserRouter takes over from the real URL).
  *
  * Run: `node scripts/prerender-subjects.mjs` (wired into `npm run build`).
- * Trigger rebuild: pages-deploy refresh.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -48,7 +48,7 @@ function main() {
     process.exit(1);
   }
 
-  const manifest = JSON.parse(readFileSync(join(ROOT, "src/data/bulkManifest.json"), "utf8"));
+  const manifest = JSON.parse(readFileSync(join(ROOT, "src/data/seoSubjects.json"), "utf8"));
   const subjects = new Map();
   for (const p of manifest) {
     const code = p.subjectCode;
