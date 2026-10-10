@@ -64,7 +64,7 @@ function RouteMeta() {
 
   useEffect(() => {
     // /papers/:subjectId → dynamic subject title
-    const m = pathname.match(/^\/papers\/([^/]+)$/);
+    const m = pathname.match(/^\/papers\/([^/]+)\/?$/);
     if (m && !m[1].startsWith("paper-")) {
       const code = decodeURIComponent(m[1]).toUpperCase();
       applyMeta(
@@ -74,7 +74,7 @@ function RouteMeta() {
       return;
     }
     // /syllabus/:subjectId → dynamic subject title
-    const sm = pathname.match(/^\/syllabus\/([^/]+)$/);
+    const sm = pathname.match(/^\/syllabus\/([^/]+)\/?$/);
     if (sm) {
       const code = decodeURIComponent(sm[1]).toUpperCase();
       applyMeta(
