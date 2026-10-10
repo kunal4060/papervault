@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import SearchHero from "../components/SearchHero.jsx";
 import SubjectCard from "../components/SubjectCard.jsx";
@@ -46,7 +47,7 @@ function buildCountdown(settings) {
 // Search → /papers with query params (subject grid pre-filters).
 // Exam preference sessionStorage me bhi save — subject detail page
 // khulne pe exam filter pre-apply hoga.
-function handleSearch(q, exam) {
+function handleSearch(navigate, q, exam) {
   const params = new URLSearchParams();
   if (q?.trim()) params.set("q", q.trim());
   if (exam && exam !== "All") {
@@ -56,10 +57,11 @@ function handleSearch(q, exam) {
     } catch {}
   }
   const qs = params.toString();
-  window.location.hash = `#/papers${qs ? `?${qs}` : ""}`;
+  navigate(`/papers${qs ? `?${qs}` : ""}`);
 }
 
 export default function Home() {
+  const navigate = useNavigate();
   const { data: subjects } = useSubjects();
   const [stats, setStats] = useState(null);
   const [statsFailed, setStatsFailed] = useState(false);
@@ -111,7 +113,7 @@ export default function Home() {
     <div className="min-h-screen bg-canvas text-text">
       <Navbar />
       <main>
-        <SearchHero onSearch={handleSearch} />
+        <SearchHero onSearch={(q, exam) => handleSearch(navigate, q, exam)} />
         <StatStrip stats={stats ?? { papers: 0, subjects: 0, notes: 0 }} failed={statsFailed} />
 
         <div className="mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
@@ -124,9 +126,9 @@ export default function Home() {
               eyebrow="Browse"
               title="Popular subjects"
               action={
-                <a href="#/papers" className="text-sm font-semibold text-accent hover:underline">
+                <Link to="/papers" className="text-sm font-semibold text-accent hover:underline">
                   Sab dekho
-                </a>
+                </Link>
               }
             />
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">

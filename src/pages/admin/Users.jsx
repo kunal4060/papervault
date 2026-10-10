@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Users (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin/users
+ * Route: /admin/users
  *
  * Users table — role select (user ↔ moderator).
  * Admin role read-only hai (§2: "Admin sirf Tim").

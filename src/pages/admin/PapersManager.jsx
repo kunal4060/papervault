@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Papers Manager (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin/papers
+ * Route: /admin/papers
  *
  * Papers table + search (code/name/filename), metadata edit
  * (exam, year, slot, faculty), delete with confirm.

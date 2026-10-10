@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Icon from "./Icon.jsx";
 
 export function SectionHeading({ eyebrow, title, action }) {
@@ -28,34 +29,34 @@ export function PaperRow({ paper }) {
         <Icon name="file" size={20} />
       </div>
       <div className="min-w-0 flex-1">
-        <a
-          href={`#/paper/${paper.id}`}
+        <Link
+          to={`/paper/${paper.id}`}
           className="block truncate font-mono text-[13px] font-semibold text-text transition-colors group-hover:text-accent"
         >
           {paper.fileName}
-        </a>
+        </Link>
         <p className="mt-0.5 truncate text-xs text-text-dim">
           {paper.examType} &middot; {paper.year} &middot; Slot {paper.slot} &middot;{" "}
           {paper.downloads.toLocaleString("en-IN")} downloads
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        <a
-          href={`#/paper/${paper.id}`}
+        <Link
+          to={`/paper/${paper.id}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-dim transition-all hover:bg-surface-plus hover:text-text md:group-hover:translate-x-0.5"
           aria-label="Paper kholo"
           title="Paper kholo"
         >
           <Icon name="eye" size={19} />
-        </a>
-        <a
-          href={`#/paper/${paper.id}`}
+        </Link>
+        <Link
+          to={`/paper/${paper.id}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-dim transition-all hover:bg-surface-plus hover:text-accent md:group-hover:translate-x-1 md:group-hover:text-accent"
           aria-label="Details dekho"
           title="Details dekho"
         >
           <Icon name="chevR" size={19} />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -96,12 +97,12 @@ export function ExamCountdown({ countdown }) {
           <p className="text-xs text-text-dim">{countdown.dateLabel}</p>
         </div>
       </div>
-      <a
-        href="#/papers"
+      <Link
+        to="/papers"
         className="inline-flex min-h-[44px] shrink-0 items-center rounded-lg bg-accent px-4 text-[13px] font-bold text-canvas transition-colors hover:bg-[#FFBE4D]"
       >
         Revise
-      </a>
+      </Link>
     </div>
   );
 }
@@ -178,13 +179,13 @@ export function UploadCta() {
           Tumhara ek upload hazaaron students ke kaam aayega. AI duplicate check
           ke saath — 2 minute me ho jayega.
         </p>
-        <a
-          href="#/upload"
+        <Link
+          to="/upload"
           className="mt-5 inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-accent px-7 text-[15px] font-bold text-canvas transition-all hover:bg-[#FFBE4D] lg:mt-6 lg:hover:shadow-[0_12px_36px_-10px_rgba(255,178,36,0.55)]"
         >
           <Icon name="upload" size={18} />
           Paper upload karo
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -206,16 +207,16 @@ export function Footer() {
           </div>
           <nav className="grid grid-cols-2 gap-x-12 gap-y-2.5 text-[14px]">
             {[
-              ["Papers", "#/papers"],
-              ["Syllabus", "#/syllabus"],
-              ["Requests", "#/requests"],
-              ["Chat", "#/chat"],
-              ["Upload", "#/upload"],
-              ["My uploads", "#/my-uploads"],
-            ].map(([l, href]) => (
-              <a key={l} href={href} className="text-text-dim hover:text-text">
+              ["Papers", "//papers"],
+              ["Syllabus", "//syllabus"],
+              ["Requests", "//requests"],
+              ["Chat", "//chat"],
+              ["Upload", "//upload"],
+              ["My uploads", "//my-uploads"],
+            ].map(([l, to]) => (
+              <Link key={l} to={to} className="text-text-dim hover:text-text">
                 {l}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>

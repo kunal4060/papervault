@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Icon from "./Icon.jsx";
 
 /**
@@ -28,11 +29,11 @@ function MetaChip({ children, mono = false }) {
 }
 
 export default function PaperCard({ paper, subjectName }) {
-  const detailHref = `#/paper/${paper.id}`;
+  const detailHref = `/paper/${paper.id}`;
 
   return (
     <article className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:border-accent-dim hover:bg-surface-plus md:p-5 lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_20px_44px_-22px_rgba(0,0,0,0.85)]">
-      <a href={detailHref} className="block min-w-0">
+      <Link to={detailHref} className="block min-w-0">
         <p className="break-all font-mono text-[13px] font-semibold leading-snug text-text transition-colors group-hover:text-accent">
           {paper.fileName}
         </p>
@@ -40,7 +41,7 @@ export default function PaperCard({ paper, subjectName }) {
           {subjectName ?? paper.subjectCode}
           {paper.faculty ? ` · ${paper.faculty}` : ""}
         </p>
-      </a>
+      </Link>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         <MetaChip>{paper.examType}</MetaChip>

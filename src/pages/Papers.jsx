@@ -1,3 +1,4 @@
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Icon from "../components/Icon.jsx";
@@ -63,12 +64,8 @@ function FilterChip({ active, onClick, children }) {
 
 function SubjectGrid() {
   // Home search se aaya query (?q=) → pre-fill.
-  const [query, setQuery] = useState(() => {
-    const hash = window.location.hash || "";
-    const qi = hash.indexOf("?");
-    if (qi === -1) return "";
-    return new URLSearchParams(hash.slice(qi + 1)).get("q") || "";
-  });
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get("q") || "");
 
   // Subjects Firestore se (useSubjects hook) — active, code-wise sorted.
   const { data: rawSubjects, loading } = useSubjects();
@@ -129,12 +126,12 @@ function SubjectGrid() {
             <p className="mt-1 text-sm text-text-dim">
               Code ya naam dobara check karo — ya request board pe maang lo.
             </p>
-            <a
-              href="#/requests"
+            <Link
+              to="/requests"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] border border-hairline px-5 text-sm font-semibold text-text"
             >
               Request a paper
-            </a>
+            </Link>
           </div>
         ) : (
           <>
@@ -407,13 +404,13 @@ function SubjectDetail({ subjectId }) {
     return (
       <div className="mx-auto max-w-6xl px-4 pb-16 lg:max-w-7xl xl:max-w-[1400px]">
         <div className="pt-6">
-          <a
-            href="#/papers"
+          <Link
+            to="/papers"
             className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-text-dim hover:text-text"
           >
             <Icon name="chevR" size={16} className="rotate-180" />
             Papers
-          </a>
+          </Link>
         </div>
         <div className="mt-4 rounded-xl border border-hairline bg-surface p-8 text-center">
           <p className="font-display text-lg font-bold text-text">
@@ -430,13 +427,13 @@ function SubjectDetail({ subjectId }) {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 lg:max-w-7xl xl:max-w-[1400px]">
       <div className="pt-6">
-        <a
-          href="#/papers"
+        <Link
+          to="/papers"
           className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-text-dim hover:text-text"
         >
           <Icon name="chevR" size={16} className="rotate-180" />
           Papers
-        </a>
+        </Link>
       </div>
 
       {/* Header */}
@@ -518,12 +515,12 @@ function SubjectDetail({ subjectId }) {
             <p className="mt-1 text-sm text-text-dim">
               Is filter me koi paper nahi hai.
             </p>
-            <a
-              href="#/requests"
+            <Link
+              to="/requests"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas"
             >
               Request karo!
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="space-y-8">

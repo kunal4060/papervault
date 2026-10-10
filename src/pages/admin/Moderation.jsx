@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Moderation queue (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin/moderation
+ * Route: /admin/moderation
  *
  * Har row: PDF placeholder, metadata, uploader, AI verdict text,
  * Approve / Reject (reason select + custom input).

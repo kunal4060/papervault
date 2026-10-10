@@ -11,6 +11,7 @@
  * Design: Direction A "Archive Noir" (DESIGN.md v2). 100% original.
  */
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 import { getMyUploads, getSubjects } from "../firebase/db.js";
 import Icon from "../components/Icon.jsx";
@@ -125,9 +126,9 @@ function UploadRow({ upload, subject }) {
             variant="secondary"
             className="!min-h-[44px] !px-4 !text-[13px]"
             onClick={() => {
-              window.location.hash = upload.paperId
-                ? `#/paper/${upload.paperId}`
-                : `#papers`;
+              navigate(upload.paperId
+                ? `/paper/${upload.paperId}`
+                : `/papers`);
             }}
           >
             <Icon name="eye" size={15} />
@@ -139,7 +140,7 @@ function UploadRow({ upload, subject }) {
             className="!min-h-[44px] !px-4 !text-[13px]"
             onClick={() => {
               stashReuploadDraft(upload);
-              window.location.hash = "#upload";
+              navigate("/upload");
             }}
           >
             <Icon name="upload" size={15} />
@@ -152,6 +153,7 @@ function UploadRow({ upload, subject }) {
 }
 
 export default function MyUploads() {
+  const navigate = useNavigate();
   const { user, loading, signIn, authError } = useAuth();
   const [uploads, setUploads] = useState([]);
   const [subjectMap, setSubjectMap] = useState(new Map());
@@ -219,7 +221,7 @@ export default function MyUploads() {
         </div>
         <Button
           className="shrink-0 !rounded-xl shadow-[0_4px_20px_-4px_rgba(255,178,36,0.5)] transition-all duration-200 hover:-translate-y-px"
-          onClick={() => { window.location.hash = "#upload"; }}
+          onClick={() => { navigate("/upload"); }}
         >
           <Icon name="upload" size={16} />
           <span className="hidden sm:inline">Naya upload</span>
@@ -244,7 +246,7 @@ export default function MyUploads() {
           </p>
           <Button
             className="mt-6"
-            onClick={() => { window.location.hash = "#upload"; }}
+            onClick={() => { navigate("/upload"); }}
           >
             <Icon name="upload" size={16} />
             Pehla paper upload karo

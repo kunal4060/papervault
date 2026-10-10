@@ -1,9 +1,10 @@
 /**
  * PaperVault — Admin Dashboard (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin
+ * Route: /admin
  */
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { AdminShell, StatCard, EmptyState, IcoDoc } from "./adminUi.jsx";
 import { MicroLabel, Card, Highlight } from "../../components/atoms.jsx";
 import {
@@ -87,12 +88,12 @@ export default function Dashboard() {
           <Card className="mt-4 p-4 md:p-5">
             <div className="flex items-baseline justify-between">
               <MicroLabel>Top papers · by downloads</MicroLabel>
-              <a
-                href="#/admin/papers"
+              <Link
+                to="/admin/papers"
                 className="text-xs font-semibold text-accent hover:underline"
               >
                 Sab dekho
-              </a>
+              </Link>
             </div>
             {topPapers.length === 0 ? (
               <div className="mt-3">
@@ -138,12 +139,12 @@ export default function Dashboard() {
                 <span className="text-text-dim">
                   {pendingCount} uploads moderation queue me hain — review karo.
                 </span>{" "}
-                <a
-                  href="#/admin/moderation"
+                <Link
+                  to="/admin/moderation"
                   className="text-sm font-semibold text-accent hover:underline"
                 >
                   Queue kholo
-                </a>
+                </Link>
               </p>
             </div>
           )}

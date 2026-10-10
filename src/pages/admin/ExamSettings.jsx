@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Exam Countdown Settings (Direction A "Archive Noir").
  * 100% original. Mobile-first.
- * Route: #/admin/exam
+ * Route: /admin/exam
  *
  * Exam type dropdown + start/end date pickers + optional custom label.
  * Save → doc("settings", "examCountdown"). Home banner reads it live.

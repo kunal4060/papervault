@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Syllabus Manager (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin/syllabus
+ * Route: /admin/syllabus
  *
  * Subject select → modules editor (number, title, topics) +
  * syllabus PDF upload. Yehi modules AI analysis ka reference bante hain.

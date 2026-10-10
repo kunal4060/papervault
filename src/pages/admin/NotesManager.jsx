@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Notes Manager (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin/notes
+ * Route: /admin/notes
  *
  * Notes table (title, subject, module, pages, verified) + delete confirm.
  * Upload form: subject select, syllabus-module select, title, pages, PDF.

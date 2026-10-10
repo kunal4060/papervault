@@ -3,6 +3,7 @@
  * 100% original. Inline SVG icons only — no emoji.
  * Used by all pages under src/pages/admin/.
  */
+import { Link } from "react-router-dom";
 import { MicroLabel } from "../../components/atoms.jsx";
 
 // ---------------------------------------------------------------- icons ---
@@ -112,21 +113,21 @@ export const IcoArrowLeft = ({ className }) => (
 
 // ------------------------------------------------------------- admin shell ---
 const TABS = [
-  { id: "dashboard", label: "Dashboard", href: "#/admin" },
-  { id: "moderation", label: "Moderation", href: "#/admin/moderation" },
-  { id: "subjects", label: "Subjects", href: "#/admin/subjects" },
-  { id: "syllabus", label: "Syllabus", href: "#/admin/syllabus" },
-  { id: "notes", label: "Notes", href: "#/admin/notes" },
-  { id: "papers", label: "Papers", href: "#/admin/papers" },
-  { id: "users", label: "Users", href: "#/admin/users" },
-  { id: "exam", label: "Exam Settings", href: "#/admin/exam" },
-  { id: "bulk-import", label: "Bulk Import", href: "#/admin/bulk-import" },
+  { id: "dashboard", label: "Dashboard", to: "/admin" },
+  { id: "moderation", label: "Moderation", to: "/admin/moderation" },
+  { id: "subjects", label: "Subjects", to: "/admin/subjects" },
+  { id: "syllabus", label: "Syllabus", to: "/admin/syllabus" },
+  { id: "notes", label: "Notes", to: "/admin/notes" },
+  { id: "papers", label: "Papers", to: "/admin/papers" },
+  { id: "users", label: "Users", to: "/admin/users" },
+  { id: "exam", label: "Exam Settings", to: "/admin/exam" },
+  { id: "bulk-import", label: "Bulk Import", to: "/admin/bulk-import" },
 ];
 
 /**
  * Admin page shell: page title + tab nav.
  * Nav is horizontal-scroll chips on mobile, sidebar on desktop.
- * Hash links match the planned router: #/admin, #/admin/moderation, …
+ * Hash links match the planned router: /admin, /admin/moderation, …
  */
 export function AdminShell({ active, title, subtitle, badge, children }) {
   return (
@@ -144,9 +145,9 @@ export function AdminShell({ active, title, subtitle, badge, children }) {
             {TABS.map((t) => {
               const isActive = t.id === active;
               return (
-                <a
+                <Link
                   key={t.id}
-                  href={t.href}
+                  to={t.to}
                   aria-current={isActive ? "page" : undefined}
                   className={`inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors md:rounded-[10px] md:px-4 ${
                     isActive
@@ -160,15 +161,15 @@ export function AdminShell({ active, title, subtitle, badge, children }) {
                       {badge}
                     </span>
                   )}
-                </a>
+                </Link>
               );
             })}
-            <a
-              href="#/admin/logout"
+            <Link
+              to="/admin/logout"
               className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border border-hairline px-4 text-sm font-medium text-text-dim transition-colors hover:border-brick hover:text-brick md:rounded-[10px] md:px-4"
             >
               Logout
-            </a>
+            </Link>
           </nav>
           <div className="mt-6 min-w-0 md:mt-0">{children}</div>
         </div>

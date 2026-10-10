@@ -9,7 +9,7 @@
  *   1. Sign in to the site with Google once (any page).
  *   2. Firebase console → Firestore → `users` collection → your uid doc.
  *   3. Set field `role` = "admin".
- *   4. Now #/admin works with full permissions.
+ *   4. Now /admin works with full permissions.
  */
 import { useCallback, useEffect, useState } from "react";
 import {

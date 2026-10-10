@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import Icon from "../components/Icon.jsx";
 import PaperCard from "../components/PaperCard.jsx";
@@ -575,13 +576,13 @@ export default function PaperDetail({ paperId }) {
       <Navbar />
       <main className="mx-auto max-w-6xl px-4 pb-16 md:pb-24 lg:max-w-7xl xl:max-w-[1400px]">
         <div className="pt-6">
-          <a
-            href={subject ? `#/papers/${subject.id}` : "#/papers"}
+          <Link
+            to={subject ? `/papers/${subject.id}` : "/papers"}
             className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-text-dim hover:text-text"
           >
             <Icon name="chevR" size={16} className="rotate-180" />
             {subject ? subject.name : "Papers"}
-          </a>
+          </Link>
         </div>
 
         {loading ? (
@@ -594,12 +595,12 @@ export default function PaperDetail({ paperId }) {
             <p className="mt-1 text-sm text-text-dim">
               Ye paper exist nahi karta ya hata diya gaya hai.
             </p>
-            <a
-              href="#/papers"
+            <Link
+              to="/papers"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] border border-hairline px-5 text-sm font-semibold text-text"
             >
               Saare papers dekho
-            </a>
+            </Link>
           </div>
         ) : (
           <>

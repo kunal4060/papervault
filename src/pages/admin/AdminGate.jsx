@@ -3,6 +3,7 @@
  * Decides: loading → login → not-admin → admin pages.
  * 100% original, Direction A "Archive Noir".
  */
+import { useNavigate, useParams } from "react-router-dom";
 import Dashboard from "./Dashboard.jsx";
 import Moderation from "./Moderation.jsx";
 import Subjects from "./Subjects.jsx";
@@ -25,8 +26,12 @@ function Center({ children }) {
   );
 }
 
-export default function AdminGate({ sub }) {
+export default function AdminGate({ sub: subProp }) {
   const { user, isAdmin, loading, error, signIn, signOut } = useAdminAuth();
+  const navigate = useNavigate();
+  // react-router: /admin/* ka splat param; purana prop bhi chalega.
+  const splat = useParams()["*"];
+  const sub = subProp ?? splat?.split("/").filter(Boolean)[0] ?? "";
 
   if (loading) {
     return (
@@ -63,7 +68,7 @@ export default function AdminGate({ sub }) {
 
   if (sub === "logout") {
     signOut();
-    window.location.hash = "#/";
+    navigate("/");
     return null;
   }
 

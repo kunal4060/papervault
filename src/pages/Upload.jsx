@@ -278,6 +278,7 @@ function Dropzone({ file, onFile, onClear, error }) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function Upload() {
+  const navigate = useNavigate();
   const { user, loading, signIn, authError } = useAuth();
 
   const [code, setCode] = useState("");
@@ -704,7 +705,7 @@ export default function Upload() {
             <p className="truncate font-mono text-sm font-semibold text-accent">{autoName}</p>
           </div>
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
-            <Button className="flex-1" onClick={() => { window.location.hash = "#my-uploads"; }}>
+            <Button className="flex-1" onClick={() => navigate("/my-uploads")}>
               <Icon name="clock" size={16} />
               My Uploads dekho
             </Button>
@@ -736,7 +737,7 @@ export default function Upload() {
               </p>
               <button
                 type="button"
-                onClick={() => { window.location.hash = `#/paper/${verdict.duplicateOf}`; }}
+                onClick={() => navigate(`/paper/${verdict.duplicateOf}`)}
                 className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent"
               >
                 <Icon name="eye" size={16} />
@@ -749,7 +750,7 @@ export default function Upload() {
             <Button variant="secondary" className="flex-1" onClick={resetForm}>
               Wapas form pe jao
             </Button>
-            <Button className="flex-1" onClick={() => { window.location.hash = "#my-uploads"; }}>
+            <Button className="flex-1" onClick={() => navigate("/my-uploads")}>
               My Uploads
             </Button>
           </div>

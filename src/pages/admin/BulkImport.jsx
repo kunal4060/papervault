@@ -1,6 +1,6 @@
 /**
  * PaperVault — Admin bulk import (PYQs Hub archive migration).
- * Route: #/admin/bulk-import
+ * Route: /admin/bulk-import
  *
  * Two steps:
  *   1. Create subjects from the bundled manifest (skips codes that exist).

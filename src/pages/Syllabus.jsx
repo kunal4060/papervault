@@ -3,8 +3,8 @@
  * 100% original. Mobile-first.
  *
  * Routes (hash router, parent wires):
- *   #/syllabus            → subject list, sorted by CODE
- *   #/syllabus/:subjectId → subject detail (syllabus PDF first, modules)
+ *   /syllabus            → subject list, sorted by CODE
+ *   /syllabus/:subjectId → subject detail (syllabus PDF first, modules)
  *
  * Order (fixed, §3.2A): 1) Syllabus PDF card → 2) Module 1→N accordions →
  * 3) each module's notes → 4) AI % per module ("kidhar se zyada questions").
@@ -417,10 +417,11 @@ function SubjectDetail({ subjectId, onBack }) {
 
 // ------------------------------------------------------------------ page ---
 export default function Syllabus({ subjectId }) {
+  const navigate = useNavigate();
   // subjectId seedha URL se aata hai (App.jsx) — koi local state nahi.
   // SubjectList click → hash change → App re-render → naya subjectId.
   const openSubject = (id) => {
-    window.location.hash = `#/syllabus/${id}`;
+    navigate(`/syllabus/${id}`);
   };
 
   return (
@@ -430,7 +431,7 @@ export default function Syllabus({ subjectId }) {
         <SubjectDetail
           subjectId={subjectId}
           onBack={() => {
-            window.location.hash = "#/syllabus";
+            navigate("/syllabus");
           }}
         />
       ) : (

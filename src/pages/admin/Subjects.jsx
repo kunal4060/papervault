@@ -1,7 +1,7 @@
 /**
  * PaperVault — Admin Subjects (Direction A "Archive Noir").
  * 100% original. Mobile-first. Live Firestore data — no mock seeds.
- * Route: #/admin/subjects
+ * Route: /admin/subjects
  *
  * Table (name, code, codes[], program, semester, active) +
  * new subject form (name, code, codes[], program, semester).

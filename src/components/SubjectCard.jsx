@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Icon from "./Icon.jsx";
 
 /** Compact count: 1240 → "1.2k". (Local copy of PaperCard's helper.) */
@@ -16,8 +17,8 @@ function formatCompact(n) {
  */
 export default function SubjectCard({ subject }) {
   return (
-    <a
-      href={`#/papers/${subject.id}`}
+    <Link
+      to={`/papers/${subject.id}`}
       className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:border-accent-dim hover:bg-surface-plus md:p-5 lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_20px_44px_-22px_rgba(0,0,0,0.85)]"
     >
       <p className="font-display text-[16px] font-bold leading-snug tracking-tight text-text md:text-[17px]">
@@ -48,6 +49,6 @@ export default function SubjectCard({ subject }) {
           className="text-text-dim transition-all group-hover:translate-x-0.5 group-hover:text-accent lg:group-hover:translate-x-1"
         />
       </div>
-    </a>
+    </Link>
   );
 }
