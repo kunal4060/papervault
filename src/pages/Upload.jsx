@@ -221,27 +221,27 @@ function Dropzone({ file, onFile, onClear, error }) {
             setDrag(false);
             if (e.dataTransfer.files?.[0]) onFile(e.dataTransfer.files[0]);
           }}
-          className={`flex w-full flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed px-6 py-10 text-center transition-colors lg:rounded-[16px] lg:py-14 ${
-            drag ? "border-accent bg-accent/5" : "border-hairline hover:border-text-dim"
+          className={`metallic-card flex w-full flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed px-6 py-10 text-center transition-all lg:py-14 ${
+            drag ? "border-white bg-white/5" : "border-hairline hover:border-hairline-bright"
           }`}
         >
-          <span className={`flex h-11 w-11 items-center justify-center rounded-full border ${drag ? "border-accent-dim bg-accent/10 text-accent" : "border-hairline text-text-dim"}`}>
+          <span className={`flex h-12 w-12 items-center justify-center rounded-xl border ${drag ? "border-white bg-white/10 text-white" : "border-hairline bg-surface-plus text-text-dim"}`}>
             <Icon name="upload" size={20} />
           </span>
-          <span className="text-sm font-semibold text-text">
-            PDF yahan drop karo, ya <span className="text-accent">browse</span> karo
+          <span className="text-sm font-semibold text-white">
+            PDF yahan drop karo, ya <span className="underline underline-offset-4 decoration-white/40">browse</span> karo
           </span>
           <span className="text-xs text-text-dim">
             Sirf PDF · max 25MB
           </span>
         </button>
       ) : (
-        <div className="flex items-center gap-3 rounded-[12px] border border-hairline bg-canvas px-4 py-3.5">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brick/10 text-brick">
+        <div className="metallic-card flex items-center gap-3 rounded-2xl p-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-hairline-bright bg-surface-plus text-white">
             <Icon name="file" size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-mono text-sm font-semibold text-text">{file.name}</p>
+            <p className="truncate font-mono text-sm font-semibold text-white">{file.name}</p>
             <p className="text-xs text-text-dim">{formatSize(file.size)} · PDF</p>
           </div>
           <button

@@ -126,12 +126,15 @@ export default function Home() {
               eyebrow="Browse"
               title="Popular subjects"
               action={
-                <Link to="/papers" className="text-sm font-semibold text-accent hover:underline">
-                  Sab dekho
+                <Link
+                  to="/papers"
+                  className="font-mono text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:text-text-muted"
+                >
+                  Sab dekho &rarr;
                 </Link>
               }
             />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:gap-5">
               {popular.map((s) => (
                 <SubjectCard key={s.id} subject={s} />
               ))}
@@ -141,10 +144,10 @@ export default function Home() {
           <section className="py-6 md:py-10">
             <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
             {trendingLoading ? (
-              <div className="rounded-xl border border-hairline bg-surface px-4 py-3 md:px-5" aria-hidden="true">
+              <div className="metallic-card rounded-2xl p-4 md:p-6" aria-hidden="true">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-3 border-b border-hairline py-3 last:border-b-0">
-                    <div className="h-10 w-10 animate-pulse rounded-lg bg-surface-plus" />
+                  <div key={i} className="flex items-center gap-3 border-b border-hairline py-3.5 last:border-b-0">
+                    <div className="h-10 w-10 animate-pulse rounded-xl bg-surface-plus" />
                     <div className="min-w-0 flex-1">
                       <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface-plus" />
                       <div className="mt-2 h-2.5 w-1/2 animate-pulse rounded bg-surface-plus" />
@@ -153,11 +156,13 @@ export default function Home() {
                 ))}
               </div>
             ) : trending.length === 0 ? (
-              <p className="rounded-xl border border-hairline bg-surface px-4 py-8 text-center text-sm text-text-dim">
-                Abhi koi trending paper nahi hai — pehle papers upload karo.
-              </p>
+              <div className="metallic-card rounded-2xl p-8 text-center">
+                <p className="text-sm text-text-dim">
+                  Abhi koi trending paper nahi hai — pehle papers upload karo.
+                </p>
+              </div>
             ) : (
-              <div className="rounded-xl border border-hairline bg-surface px-4 md:px-5 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
+              <div className="metallic-card rounded-2xl p-4 md:p-6 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
                 {trending.map((p) => (
                   <PaperRow key={p.id} paper={p} />
                 ))}
