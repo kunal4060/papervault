@@ -47,19 +47,19 @@ function SubjectList({ onOpen }) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:max-w-5xl md:py-10 lg:max-w-7xl xl:max-w-[1400px]">
-      <MicroLabel className="mb-1">Vault · Notes</MicroLabel>
+      <MicroLabel className="mb-1">Vault · Course Notes</MicroLabel>
       <h1 className="font-display text-2xl font-bold md:text-[34px] md:tracking-tight">
-        Notes <Highlight soft>code-wise</Highlight>
+        Syllabus & Course <Highlight soft>Notes</Highlight>
       </h1>
       <p className="mt-1 text-sm text-text-dim md:mt-2 md:text-[15px]">
-        Subject chuno → syllabus PDF, module-wise notes, aur AI question %
+        Select a subject to view official syllabi, module breakdowns, lecture notes, and topic weightage.
       </p>
 
       <div className="relative mt-5 md:mt-6 md:max-w-xl">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Code ya naam likho… CSE3002"
+          placeholder="Search course code or subject title… e.g. CSE3002"
           aria-label="Search subjects"
           className="min-h-[44px] w-full rounded-[10px] border border-hairline bg-surface-plus px-4 font-mono text-sm text-text placeholder:font-body placeholder:text-text-dim/80 focus:border-accent focus:outline-none"
         />
@@ -67,7 +67,7 @@ function SubjectList({ onOpen }) {
 
       <div className="mt-4 grid grid-cols-1 gap-2.5 md:mt-6 lg:grid-cols-2 lg:gap-3 xl:grid-cols-3">
         {loading && (
-          <p className="text-sm text-text-dim">Subjects load ho rahe hain…</p>
+          <p className="text-sm text-text-dim">Loading subjects…</p>
         )}
         {!loading &&
           list.map((s) => (
@@ -96,7 +96,7 @@ function SubjectList({ onOpen }) {
           ))}
         {!loading && list.length === 0 && (
           <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim lg:col-span-2">
-            Koi subject nahi mila. Code check karke dobara try karo.
+            No matching subjects found. Check course code and try again.
           </p>
         )}
       </div>
@@ -111,7 +111,7 @@ function SyllabusPdfCard({ syllabus, code }) {
       <div className="flex items-center gap-3 rounded-[12px] border border-dashed border-hairline bg-surface px-4 py-5">
         <IcoAlert className="h-5 w-5 shrink-0 text-text-dim" />
         <p className="text-sm text-text-dim">
-          Official syllabus PDF abhi upload nahi hua hai.
+          Official syllabus document has not yet been uploaded for this course.
         </p>
       </div>
     );
@@ -224,7 +224,7 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
               <div
                 className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-plus"
                 role="img"
-                aria-label={`Is module se ${aiPct} percent questions aaye hain`}
+                aria-label={`Approximately ${aiPct} percent of historical exam questions from this module`}
               >
                 <div
                   className="h-full rounded-full bg-accent"
@@ -232,13 +232,12 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
                 />
               </div>
               <p className="mt-1.5 text-xs text-text-dim">
-                Pichle papers ka <span className="hl-soft">average</span> — is
-                module se itne questions aate hain
+                Historical examination <span className="hl-soft">average</span> — percentage of paper weightage sourced from this module.
               </p>
             </div>
           ) : (
             <p className="mb-4 text-xs text-text-dim">
-              AI analysis abhi available nahi hai.
+              AI topic analysis is not currently available for this module.
             </p>
           )}
 
@@ -264,7 +263,7 @@ function ModuleCard({ module, notes, aiPct, open, onToggle }) {
               notes.map((n) => <NoteRow key={n.id} note={n} />)
             ) : (
               <p className="rounded-[10px] border border-dashed border-hairline px-4 py-4 text-center text-xs text-text-dim">
-                Is module ke notes abhi nahi hain.
+                No lecture notes currently uploaded for this module.
               </p>
             )}
           </div>
@@ -345,7 +344,7 @@ function SubjectDetail({ subjectId, onBack }) {
   if (!loading && !subject) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 text-center">
-        <p className="text-text-dim">Subject nahi mila.</p>
+        <p className="text-text-dim">Subject record not found.</p>
         <Button variant="secondary" className="mt-4" onClick={onBack}>
           Subjects
         </Button>
@@ -403,7 +402,7 @@ function SubjectDetail({ subjectId, onBack }) {
             </h2>
             {modules.length === 0 && (
               <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim">
-                Syllabus modules abhi add nahi hue hain.
+                Syllabus modules have not yet been indexed for this subject.
               </p>
             )}
             {modules.map((m) => (

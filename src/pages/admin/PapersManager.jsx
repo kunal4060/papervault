@@ -117,7 +117,7 @@ export default function PapersManager() {
         setSubjectMap(map);
       } catch (e) {
         setError(
-          e?.message ? `Papers load nahi hue: ${e.message}` : "Papers load nahi hue."
+          e?.message ? `Failed to load papers: ${e.message}` : "Failed to load papers."
         );
       } finally {
         setLoading(false);
@@ -146,7 +146,7 @@ export default function PapersManager() {
       setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
     } catch (e) {
       setError(
-        e?.message ? `Edit save nahi hua: ${e.message}` : "Edit save nahi hua."
+        e?.message ? `Failed to save edits: ${e.message}` : "Failed to save edits."
       );
     }
     setEditing(null);
@@ -159,7 +159,7 @@ export default function PapersManager() {
       setRows((rs) => rs.filter((r) => r.id !== id));
     } catch (e) {
       setError(
-        e?.message ? `Delete nahi hua: ${e.message}` : "Delete nahi hua."
+        e?.message ? `Failed to delete paper: ${e.message}` : "Failed to delete paper."
       );
     }
     setDeleting(null);
@@ -169,7 +169,7 @@ export default function PapersManager() {
     <AdminShell
       active="papers"
       title="Papers Manager"
-      subtitle="Live papers — metadata edit, delete"
+      subtitle="Manage published question papers, metadata, and deletions"
       badge={0}
     >
       {error && (
@@ -270,8 +270,8 @@ export default function PapersManager() {
           {filtered.length === 0 && (
             <EmptyState
               icon={<IcoDoc className="h-8 w-8" />}
-              title="Koi paper nahi mila"
-              hint="Search clear karo ya alag code try karo."
+              title="No papers found"
+              hint="Clear your search filters or try searching by another course code."
             />
           )}
         </div>

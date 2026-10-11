@@ -93,7 +93,7 @@ export default function SyllabusManager() {
       setPdfName(doc?.pdfUrl ? doc.pdfUrl.split("/").pop() ?? null : null);
     } catch (e) {
       setError(
-        e?.message ? `Syllabus load nahi hua: ${e.message}` : "Syllabus load nahi hua."
+        e?.message ? `Failed to load syllabus: ${e.message}` : "Failed to load syllabus."
       );
     }
   };
@@ -111,7 +111,7 @@ export default function SyllabusManager() {
         if (first) await loadSyllabus(first);
       } catch (e) {
         setError(
-          e?.message ? `Subjects load nahi hue: ${e.message}` : "Subjects load nahi hue."
+          e?.message ? `Failed to load subjects: ${e.message}` : "Failed to load subjects."
         );
       } finally {
         setLoading(false);
@@ -141,7 +141,7 @@ export default function SyllabusManager() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
-      setError(e?.message ? `Save nahi hua: ${e.message}` : "Save nahi hua.");
+      setError(e?.message ? `Failed to save syllabus: ${e.message}` : "Failed to save syllabus.");
     } finally {
       setSaving(false);
     }
@@ -156,13 +156,12 @@ export default function SyllabusManager() {
       const { url } = await uploadSyllabusPDF(f, subject.code);
       setPdfUrl(url);
       setPdfName(f.name);
-      // PDF ka URL turant save karo taaki modules ke saath sync me rahe
       await saveSyllabus(subjectId, { modules, pdfUrl: url });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       setError(
-        err?.message ? `PDF upload nahi hua: ${err.message}` : "PDF upload nahi hua."
+        err?.message ? `Failed to upload syllabus PDF: ${err.message}` : "Failed to upload syllabus PDF."
       );
     } finally {
       setUploading(false);
@@ -174,7 +173,7 @@ export default function SyllabusManager() {
     <AdminShell
       active="syllabus"
       title="Syllabus Manager"
-      subtitle="Modules + official syllabus PDF — AI analysis ka reference"
+      subtitle="Manage course modules and official syllabus PDFs for AI analysis reference"
       badge={0}
     >
       {error && (
@@ -187,7 +186,7 @@ export default function SyllabusManager() {
         <p className="py-10 text-center text-sm text-text-dim">Loading…</p>
       ) : subjects.length === 0 ? (
         <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim">
-          Pehle Subjects page se ek subject banao.
+          No subjects available. Please create a subject first on the Subjects page.
         </p>
       ) : (
         <>
@@ -214,7 +213,7 @@ export default function SyllabusManager() {
             <div className="min-w-0 flex-1">
               <MicroLabel>Official syllabus PDF</MicroLabel>
               <p className="mt-0.5 truncate font-mono text-sm text-text">
-                {uploading ? "Uploading…" : (pdfName ?? "Koi PDF upload nahi hua")}
+                {uploading ? "Uploading…" : (pdfName ?? "No PDF uploaded")}
               </p>
               {subject && (
                 <p className="font-mono text-[11px] text-text-dim">
@@ -266,16 +265,16 @@ export default function SyllabusManager() {
             ))}
             {modules.length === 0 && (
               <p className="rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim">
-                Is subject ke modules abhi nahi hain — pehla module add karo.
+                No modules created for this subject yet — add the first module.
               </p>
             )}
           </div>
 
           <Button className="mt-5 w-full md:w-auto" onClick={save} disabled={saving}>
-            {saving ? "Saving…" : saved ? "Saved" : "Save syllabus"}
+            {saving ? "Saving…" : saved ? "Saved" : "Save Syllabus"}
           </Button>
           {saved && !error && (
-            <p className="mt-2 text-sm text-moss">Syllabus save ho gaya.</p>
+            <p className="mt-2 text-sm text-moss">Syllabus saved successfully.</p>
           )}
         </>
       )}

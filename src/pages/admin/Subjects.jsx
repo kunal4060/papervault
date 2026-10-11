@@ -58,7 +58,7 @@ export default function Subjects() {
       setRows(subjects.map((s) => ({ ...s, paperCount: counts[s.id] ?? 0 })));
     } catch (e) {
       setError(
-        e?.message ? `Subjects load nahi hue: ${e.message}` : "Subjects load nahi hue."
+        e?.message ? `Failed to load subjects: ${e.message}` : "Failed to load subjects."
       );
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export default function Subjects() {
       );
     } catch (e) {
       setError(
-        e?.message ? `Status update nahi hua: ${e.message}` : "Status update nahi hua."
+        e?.message ? `Failed to update status: ${e.message}` : "Failed to update status."
       );
     } finally {
       setToggling(null);
@@ -96,12 +96,12 @@ export default function Subjects() {
       .map((c) => c.trim().toUpperCase())
       .filter(Boolean);
     if (!name || !code) {
-      setError("Name aur code dono required hain.");
+      setError("Both subject name and primary code are required.");
       return;
     }
     if (!codes.includes(code)) codes.unshift(code);
     if (rows.some((r) => (r.codes ?? []).some((c) => codes.includes(c)))) {
-      setError("Ye code pehle se kisi subject me hai.");
+      setError("This course code is already registered to an existing subject.");
       return;
     }
     setSaving(true);
@@ -118,7 +118,7 @@ export default function Subjects() {
       await load();
     } catch (e) {
       setError(
-        e?.message ? `Subject add nahi hua: ${e.message}` : "Subject add nahi hua."
+        e?.message ? `Failed to add subject: ${e.message}` : "Failed to add subject."
       );
     } finally {
       setSaving(false);
@@ -129,7 +129,7 @@ export default function Subjects() {
     <AdminShell
       active="subjects"
       title="Subjects"
-      subtitle="Naya subject banao, purane ko edit/deactivate karo"
+      subtitle="Register new subjects and configure active visibility"
       badge={0}
     >
       <Card className="p-4 md:p-5">
@@ -205,7 +205,7 @@ export default function Subjects() {
         <p className="py-10 text-center text-sm text-text-dim">Loading…</p>
       ) : rows.length === 0 ? (
         <p className="mt-4 rounded-[12px] border border-dashed border-hairline px-6 py-10 text-center text-sm text-text-dim">
-          Abhi koi subject nahi hai — upar form se pehla subject banao.
+          No subjects registered yet — create the first subject using the form above.
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto rounded-[12px] border border-hairline bg-surface">

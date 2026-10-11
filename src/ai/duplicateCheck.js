@@ -75,7 +75,7 @@ export async function checkDuplicate(req) {
   if (hashHit) {
     return {
       isDuplicate: true,
-      reason: "Ye exact file pehle se upload hai.",
+      reason: "Exact duplicate file already archived in vault.",
       duplicateOf: hashHit.id,
       duplicateTitle: hashHit.title,
     };
@@ -99,7 +99,7 @@ export async function checkDuplicate(req) {
     ...existingPapers.filter((p) => !metaCandidates.includes(p)),
   ];
   if (pool.length === 0) {
-    return { isDuplicate: false, reason: "Unique — pehla paper hai." };
+    return { isDuplicate: false, reason: "Unique — initial paper for this subject." };
   }
 
   // Embedding step is key-gated: getEmbedding() throws when no key.
@@ -133,20 +133,19 @@ export async function checkDuplicate(req) {
       return {
         isDuplicate: true,
         reason:
-          `Same ${examType} ${year} (${slot}) ka paper pehle se hai — ` +
-          "manual review me bheja gaya.",
+          `Identical ${examType} ${year} (${slot}) paper already exists — queued for manual review.`,
         duplicateOf: c.id,
         duplicateTitle: c.title,
       };
     }
-    return { isDuplicate: false, reason: "Unique — koi match nahi mila." };
+    return { isDuplicate: false, reason: "Unique document — no duplicate match found." };
   }
 
   // — Step 4: threshold decision ——————————————————————————————
   if (bestSim >= SIM_DUPLICATE) {
     return {
       isDuplicate: true,
-      reason: `Bahut similar paper pehle se hai (${Math.round(bestSim * 100)}% match).`,
+      reason: `High textual similarity detected (${Math.round(bestSim * 100)}% match).`,
       duplicateOf: best.id,
       duplicateTitle: best.title,
     };
@@ -158,7 +157,7 @@ export async function checkDuplicate(req) {
     if (verdict.duplicate) {
       return {
         isDuplicate: true,
-        reason: `AI check: duplicate lagta hai — ${verdict.reason}`,
+        reason: `AI verification: duplicate document detected — ${verdict.reason}`,
         duplicateOf: best.id,
         duplicateTitle: best.title,
         aiChecked: true,
@@ -166,14 +165,14 @@ export async function checkDuplicate(req) {
     }
     return {
       isDuplicate: false,
-      reason: `AI check: alag paper hai — ${verdict.reason}`,
+      reason: `AI verification: distinct document verified — ${verdict.reason}`,
       aiChecked: verdict.aiChecked === true,
     };
   }
 
   return {
     isDuplicate: false,
-    reason: "Unique — koi similar paper nahi mila.",
+    reason: "Unique document — no similar papers detected.",
   };
 }
 
@@ -190,7 +189,7 @@ async function geminiVerdict(textB, candidate) {
   if (!GEMINI_CONNECTED) {
     return {
       duplicate: false,
-      reason: "AI check unavailable — manual review ke liye bheja gaya.",
+      reason: "AI verification unavailable — queued for manual review.",
       aiChecked: false,
     };
   }
@@ -208,7 +207,7 @@ Reply in JSON: {"duplicate": true/false, "reason": "one line"}`;
   } catch (err) {
     return {
       duplicate: false,
-      reason: `AI check failed (${err?.message || "unknown error"}) — manual review ke liye bheja gaya.`,
+      reason: `AI verification failed (${err?.message || "unknown error"}) — queued for manual review.`,
       aiChecked: false,
     };
   }

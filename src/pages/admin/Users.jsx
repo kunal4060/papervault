@@ -34,7 +34,7 @@ export default function Users() {
         setRows(await getUsers());
       } catch (e) {
         setError(
-          e?.message ? `Users load nahi hue: ${e.message}` : "Users load nahi hue."
+          e?.message ? `Failed to load users: ${e.message}` : "Failed to load users."
         );
       } finally {
         setLoading(false);
@@ -53,7 +53,7 @@ export default function Users() {
       );
     } catch (e) {
       setError(
-        e?.message ? `Role update nahi hua: ${e.message}` : "Role update nahi hua."
+        e?.message ? `Failed to update role: ${e.message}` : "Failed to update role."
       );
     }
   };
@@ -62,7 +62,7 @@ export default function Users() {
     <AdminShell
       active="users"
       title="Users"
-      subtitle="Roles manage karo — admin role read-only hai"
+      subtitle="Manage user accounts, roles, and administrative permissions"
       badge={0}
     >
       {error && (
@@ -74,12 +74,9 @@ export default function Users() {
       <Card className="p-4 md:p-5">
         <MicroLabel>Roles</MicroLabel>
         <p className="mt-1 text-xs text-text-dim">
-          <span className="font-semibold text-text">user</span> — upload, chat,
-          bookmarks ·{" "}
-          <span className="font-semibold text-text">moderator</span> — user sab
-          + queue review ·{" "}
-          <span className="font-semibold text-text">admin</span> — sab kuch
-          (sirf Tim)
+          <span className="font-semibold text-text">user</span> — paper uploads, discussions, bookmarks ·{" "}
+          <span className="font-semibold text-text">moderator</span> — review queue and approval ·{" "}
+          <span className="font-semibold text-text">admin</span> — complete platform administration
         </p>
       </Card>
 
@@ -120,7 +117,7 @@ export default function Users() {
                   </td>
                   <td className="px-4 py-3">
                     {u.role === "admin" ? (
-                      <span title="Admin role read-only hai">
+                      <span title="Administrator role is read-only">
                         <Badge tone={ROLE_TONES[u.role]}>Admin</Badge>
                       </span>
                     ) : (
@@ -155,7 +152,7 @@ export default function Users() {
         <div className="mt-4">
           <EmptyState
             icon={<IcoAlert className="h-8 w-8" />}
-            title="Koi users nahi"
+            title="No registered users"
           />
         </div>
       )}

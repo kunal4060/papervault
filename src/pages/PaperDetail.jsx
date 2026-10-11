@@ -107,7 +107,7 @@ function AiAnalysisPanel({ analysis }) {
         <p className="micro text-text-muted">AI analysis</p>
       </div>
       <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">
-        Is paper me <span className="hl">kya aaya tha</span>
+        Exam Content & <span className="hl">Topic Breakdown</span>
       </h2>
 
       {/* Topic-wise bars — desktop pe 2-column editorial grid */}
@@ -226,9 +226,9 @@ function AiSummaryGenerator({ paper }) {
     setError(null);
     try {
       if (!GEMINI_CONNECTED) {
-        throw new Error("AI abhi available nahi hai — thodi der me try karo.");
+        throw new Error("AI service is currently unavailable. Please try again shortly.");
       }
-      const prompt = `You are a helpful study assistant for VIT-AP students. Write a short, practical exam-prep summary in simple Hinglish (mix of Hindi and English, friendly tone) for this question paper:
+      const prompt = `You are a helpful study assistant for VIT-AP students. Write a short, practical exam-prep summary in professional English for this question paper:
 
 Subject: ${paper.subjectName || paper.subjectId || "Unknown"}
 Course Code: ${paper.courseCode || paper.subjectId || "N/A"}
@@ -238,10 +238,10 @@ Slot: ${paper.slot || "N/A"}
 
 Keep it concise (4-6 lines): what kind of paper this is, how to prepare for it, and one practical tip. Do NOT invent specific questions or topics — keep it general and honest. Respond in plain text, no JSON.`;
       const { text } = await callGemini(prompt, { jsonMode: false });
-      if (!text?.trim()) throw new Error("Kuch mila nahi — phir se try karo.");
+      if (!text?.trim()) throw new Error("No analysis generated. Please try again.");
       setSummary(text.trim());
     } catch (e) {
-      setError(e.message || "Summary banane me problem hui.");
+      setError(e.message || "Failed to generate summary.");
     } finally {
       setLoading(false);
     }
@@ -251,23 +251,23 @@ Keep it concise (4-6 lines): what kind of paper this is, how to prepare for it, 
     <section className="mt-8 rounded-xl border border-hairline bg-surface p-5 md:mt-10 md:p-8">
       <div className="flex items-center gap-2">
         <Icon name="spark" size={18} className="text-accent" />
-        <p className="micro">AI summary</p>
+        <p className="micro">AI Summary</p>
       </div>
       <h2 className="mt-2 font-display text-xl font-bold text-text md:text-2xl">
-        Is paper ka <span className="hl-soft">quick summary</span>
+        Paper <span className="hl-soft">Executive Summary</span>
       </h2>
 
       {!summary && !loading && (
         <div className="mt-4">
           <p className="text-[14px] text-text-dim">
-            AI se is paper ke baare me ek chhota summary banao — exam prep me kaam aayega.
+            Generate an AI summary of this paper to accelerate your exam preparation.
           </p>
           <button
             onClick={generate}
             className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-semibold text-black transition hover:brightness-110"
           >
             <Icon name="spark" size={16} />
-            AI Summary Banao
+            Generate AI Summary
           </button>
         </div>
       )}
@@ -275,7 +275,7 @@ Keep it concise (4-6 lines): what kind of paper this is, how to prepare for it, 
       {loading && (
         <div className="mt-4 flex items-center gap-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-          <p className="text-[14px] text-text-dim">Summary ban raha hai...</p>
+          <p className="text-[14px] text-text-dim">Generating summary…</p>
         </div>
       )}
 
@@ -286,7 +286,7 @@ Keep it concise (4-6 lines): what kind of paper this is, how to prepare for it, 
             onClick={generate}
             className="mt-2 text-[13px] font-semibold text-accent hover:underline"
           >
-            Phir se try karo
+            Retry
           </button>
         </div>
       )}
@@ -305,10 +305,10 @@ Keep it concise (4-6 lines): what kind of paper this is, how to prepare for it, 
 /* ------------------------------------------------------------------ */
 
 const REPORT_REASONS = [
-  { value: "wrong-subject", label: "Galat subject" },
-  { value: "blurry", label: "Blurry / unreadable" },
-  { value: "duplicate", label: "Duplicate paper" },
-  { value: "other", label: "Other" },
+  { value: "wrong-subject", label: "Incorrect subject" },
+  { value: "blurry", label: "Blurry / Unreadable document" },
+  { value: "duplicate", label: "Duplicate document" },
+  { value: "other", label: "Other issue" },
 ];
 
 function ReportPanel({ paperId, onClose }) {
@@ -321,7 +321,6 @@ function ReportPanel({ paperId, onClose }) {
     e.preventDefault();
     if (!user) return;
     setState("sending");
-    // Firestore: reports collection me submit karo.
     try {
       await submitReport({
         paperId,
@@ -340,14 +339,14 @@ function ReportPanel({ paperId, onClose }) {
       <div className="mt-3 rounded-xl border border-moss/40 bg-surface p-5">
         <p className="flex items-center gap-2 text-sm font-semibold text-moss">
           <Icon name="check" size={16} />
-          Report bhej diya — moderators dekhenge.
+          Report submitted — academic moderators will review this document.
         </p>
         <button
           type="button"
           onClick={onClose}
           className="mt-3 min-h-[44px] text-sm font-semibold text-text-dim hover:text-text"
         >
-          Band karo
+          Close
         </button>
       </div>
     );
@@ -357,13 +356,13 @@ function ReportPanel({ paperId, onClose }) {
     <div className="mt-3 rounded-xl border border-hairline bg-surface p-5">
       <div className="flex items-center justify-between">
         <p className="font-display text-[16px] font-bold text-text">
-          Paper report karo
+          Report Document Issue
         </p>
         <button
           type="button"
           onClick={onClose}
           className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-text-dim hover:text-text"
-          aria-label="Report band karo"
+          aria-label="Close report panel"
         >
           <Icon name="close" size={18} />
         </button>
@@ -372,7 +371,7 @@ function ReportPanel({ paperId, onClose }) {
       {!user ? (
         <div className="mt-3">
           <p className="text-sm text-text-dim">
-            Report karne ke liye login zaroori hai.
+            Sign in is required to submit an issue report.
           </p>
           <button
             type="button"
@@ -387,7 +386,7 @@ function ReportPanel({ paperId, onClose }) {
             }}
             className="mt-3 inline-flex min-h-[44px] items-center rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas disabled:opacity-60"
           >
-            {state === "signing-in" ? "Login ho raha hai…" : "Login karo"}
+            {state === "signing-in" ? "Signing in…" : "Sign In"}
           </button>
         </div>
       ) : (
@@ -416,12 +415,12 @@ function ReportPanel({ paperId, onClose }) {
             value={details}
             onChange={(e) => setDetails(e.target.value)}
             rows={2}
-            placeholder="Details (optional)…"
+            placeholder="Additional details (optional)…"
             className="mt-2 min-h-[48px] w-full rounded-[10px] border border-hairline bg-canvas px-4 py-3 text-sm text-text placeholder:text-text-dim focus:border-accent focus:outline-none"
           />
           {state === "error" && (
             <p className="text-[13px] text-brick">
-              Report nahi bheja gaya. Dobara try karo.
+              Failed to submit report. Please try again.
             </p>
           )}
           <button
@@ -429,7 +428,7 @@ function ReportPanel({ paperId, onClose }) {
             disabled={state === "sending"}
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[10px] bg-accent text-sm font-semibold text-canvas disabled:opacity-60"
           >
-            {state === "sending" ? "Bhej rahe hain…" : "Report bhejo"}
+            {state === "sending" ? "Submitting…" : "Submit Report"}
           </button>
         </form>
       )}
@@ -568,7 +567,7 @@ export default function PaperDetail({ paperId }) {
 
   const shareHref = paper
     ? `https://wa.me/?text=${encodeURIComponent(
-        `${paper.fileName} — PaperVault se download karo:\n${window.location.href}`
+        `${paper.fileName} — Download from PaperVault:\n${window.location.href}`
       )}`
     : "#";
 
@@ -590,20 +589,20 @@ export default function PaperDetail({ paperId }) {
         </div>
 
         {loading ? (
-          <p className="pt-10 text-sm text-text-dim">Paper load ho raha hai…</p>
+          <p className="pt-10 text-sm text-text-dim">Loading paper details…</p>
         ) : !paper ? (
           <div className="mt-4 rounded-xl border border-hairline bg-surface p-8 text-center">
             <p className="font-display text-lg font-bold text-text">
-              Paper nahi mila
+              Document Not Found
             </p>
             <p className="mt-1 text-sm text-text-dim">
-              Ye paper exist nahi karta ya hata diya gaya hai.
+              This paper does not exist or has been removed from the archive.
             </p>
             <Link
               to="/papers"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] border border-hairline px-5 text-sm font-semibold text-text"
             >
-              Saare papers dekho
+              Browse All Papers
             </Link>
           </div>
         ) : (
@@ -646,8 +645,7 @@ export default function PaperDetail({ paperId }) {
               </div>
             </div>
 
-            {/* Desktop: 2-column — sticky action sidebar + main content.
-                Mobile pe DOM order same rehta hai: actions pehle, phir PDF/AI. */}
+            {/* Desktop: 2-column — sticky action sidebar + main content. */}
             <div className="lg:mt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
               {/* Sidebar — mobile pe actions toolbar, desktop pe sticky rail */}
               <aside className="mt-5 md:mt-6 lg:order-2 lg:sticky lg:top-24 lg:mt-0">
@@ -670,7 +668,7 @@ export default function PaperDetail({ paperId }) {
                       target="_blank"
                       rel="noreferrer"
                       className="metallic-button-secondary inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all"
-                      aria-label="WhatsApp pe share karo"
+                      aria-label="Share via WhatsApp"
                     >
                       <Icon name="share" size={16} className="text-moss" />
                       WhatsApp
@@ -683,7 +681,7 @@ export default function PaperDetail({ paperId }) {
                           ? "border-brick bg-brick/10 text-brick"
                           : "metallic-button-secondary"
                       }`}
-                      aria-label="Paper report karo"
+                      aria-label="Report document issue"
                       aria-expanded={showReport}
                     >
                       <Icon name="close" size={15} />
@@ -697,7 +695,7 @@ export default function PaperDetail({ paperId }) {
                           ? "border-white bg-surface-plus text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
                           : "metallic-button-secondary"
                       }`}
-                      aria-label={bookmarked ? "Bookmark hatao" : "Bookmark karo"}
+                      aria-label={bookmarked ? "Remove bookmark" : "Bookmark document"}
                       aria-pressed={bookmarked}
                     >
                       <Icon
@@ -771,7 +769,7 @@ export default function PaperDetail({ paperId }) {
                     <div className="p-8 text-center md:p-12">
                       <Icon name="file" size={40} className="mx-auto text-text-dim" />
                       <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
-                        Preview nahi khul paya
+                        Unable to Display Preview
                       </p>
                       <p className="mt-1 break-all font-mono text-[12px] text-text-dim">
                         {paper.fileName}
@@ -785,7 +783,7 @@ export default function PaperDetail({ paperId }) {
                         className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas md:mt-5 md:px-7"
                       >
                         <Icon name="download" size={16} />
-                        PDF download karo
+                        Download PDF
                       </a>
                     </div>
                   </object>
@@ -793,7 +791,7 @@ export default function PaperDetail({ paperId }) {
                   <div className="p-8 text-center md:p-12">
                     <Icon name="file" size={40} className="mx-auto text-text-dim" />
                     <p className="mt-3 font-display text-[16px] font-bold text-text md:text-lg">
-                      PDF available nahi hai
+                      PDF Document Unavailable
                     </p>
                     <p className="mt-1 break-all font-mono text-[12px] text-text-dim">
                       {paper.fileName}
@@ -813,12 +811,12 @@ export default function PaperDetail({ paperId }) {
             {/* Similar papers */}
             {similar.length > 0 && (
               <section className="mt-10 md:mt-14">
-                <p className="micro">Aur dekho</p>
+                <p className="micro">Related Documents</p>
                 <h2 className="mt-1.5 font-display text-xl font-bold text-text md:text-2xl">
-                  Similar papers
+                  Similar Papers
                 </h2>
                 <p className="mt-1 text-sm text-text-dim">
-                  Same subject, doosre saal
+                  Same subject across other semesters and academic years
                 </p>
                 <div className="mt-4 grid gap-3 md:mt-6 md:grid-cols-2 md:gap-4 lg:grid-cols-4">
                   {similar.map((p) => (

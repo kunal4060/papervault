@@ -132,14 +132,14 @@ export default function SearchHero({ onSearch }) {
 
             {/* Editorial Headline */}
             <h1 className="font-display text-[34px] font-extrabold leading-[1.1] tracking-tight text-white sm:text-[46px] md:text-[56px] md:leading-[1.04] lg:text-[66px]">
-              Har paper. Har subject.
+              Every Paper. Every Subject.
               <br />
-              <span className="hl">Ek hi vault me.</span>
+              <span className="hl">One Academic Vault.</span>
             </h1>
 
             <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[#BDBDBD] sm:text-base lg:max-w-2xl lg:text-[17px]">
-              CAT-1, CAT-2 aur FAT ke previous year question papers plus verified notes —
-              bina login, bilkul free. Fast in-browser preview, direct download aur AI topic weightage ke saath.
+              CAT-1, CAT-2, and FAT previous-year question papers with verified course notes —
+              accessible free without requiring a login. Fast in-browser previews, direct downloads, and AI-assisted topic weightage.
             </p>
 
             {/* Monolithic Search Interface */}
@@ -154,7 +154,7 @@ export default function SearchHero({ onSearch }) {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Course code likho… jaise CSE3002 ya MAT2001"
+                placeholder="Enter course code… e.g. CSE3002 or MAT2001"
                 className="min-h-[44px] w-full bg-transparent font-mono text-[15px] text-white outline-none placeholder:text-[#888888] md:min-h-[50px] md:text-base"
                 aria-label="Search papers by course code"
               />

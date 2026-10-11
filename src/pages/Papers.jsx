@@ -103,7 +103,7 @@ function SubjectGrid() {
       <PageHead
         eyebrow="Browse"
         title="Papers"
-        sub="Subject-wise browse karo — code se search karo, subject kholo, saal chuno."
+        sub="Browse by academic subject — filter by course code, select your subject, and explore semester archives."
       />
 
       <div className="relative mt-5">
@@ -115,28 +115,28 @@ function SubjectGrid() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Course code likho… CSE3002"
+          placeholder="Search course code… e.g. CSE3002"
           className="min-h-[48px] w-full rounded-xl border border-hairline bg-surface pl-11 pr-4 font-mono text-sm text-text placeholder:font-body placeholder:text-text-dim focus:border-accent focus:outline-none"
-          aria-label="Subject ya course code search karo"
+          aria-label="Search subject or course code"
         />
       </div>
 
       <div className="mt-6">
         {loading ? (
-          <p className="text-sm text-text-dim">Subjects load ho rahe hain…</p>
+          <p className="text-sm text-text-dim">Loading archive subjects…</p>
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-hairline bg-surface p-8 text-center">
             <p className="font-display text-lg font-bold text-text">
-              Subject nahi mila
+              No subjects found
             </p>
             <p className="mt-1 text-sm text-text-dim">
-              Code ya naam dobara check karo — ya request board pe maang lo.
+              Verify your course code or submit a request to the community archive.
             </p>
             <Link
               to="/requests"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] border border-hairline px-5 text-sm font-semibold text-text"
             >
-              Request a paper
+              Request a Paper
             </Link>
           </div>
         ) : (
@@ -215,10 +215,10 @@ function SubjectAiAnalysis({ papers }) {
     <section className="metallic-card mt-10 rounded-2xl p-5 md:mt-14 md:p-8">
       <div className="flex items-center gap-2">
         <Icon name="spark" size={18} className="text-white" />
-        <p className="micro text-text-muted">Subject AI analysis</p>
+        <p className="micro text-text-muted">Subject AI Intelligence</p>
       </div>
       <h2 className="mt-2 font-display text-xl font-bold text-white md:text-2xl">
-        Kidhar se <span className="hl">zyada questions</span> aate hain
+        Historical <span className="hl">Topic Frequency</span> & Weightage
       </h2>
 
       {/* Exam-type tabs */}
@@ -242,21 +242,19 @@ function SubjectAiAnalysis({ papers }) {
 
       {aggregate.analyzed === 0 || aggregate.topics.length === 0 ? (
         <p className="mt-4 text-sm text-text-dim">
-          {examTab} ka abhi koi analyzed paper nahi hai.
+          No analyzed papers recorded for {examTab} yet.
         </p>
       ) : (
         <div className="lg:grid lg:grid-cols-[1fr_1.25fr] lg:gap-x-10">
           <p className="mt-3 text-sm leading-relaxed text-text-muted lg:col-start-1 lg:row-start-1 lg:mt-5 lg:text-[15px] lg:leading-relaxed">
-            {examTab} me Module {top.module} ({top.moduleTitle}) se pichle{" "}
-            <span className="font-mono font-semibold text-white">
-              {years} saal
-            </span>{" "}
-            me avg{" "}
+            For {examTab} examinations, Module {top.module} ({top.moduleTitle}) accounts for an average of{" "}
             <span className="font-mono font-semibold text-white">
               {top.avg}%
             </span>{" "}
-            questions — {top.qnums.slice(0, 3).join(", ")}{" "}
-            {top.qnums.length > 3 ? "jaise numbers " : ""}yahi se aate hain!
+            of historical questions across the past{" "}
+            <span className="font-mono font-semibold text-white">
+              {years} year{years === 1 ? "" : "s"}
+            </span>. Questions such as {top.qnums.slice(0, 3).join(", ")} frequently derive from this module.
           </p>
 
           <div className="mt-5 space-y-3.5 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:mt-5">
@@ -293,8 +291,7 @@ function SubjectAiAnalysis({ papers }) {
 
           <p className="mt-5 border-t border-hairline pt-3 text-[12px] text-text-dim lg:col-start-1 lg:row-start-2 lg:mt-6 lg:self-start">
             {examTab} aggregate · {aggregate.analyzed} paper
-            {aggregate.analyzed === 1 ? "" : "s"} analyzed · Naya paper approve
-            hote hi update hota hai
+            {aggregate.analyzed === 1 ? "" : "s"} analyzed · Automatically updated upon document verification
           </p>
         </div>
       )}
@@ -408,7 +405,7 @@ function SubjectDetail({ subjectId }) {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 pb-16 lg:max-w-7xl xl:max-w-[1400px]">
-        <p className="pt-10 text-sm text-text-dim">Subject load ho raha hai…</p>
+        <p className="pt-10 text-sm text-text-dim">Loading subject archive…</p>
       </div>
     );
   }
@@ -427,10 +424,10 @@ function SubjectDetail({ subjectId }) {
         </div>
         <div className="mt-4 rounded-xl border border-hairline bg-surface p-8 text-center">
           <p className="font-display text-lg font-bold text-text">
-            Subject nahi mila
+            Subject Not Found
           </p>
           <p className="mt-1 text-sm text-text-dim">
-            Ye subject exist nahi karta ya deactivate ho gaya hai.
+            This subject does not exist or has been archived.
           </p>
         </div>
       </div>
@@ -511,7 +508,7 @@ function SubjectDetail({ subjectId }) {
           type="button"
           onClick={() => setSort(sort === "newest" ? "downloads" : "newest")}
           className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border border-hairline px-3.5 text-[12px] font-semibold text-text-dim hover:text-text"
-          aria-label="Sort badlo"
+          aria-label="Change sort order"
         >
           <Icon name="clock" size={14} />
           {sort === "newest" ? "Newest" : "Top downloaded"}
@@ -523,16 +520,16 @@ function SubjectDetail({ subjectId }) {
         {visibleCount === 0 ? (
           <div className="rounded-xl border border-hairline bg-surface p-8 text-center">
             <p className="font-display text-lg font-bold text-text">
-              Paper nahi mila
+              No papers found
             </p>
             <p className="mt-1 text-sm text-text-dim">
-              Is filter me koi paper nahi hai.
+              No papers match the selected filter criteria.
             </p>
             <Link
               to="/requests"
               className="mt-4 inline-flex min-h-[44px] items-center rounded-[10px] bg-accent px-5 text-sm font-semibold text-canvas"
             >
-              Request karo!
+              Request a Paper
             </Link>
           </div>
         ) : (
