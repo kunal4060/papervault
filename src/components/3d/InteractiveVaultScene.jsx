@@ -120,7 +120,8 @@ export default function InteractiveVaultScene() {
 
     let isVisible = true;
     let animId = null;
-    const clock = new THREE.Clock();
+    let startTime = performance.now();
+    let lastTime = startTime;
     const pointer = { curX: 0, curY: 0, targetX: 0, targetY: 0 };
 
     const handlePointerMove = (e) => {
@@ -137,7 +138,7 @@ export default function InteractiveVaultScene() {
         entries.forEach((entry) => {
           isVisible = entry.isIntersecting;
           if (isVisible && !animId) {
-            clock.getDelta();
+            lastTime = performance.now();
             animId = requestAnimationFrame(loop);
           }
         });
@@ -146,19 +147,22 @@ export default function InteractiveVaultScene() {
     );
     observer.observe(container);
 
-    const loop = () => {
+    const loop = (timestamp) => {
       if (!isVisible) {
         animId = null;
         return;
       }
-      const delta = Math.min(clock.getDelta(), 0.1);
+      const now = timestamp || performance.now();
+      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      const elapsed = (now - startTime) / 1000;
+      lastTime = now;
 
       if (!prefersReducedMotion) {
         const factor = 1 - Math.exp(-5 * delta);
         pointer.curX += (pointer.targetX - pointer.curX) * factor;
         pointer.curY += (pointer.targetY - pointer.curY) * factor;
 
-        group.rotation.y = pointer.curX * 0.4 + clock.getElapsedTime() * 0.08;
+        group.rotation.y = pointer.curX * 0.4 + elapsed * 0.08;
         group.rotation.x = -pointer.curY * 0.3;
 
         r1.rotation.z += 0.15 * delta;
@@ -212,7 +216,7 @@ export default function InteractiveVaultScene() {
         renderer.domElement.parentNode.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [webglSupported]);
 
   return (
     <div

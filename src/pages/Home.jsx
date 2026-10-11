@@ -12,6 +12,15 @@ import {
   UploadCta,
   Footer,
 } from "../components/sections.jsx";
+import {
+  FloatingParticleField,
+  DepthLayer,
+  FloatingRing,
+  FloatingFrame,
+  FloatingGrid,
+  FloatingLine,
+  SpatialDecoration,
+} from "../components/3d/FloatingSpace.jsx";
 import { useSubjects } from "../hooks/useSubjects.js";
 import { getStats, getTrendingPapers, subscribeExamCountdown, DEFAULT_EXAM_COUNTDOWN } from "../firebase/db.js";
 
@@ -110,78 +119,136 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-canvas text-text">
-      <Navbar />
-      <main>
-        <SearchHero onSearch={(q, exam) => handleSearch(navigate, q, exam)} />
-        <StatStrip stats={stats ?? { papers: 0, subjects: 0, notes: 0 }} failed={statsFailed} />
+    <div className="relative min-h-screen overflow-x-hidden bg-canvas text-text selection:bg-white selection:text-black">
+      {/* Background persistent cosmic stardust */}
+      <FloatingParticleField count={18} opacity={0.16} className="pointer-events-none fixed inset-0 z-0" />
 
-        <div className="mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
-          <div className="py-6 md:py-8">
-            <ExamCountdown countdown={buildCountdown(countdownSettings)} />
-          </div>
-
-          <section className="py-6 md:py-10">
-            <SectionHeading
-              eyebrow="Browse"
-              title="Popular subjects"
-              action={
-                <Link
-                  to="/papers"
-                  className="font-mono text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:text-text-muted"
-                >
-                  Sab dekho &rarr;
-                </Link>
-              }
-            />
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:gap-5">
-              {popular.map((s) => (
-                <SubjectCard key={s.id} subject={s} />
-              ))}
-            </div>
-          </section>
-
-          <section className="py-6 md:py-10">
-            <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
-            {trendingLoading ? (
-              <div className="metallic-card rounded-2xl p-4 md:p-6" aria-hidden="true">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-3 border-b border-hairline py-3.5 last:border-b-0">
-                    <div className="h-10 w-10 animate-pulse rounded-xl bg-surface-plus" />
-                    <div className="min-w-0 flex-1">
-                      <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface-plus" />
-                      <div className="mt-2 h-2.5 w-1/2 animate-pulse rounded bg-surface-plus" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : trending.length === 0 ? (
-              <div className="metallic-card rounded-2xl p-8 text-center">
-                <p className="text-sm text-text-dim">
-                  Abhi koi trending paper nahi hai — pehle papers upload karo.
-                </p>
-              </div>
-            ) : (
-              <div className="metallic-card rounded-2xl p-4 md:p-6 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
-                {trending.map((p) => (
-                  <PaperRow key={p.id} paper={p} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="py-6 md:py-10">
-            <SectionHeading title="Kaise kaam karta hai" />
-            <HowItWorks />
-          </section>
-
-          <section className="py-6 md:py-10">
-            <UploadCta />
-          </section>
+      {/* Global vertical guidelines */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 mx-auto max-w-7xl px-4 opacity-5"
+      >
+        <div className="flex h-full w-full justify-between">
+          <div className="h-full w-px bg-white" />
+          <div className="hidden h-full w-px bg-white md:block" />
+          <div className="h-full w-px bg-white" />
         </div>
-      </main>
-      <div className="mt-6">
-        <Footer />
+      </div>
+
+      <div className="relative z-10">
+        <Navbar />
+        <main>
+          <SearchHero onSearch={(q, exam) => handleSearch(navigate, q, exam)} />
+          <StatStrip stats={stats ?? { papers: 0, subjects: 0, notes: 0 }} failed={statsFailed} />
+
+          <div className="relative mx-auto max-w-6xl px-4 lg:max-w-7xl xl:max-w-[1400px]">
+            {/* Exam Countdown with spatial depth */}
+            <div className="relative py-6 md:py-8">
+              <ExamCountdown countdown={buildCountdown(countdownSettings)} />
+            </div>
+
+            {/* Popular Subjects Section */}
+            <section className="relative py-6 md:py-10">
+              {/* Architectural grid fragment in background */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-20 -top-10 hidden overflow-hidden lg:block"
+              >
+                <FloatingGrid className="h-56 w-80" opacity={0.07} />
+                <FloatingFrame
+                  width={150}
+                  height={90}
+                  label="GRID // 02"
+                  className="right-6 top-8 opacity-40"
+                />
+              </div>
+
+              <SectionHeading
+                eyebrow="Browse"
+                title="Popular subjects"
+                action={
+                  <Link
+                    to="/papers"
+                    className="font-mono text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:text-text-muted"
+                  >
+                    Sab dekho &rarr;
+                  </Link>
+                }
+              />
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:gap-5">
+                {popular.map((s) => (
+                  <SubjectCard key={s.id} subject={s} />
+                ))}
+              </div>
+            </section>
+
+            {/* Trending Section */}
+            <section className="relative py-6 md:py-10">
+              {/* Subtle orbital decoration */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-16 top-0 hidden lg:block"
+              >
+                <SpatialDecoration variant="orbital" />
+              </div>
+
+              <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
+              {trendingLoading ? (
+                <div className="metallic-card rounded-2xl p-4 md:p-6" aria-hidden="true">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-3 border-b border-hairline py-3.5 last:border-b-0">
+                      <div className="h-10 w-10 animate-pulse rounded-xl bg-surface-plus" />
+                      <div className="min-w-0 flex-1">
+                        <div className="h-3.5 w-3/4 animate-pulse rounded bg-surface-plus" />
+                        <div className="mt-2 h-2.5 w-1/2 animate-pulse rounded bg-surface-plus" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : trending.length === 0 ? (
+                <div className="metallic-card rounded-2xl p-8 text-center">
+                  <p className="text-sm text-text-dim">
+                    Abhi koi trending paper nahi hai — pehle papers upload karo.
+                  </p>
+                </div>
+              ) : (
+                <div className="metallic-card relative overflow-hidden rounded-2xl p-4 md:p-6 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:[&>*:nth-last-child(2)]:border-b-0">
+                  {/* Internal ambient corner guide */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-3 top-3 font-mono text-[9px] uppercase tracking-widest text-text-dim/40"
+                  >
+                    INDEX // VERIFIED
+                  </div>
+                  {trending.map((p) => (
+                    <PaperRow key={p.id} paper={p} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* How It Works Section */}
+            <section className="relative py-6 md:py-10">
+              {/* Depth guideline */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-8 top-12 hidden lg:block"
+              >
+                <FloatingLine length={240} vertical opacity={0.12} />
+              </div>
+              <SectionHeading title="Kaise kaam karta hai" />
+              <HowItWorks />
+            </section>
+
+            {/* Upload CTA Section */}
+            <section className="relative py-6 md:py-10">
+              <UploadCta />
+            </section>
+          </div>
+        </main>
+        <div className="mt-6">
+          <Footer />
+        </div>
       </div>
     </div>
   );
