@@ -47,12 +47,18 @@ function FilterChip({ active, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-[42px] shrink-0 items-center rounded-full border px-4 text-[13px] font-semibold transition-all duration-200 ${
+      className={`group relative inline-flex min-h-[42px] shrink-0 items-center rounded-full border px-4 font-mono text-[13px] font-semibold transition-all duration-300 active:scale-95 ${
         active
-          ? "border-white bg-white text-canvas shadow-[0_2px_12px_rgba(255,255,255,0.22)]"
-          : "border-hairline bg-surface text-text-dim hover:border-hairline-bright hover:text-white"
+          ? "border-white bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.3)] -translate-y-0.5 scale-[1.04]"
+          : "border-[#262626] bg-[#111111] text-[#888888] hover:border-[#555555] hover:text-white hover:bg-[#161616]"
       }`}
     >
+      {active && (
+        <span
+          className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-black"
+          aria-hidden="true"
+        />
+      )}
       {children}
     </button>
   );
