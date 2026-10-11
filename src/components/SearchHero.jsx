@@ -176,12 +176,18 @@ export default function SearchHero({ onSearch }) {
                   key={c}
                   type="button"
                   onClick={() => setExam(c)}
-                  className={`min-h-[42px] shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-all duration-200 ${
+                  className={`group relative inline-flex min-h-[42px] shrink-0 items-center rounded-full border px-4 font-mono text-[13px] font-semibold transition-all duration-300 active:scale-95 ${
                     exam === c
-                      ? "border-white bg-white text-black shadow-[0_2px_16px_rgba(255,255,255,0.3)]"
-                      : "border-hairline bg-surface/80 text-[#888888] hover:border-[#555555] hover:text-white"
+                      ? "border-white bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.3)] -translate-y-0.5 scale-[1.04]"
+                      : "border-[#262626] bg-[#111111]/80 text-[#888888] hover:border-[#555555] hover:text-white hover:bg-[#161616]"
                   }`}
                 >
+                  {exam === c && (
+                    <span
+                      className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-black"
+                      aria-hidden="true"
+                    />
+                  )}
                   {c}
                 </button>
               ))}

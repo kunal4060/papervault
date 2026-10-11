@@ -20,6 +20,8 @@ import {
   FloatingGrid,
   FloatingLine,
   SpatialDecoration,
+  FloatingDocument,
+  FloatingPaperStack,
 } from "../components/3d/FloatingSpace.jsx";
 import { useSubjects } from "../hooks/useSubjects.js";
 import { getStats, getTrendingPapers, subscribeExamCountdown, DEFAULT_EXAM_COUNTDOWN } from "../firebase/db.js";
@@ -149,7 +151,27 @@ export default function Home() {
 
             {/* Popular Subjects Section */}
             <section className="relative py-6 md:py-10">
-              {/* Architectural grid fragment in background */}
+              {/* Soft radial background lighting */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-x-20 -inset-y-10 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03),transparent_70%)]"
+              />
+
+              {/* Distant floating document silhouette */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-20 top-24 hidden opacity-20 lg:block select-none"
+              >
+                <FloatingDocument
+                  title="ADVANCED ALGORITHMS"
+                  code="CSE3001"
+                  exam="FAT 2025"
+                  scale={0.7}
+                  rotation={-12}
+                />
+              </div>
+
+              {/* Architectural grid fragment & orbital ring */}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-20 -top-10 hidden overflow-hidden lg:block"
@@ -162,6 +184,13 @@ export default function Home() {
                   className="right-6 top-8 opacity-40"
                 />
               </div>
+              <FloatingRing
+                size={440}
+                tiltX={75}
+                tiltY={-20}
+                opacity={0.05}
+                className="-right-28 -top-12 pointer-events-none hidden lg:block"
+              />
 
               <SectionHeading
                 eyebrow="Browse"
@@ -184,13 +213,33 @@ export default function Home() {
 
             {/* Trending Section */}
             <section className="relative py-6 md:py-10">
-              {/* Subtle orbital decoration */}
+              {/* Subtle orbital decoration & floating paper stack */}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -left-16 top-0 hidden lg:block"
               >
                 <SpatialDecoration variant="orbital" />
               </div>
+              <FloatingRing
+                size={360}
+                tiltX={65}
+                tiltY={25}
+                opacity={0.07}
+                dashed
+                className="-left-20 -top-10 pointer-events-none hidden lg:block"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-24 top-16 hidden opacity-25 lg:block select-none scale-75"
+              >
+                <FloatingPaperStack />
+              </div>
+              <FloatingFrame
+                width={160}
+                height={90}
+                label="TRENDING // STATS"
+                className="right-4 -bottom-6 hidden opacity-25 lg:block pointer-events-none"
+              />
 
               <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
               {trendingLoading ? (
@@ -229,13 +278,19 @@ export default function Home() {
 
             {/* How It Works Section */}
             <section className="relative py-6 md:py-10">
-              {/* Depth guideline */}
+              {/* Depth guideline & spatial frame */}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-8 top-12 hidden lg:block"
               >
                 <FloatingLine length={240} vertical opacity={0.12} />
               </div>
+              <FloatingFrame
+                width={170}
+                height={85}
+                label="PIPELINE // 3-STEP"
+                className="-left-12 -top-4 hidden opacity-25 lg:block pointer-events-none"
+              />
               <SectionHeading title="Kaise kaam karta hai" />
               <HowItWorks />
             </section>
