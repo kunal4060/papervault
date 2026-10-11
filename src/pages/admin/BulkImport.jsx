@@ -37,7 +37,7 @@ function StepRow({ n, title, desc, action, disabled, busy, doneLabel }) {
           <h3 className="font-display text-base font-bold text-text">{title}</h3>
           <p className="mt-1 text-sm text-text-dim">{desc}</p>
           <Button onClick={action} disabled={disabled} className="mt-4">
-            {busy ? "Chal raha hai…" : doneLabel || "Start"}
+            {busy ? "Processing…" : doneLabel || "Start"}
           </Button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function BulkImport() {
       setExistingCodes(new Set(subs.map((s) => s.code)));
       setExistingUrls(new Set(papers.map((p) => p.fileUrl).filter(Boolean)));
     } catch (e) {
-      setSubjectState((s) => ({ ...s, error: e?.message || "Load fail" }));
+      setSubjectState((s) => ({ ...s, error: e?.message || "Failed to load data" }));
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function BulkImport() {
       setSubjectState({ status: "done", done, total: missingSubjects.length, error: "" });
       await refresh();
     } catch (e) {
-      setSubjectState({ status: "error", done, total: missingSubjects.length, error: e?.message || "Fail" });
+      setSubjectState({ status: "error", done, total: missingSubjects.length, error: e?.message || "Operation failed" });
     }
   };
 
@@ -123,7 +123,7 @@ export default function BulkImport() {
       const subs = await getAllSubjects();
       for (const s of subs) codeToId[s.code] = s.id;
     } catch (e) {
-      setPaperState({ status: "error", done: 0, total: 0, error: e?.message || "Subjects load fail" });
+      setPaperState({ status: "error", done: 0, total: 0, error: e?.message || "Failed to load subject index" });
       return;
     }
     const queue = missingPapers.filter((e) => codeToId[e.subjectCode]);
@@ -155,11 +155,11 @@ export default function BulkImport() {
       }
       setPaperState({
         status: "done", done, total: queue.length,
-        error: skippedNoSubject ? `${skippedNoSubject} papers skip — subject missing (pehle Step 1 chalao).` : "",
+        error: skippedNoSubject ? `${skippedNoSubject} papers skipped — subject record missing (execute Step 1 first).` : "",
       });
       await refresh();
     } catch (e) {
-      setPaperState({ status: "error", done, total: queue.length, error: e?.message || "Fail" });
+      setPaperState({ status: "error", done, total: queue.length, error: e?.message || "Operation failed" });
     }
   };
 
@@ -192,36 +192,35 @@ export default function BulkImport() {
             </div>
           </div>
           <p className="mt-3 text-sm text-text-dim">
-            PDFs pehle se Cloudinary pe uploaded hain — ye page sirf Firestore me
-            subjects aur paper records banata hai. Dobara chalane pe pehle se
-            maujood entries skip ho jayengi.
+            PDF documents are hosted on Cloudinary storage. This utility synchronizes and creates
+            matching subject and paper records in Firestore. Existing entries are safely skipped on re-run.
           </p>
         </Card>
 
         {loading ? (
-          <Card className="p-5"><p className="text-sm text-text-dim">Load ho raha hai…</p></Card>
+          <Card className="p-5"><p className="text-sm text-text-dim">Loading status…</p></Card>
         ) : (
           <>
             <StepRow
               n="1"
-              title={`Subjects banao (${missingSubjects.length} naye)`}
-              desc="Manifest ke subjects Firestore me banenge. Jo codes pehle se hain, wo skip."
+              title={`Create Subjects (${missingSubjects.length} new)`}
+              desc="Generates subject entities from manifest in Firestore. Existing subject codes are skipped."
               action={createSubjects}
               disabled={subjectState.status === "running" || missingSubjects.length === 0}
               busy={subjectState.status === "running"}
-              doneLabel={subjectState.status === "done" ? `Ho gaya (${subjectState.done})` : missingSubjects.length === 0 ? "Sab subjects maujood" : "Subjects banao"}
+              doneLabel={subjectState.status === "done" ? `Completed (${subjectState.done})` : missingSubjects.length === 0 ? "All subjects present" : "Create Subjects"}
             />
             {subjectState.status === "running" && bar(subjectState.done, subjectState.total)}
             {subjectState.error && <p className="text-[13px] text-brick">{subjectState.error}</p>}
 
             <StepRow
               n="2"
-              title={`Papers import karo (${missingPapers.length} pending)`}
-              desc="Har paper ka Firestore record banega (status approved). Pehle Step 1 poora karo."
+              title={`Import Papers (${missingPapers.length} pending)`}
+              desc="Generates approved Firestore paper records. Please ensure Step 1 is completed first."
               action={importPapers}
               disabled={paperState.status === "running" || missingPapers.length === 0}
               busy={paperState.status === "running"}
-              doneLabel={paperState.status === "done" ? `Ho gaya (${paperState.done})` : missingPapers.length === 0 ? "Sab papers imported" : "Papers import karo"}
+              doneLabel={paperState.status === "done" ? `Completed (${paperState.done})` : missingPapers.length === 0 ? "All papers imported" : "Import Papers"}
             />
             {paperState.status === "running" && (
               <p className="text-sm text-text-dim">{paperState.done} / {paperState.total}{bar(paperState.done, paperState.total)}</p>

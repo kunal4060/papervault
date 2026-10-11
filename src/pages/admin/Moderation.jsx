@@ -34,7 +34,7 @@ function VerdictBox({ verdict }) {
       <div className="rounded-[10px] border border-hairline bg-surface-plus px-3.5 py-3">
         <MicroLabel>AI verdict</MicroLabel>
         <p className="mt-1 text-sm text-text-dim">
-          Is upload ke liye AI verdict available nahi hai.
+          AI verification verdict is not available for this upload.
         </p>
       </div>
     );
@@ -115,7 +115,7 @@ function QueueRow({ item, subjectName, onApprove, onReject, readOnly }) {
             <span className="font-mono tabular-nums">{item.year ?? "—"}</span>
             {item.slot && <span className="font-mono">Slot {item.slot}</span>}
             {item.aiApproved && (
-              <Badge tone="moss" title="AI ne unique paya — admin confirm kare">
+              <Badge tone="moss" title="Verified unique by AI — awaiting admin confirmation">
                 AI Approved
               </Badge>
             )}
@@ -141,7 +141,7 @@ function QueueRow({ item, subjectName, onApprove, onReject, readOnly }) {
         <VerdictBox verdict={item.aiVerdict} />
       </div>
 
-      {/* PDF preview — approve se pehle file dekhna zaroori hai */}
+      {/* PDF preview */}
       {item.fileUrl && (
         <a
           href={item.fileUrl}
@@ -150,13 +150,13 @@ function QueueRow({ item, subjectName, onApprove, onReject, readOnly }) {
           className="mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-[10px] border border-hairline bg-canvas px-4 text-sm font-semibold text-accent hover:border-accent/50"
         >
           <IcoDoc className="h-4 w-4" />
-          PDF dekho
+          View PDF
         </a>
       )}
 
       {readOnly ? (
         <div className="mt-3 rounded-[10px] border border-brick/40 bg-brick/5 px-3.5 py-3">
-          <MicroLabel>Reject reason</MicroLabel>
+          <MicroLabel>Rejection Reason</MicroLabel>
           <p className="mt-1 text-sm text-text">{item.rejectionReason ?? "—"}</p>
         </div>
       ) : !rejecting ? (
@@ -252,8 +252,8 @@ export default function Moderation() {
     } catch (e) {
       setError(
         e?.message
-          ? `Moderation queue load nahi hui: ${e.message}`
-          : "Moderation queue load nahi hui."
+          ? `Failed to load moderation queue: ${e.message}`
+          : "Failed to load moderation queue."
       );
     } finally {
       setLoading(false);
@@ -287,8 +287,6 @@ export default function Moderation() {
         views: 0,
       });
       await updateUpload(id, { status: "approved", paperId });
-      // Best-effort AI analysis — never blocks approval. Needs Gemini key +
-      // syllabus modules + extracted text; skips silently otherwise.
       try {
         if (GEMINI_CONNECTED && item.textSample && item.subjectId) {
           const syllabus = await getSyllabus(item.subjectId);
@@ -305,12 +303,12 @@ export default function Moderation() {
       }
       setQueue((q) => q.filter((x) => x.id !== id));
       setDone((d) => [
-        { id, label: `${item.fileName ?? id} — approved, ab live hai.`, ok: true },
+        { id, label: `${item.fileName ?? id} — approved and published live.`, ok: true },
         ...d,
       ]);
     } catch (e) {
       setError(
-        e?.message ? `Approve nahi hua: ${e.message}` : "Approve nahi hua."
+        e?.message ? `Approval failed: ${e.message}` : "Approval failed."
       );
     }
   };
@@ -332,7 +330,7 @@ export default function Moderation() {
       ]);
     } catch (e) {
       setError(
-        e?.message ? `Reject nahi hua: ${e.message}` : "Reject nahi hua."
+        e?.message ? `Rejection failed: ${e.message}` : "Rejection failed."
       );
     }
   };
@@ -341,7 +339,7 @@ export default function Moderation() {
     <AdminShell
       active="moderation"
       title="Moderation"
-      subtitle="Pending uploads — AI verdict ke saath approve/reject karo"
+      subtitle="Review pending uploads with automated AI verification"
       badge={queue.length}
     >
       {error && (
@@ -402,8 +400,8 @@ export default function Moderation() {
         rejected.length === 0 ? (
           <EmptyState
             icon={<IcoX className="h-8 w-8" />}
-            title="Koi rejected upload nahi"
-            hint="Reject kiye gaye uploads yahan dikhenge."
+            title="No rejected uploads"
+            hint="Rejected submissions will be archived here for reference."
           />
         ) : (
           <div className="space-y-3">
@@ -430,8 +428,8 @@ export default function Moderation() {
           return (
             <EmptyState
               icon={<IcoCheck className="h-8 w-8" />}
-              title="Queue clear hai"
-              hint="Saare uploads review ho gaye. Naya upload aayega to yahi dikhega."
+              title="Queue is clear"
+              hint="All pending submissions have been reviewed. New uploads will appear here."
             />
           );
         }

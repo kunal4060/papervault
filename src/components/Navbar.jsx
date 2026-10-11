@@ -95,7 +95,7 @@ export default function Navbar() {
                         onClick={() => setMenuOpen(false)}
                         className="block rounded-lg px-3.5 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-plus hover:text-white"
                       >
-                        My uploads
+                        My Uploads
                       </Link>
                       <button
                         onClick={() => {
@@ -115,7 +115,7 @@ export default function Navbar() {
                 onClick={signIn}
                 className="ml-1 inline-flex min-h-[40px] items-center rounded-xl px-4 text-[13.5px] font-semibold text-text-dim transition-colors hover:bg-surface hover:text-white"
               >
-                Login
+                Sign In
               </button>
             ))}
         </nav>
@@ -124,7 +124,7 @@ export default function Navbar() {
         <button
           className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-hairline bg-surface text-text-dim transition-colors hover:border-hairline-bright hover:text-white md:hidden"
           onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Menu band karo" : "Menu kholo"}
+          aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
         >
           <Icon name={open ? "close" : "menu"} size={20} />
@@ -163,7 +163,7 @@ export default function Navbar() {
               className="metallic-button flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 text-[15px] font-bold text-canvas"
             >
               <Icon name="upload" size={17} />
-              Paper upload karo
+              Upload a Paper
             </Link>
 
             {!authLoading &&
@@ -173,7 +173,7 @@ export default function Navbar() {
                     to="/my-uploads"
                     className="block rounded-lg px-3.5 py-3 text-[15px] font-medium text-text-dim hover:text-white"
                   >
-                    My uploads
+                    My Uploads
                   </Link>
                   <button
                     onClick={() => {
@@ -182,7 +182,7 @@ export default function Navbar() {
                     }}
                     className="block w-full rounded-lg px-3.5 py-3 text-left text-[15px] font-medium text-text-dim hover:text-brick"
                   >
-                    Logout ({(user.displayName || user.email || "").split(" ")[0]})
+                    Sign Out ({(user.displayName || user.email || "").split(" ")[0]})
                   </button>
                 </div>
               ) : (
@@ -193,7 +193,7 @@ export default function Navbar() {
                   }}
                   className="metallic-button-secondary mt-2 block w-full rounded-xl px-4 py-3 text-center text-[15px] font-semibold"
                 >
-                  Login karo
+                  Sign In
                 </button>
               ))}
           </div>

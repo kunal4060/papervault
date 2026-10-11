@@ -53,11 +53,11 @@ export default function AdminGate({ sub: subProp }) {
         <div className="mx-auto mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-brick/40 bg-brick/10 text-brick">
           <Icon name="close" size={22} />
         </div>
-        <h1 className="mt-4 font-display text-xl font-bold text-text">Access nahi hai</h1>
+        <h1 className="mt-4 font-display text-xl font-bold text-text">Access Restricted</h1>
         <p className="mt-2 text-sm text-text-dim">
-          <strong className="text-text">{user.email || user.displayName}</strong> admin nahi hai.
-          Firebase console → Firestore → <code className="text-accent">users/{user.uid}</code> me{" "}
-          <code className="text-accent">role = "admin"</code> set karo, phir dobara kholo.
+          <strong className="text-text">{user.email || user.displayName}</strong> is not an authorized administrator.
+          Configure <code className="text-accent">role = "admin"</code> in Firestore at{" "}
+          <code className="text-accent">users/{user.uid}</code>, then reopen.
         </p>
         <Button onClick={signOut} className="mt-6 w-full">
           Sign out

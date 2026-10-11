@@ -70,7 +70,7 @@ export default function NotesManager() {
         }
       } catch (e) {
         setError(
-          e?.message ? `Notes load nahi hue: ${e.message}` : "Notes load nahi hue."
+          e?.message ? `Failed to load notes: ${e.message}` : "Failed to load notes."
         );
       } finally {
         setLoading(false);
@@ -136,7 +136,7 @@ export default function NotesManager() {
       setTimeout(() => setAdded(false), 2500);
     } catch (e) {
       setError(
-        e?.message ? `Note upload nahi hua: ${e.message}` : "Note upload nahi hua."
+        e?.message ? `Failed to upload note: ${e.message}` : "Failed to upload note."
       );
     } finally {
       setUploading(false);
@@ -147,13 +147,10 @@ export default function NotesManager() {
     setError("");
     try {
       await deleteNote(id);
-      // Note: Cloudinary file cleanup client-side possible nahi hai
-      // (unsigned uploads ke liye API secret chahiye) — file Cloudinary
-      // dashboard se delete karna hoga. Doc delete hi kaafi hai.
       setRows((rs) => rs.filter((r) => r.id !== id));
     } catch (e) {
       setError(
-        e?.message ? `Delete nahi hua: ${e.message}` : "Delete nahi hua."
+        e?.message ? `Failed to delete note: ${e.message}` : "Failed to delete note."
       );
     }
     setDeleting(null);
@@ -247,10 +244,10 @@ export default function NotesManager() {
           onClick={upload}
           disabled={uploading || !form.title.trim() || !form.module || !file}
         >
-          {uploading ? "Uploading…" : "Upload note"}
+          {uploading ? "Uploading…" : "Upload Note"}
         </Button>
         {added && !error && (
-          <p className="mt-2 text-sm text-moss">Note upload ho gaya.</p>
+          <p className="mt-2 text-sm text-moss">Note uploaded successfully.</p>
         )}
       </Card>
 
@@ -332,8 +329,8 @@ export default function NotesManager() {
         <div className="mt-4">
           <EmptyState
             icon={<IcoDoc className="h-8 w-8" />}
-            title="Koi notes nahi"
-            hint="Upar form se pehla note upload karo."
+            title="No notes available"
+            hint="Use the upload form above to add lecture notes for a course module."
           />
         </div>
       )}

@@ -51,7 +51,7 @@ function buildCountdown(settings) {
     daysLeft,
     dateLabel: settings.label?.trim()
       ? settings.label.trim()
-      : `${formatDateRange(settings.startDate, settings.endDate)} · sab slots`,
+      : `${formatDateRange(settings.startDate, settings.endDate)} · All slots`,
   };
 }
 
@@ -200,7 +200,7 @@ export default function Home() {
                     to="/papers"
                     className="font-mono text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:text-text-muted"
                   >
-                    Sab dekho &rarr;
+                    View All &rarr;
                   </Link>
                 }
               />
@@ -241,7 +241,7 @@ export default function Home() {
                 className="right-4 -bottom-6 hidden opacity-25 lg:block pointer-events-none"
               />
 
-              <SectionHeading eyebrow="Trending" title="Is hafte zyada download hue" />
+              <SectionHeading eyebrow="Trending" title="Most Downloaded This Week" />
               {trendingLoading ? (
                 <div className="metallic-card rounded-2xl p-4 md:p-6" aria-hidden="true">
                   {[0, 1, 2].map((i) => (
@@ -257,7 +257,7 @@ export default function Home() {
               ) : trending.length === 0 ? (
                 <div className="metallic-card rounded-2xl p-8 text-center">
                   <p className="text-sm text-text-dim">
-                    Abhi koi trending paper nahi hai — pehle papers upload karo.
+                    No trending papers recorded this week — be the first to contribute.
                   </p>
                 </div>
               ) : (
@@ -291,7 +291,7 @@ export default function Home() {
                 label="PIPELINE // 3-STEP"
                 className="-left-12 -top-4 hidden opacity-25 lg:block pointer-events-none"
               />
-              <SectionHeading title="Kaise kaam karta hai" />
+              <SectionHeading title="How It Works" />
               <HowItWorks />
             </section>
 

@@ -318,7 +318,7 @@ export function ProgressSteps({ steps, current, state }) {
 
 /** Shown on login-required pages when the user is not signed in. */
 
-export function LoginGate({ onSignIn, actionText = "yeh page use karne", error = null }) {
+export function LoginGate({ onSignIn, actionText = "to access this section", error = null }) {
   return (
     <div className="mx-auto max-w-md px-4 py-16 md:py-24">
       <Card className="p-8 text-center md:p-10">
@@ -326,21 +326,20 @@ export function LoginGate({ onSignIn, actionText = "yeh page use karne", error =
           <Icon name="upload" size={22} />
         </div>
         <h1 className="font-display text-xl font-bold text-text">
-          Login zaroori hai
+          Authentication Required
         </h1>
         <p className="mt-2 text-sm text-text-dim">
-          Paper {actionText} ke liye apne Google account se login karo. Padna
-          bina login ke free hai — dalne ke liye login.
+          Please sign in with your Google account {actionText}. Accessing and browsing papers does not require authentication.
         </p>
         <Button onClick={onSignIn} className="mt-6 w-full">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M21.35 11.1H12v2.9h5.35c-.5 2.4-2.55 3.5-5.35 3.5a5.9 5.9 0 1 1 0-11.8c1.5 0 2.85.55 3.9 1.45l2.1-2.1A8.9 8.9 0 1 0 12 20.9c4.45 0 8.6-3.15 8.6-8.95 0-.3-.05-.6-.25-.85Z" />
           </svg>
-          Google se login karo
+          Sign In with Google
         </Button>
         {error && (
           <p className="mt-4 text-[13px] text-brick">
-            Login nahi ho paya: {error?.code || error?.message || "unknown error"}. Popup block hua ho toh allow karo aur dobara try karo.
+            Authentication failed: {error?.code || error?.message || "Unknown error"}. If popups were blocked, please allow them and try again.
           </p>
         )}
       </Card>

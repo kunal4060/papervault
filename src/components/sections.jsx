@@ -9,8 +9,6 @@ import {
   FloatingLine,
   FloatingGrid,
   FloatingParticleField,
-  DepthLayer,
-  FloatingDocument,
 } from "./3d/FloatingSpace.jsx";
 
 // --------------------------------------------------------------------------
@@ -184,8 +182,8 @@ export function PaperRow({ paper }) {
             type="button"
             onClick={handlePreview}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#262626] bg-[#111111] text-[#888888] transition-all hover:border-[#666666] hover:text-white active:scale-95 group-hover:translate-x-0.5"
-            aria-label="Details dekho"
-            title="Details dekho"
+            aria-label="View Details"
+            title="View Details"
           >
             <Icon name="chevR" size={17} />
           </button>
@@ -221,10 +219,10 @@ export function ExamCountdown({ countdown }) {
   if (!countdown || countdown.daysLeft > 30) return null;
   const label =
     countdown.daysLeft === 0
-      ? "aaj se shuru!"
+      ? "Starts today!"
       : countdown.daysLeft === 1
-        ? "kal se!"
-        : `${countdown.daysLeft} din baaki`;
+        ? "Starts tomorrow!"
+        : `${countdown.daysLeft} days remaining`;
 
   return (
     <div className="metallic-card relative overflow-hidden rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between md:px-7 md:py-5">
@@ -252,7 +250,7 @@ export function ExamCountdown({ countdown }) {
           to="/papers"
           className="metallic-button inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl px-6 text-[13.5px] font-bold text-black shadow-[0_2px_14px_rgba(255,255,255,0.2)]"
         >
-          Papers Revise Karo &rarr;
+          Revise Your Papers &rarr;
         </Link>
       </div>
     </div>
@@ -303,7 +301,6 @@ export function StatStrip({ stats, failed = false }) {
 // --------------------------------------------------------------------------
 export function HowItWorks() {
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(null);
 
   const handleStepClick = (to) => {
     navigate(to);
@@ -403,16 +400,16 @@ export function HowItWorks() {
               </div>
 
               <h3 className="font-display text-xl font-bold text-white transition-colors group-hover:text-white md:text-[22px]">
-                Search karo
+                Search the Archive
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-[#BDBDBD]">
-                Course code (jaise CSE3002) ya subject naam se question papers aur verified module notes dhundo.
+                Search by course code or subject name to discover question papers and verified academic resources.
               </p>
             </div>
 
             <div className="mt-6 flex items-center justify-between border-t border-[#242424] pt-3.5 text-xs text-[#888888]">
               <span className="font-mono text-[11px] text-[#BDBDBD] group-hover:text-white transition-colors">
-                Index search explore &rarr;
+                Search the archive &rarr;
               </span>
               <span className="flex h-6 w-6 items-center justify-center rounded-md border border-[#2A2A2A] bg-[#141414] text-white">
                 <Icon name="chevR" size={13} />
@@ -496,10 +493,10 @@ export function HowItWorks() {
               </div>
 
               <h3 className="font-display text-xl font-bold text-white transition-colors group-hover:text-white md:text-[22px]">
-                Preview & download
+                Preview & Download
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-[#BDBDBD]">
-                Browser me instantly inspect karo, bina login fast direct PDF download karo.
+                Preview documents instantly in your browser and download the papers you need.
               </p>
             </div>
 
@@ -579,16 +576,16 @@ export function HowItWorks() {
               </div>
 
               <h3 className="font-display text-xl font-bold text-white transition-colors group-hover:text-white md:text-[22px]">
-                Vault me contribute
+                Contribute to the Vault
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-[#BDBDBD]">
-                Apne papers upload karo, AI duplicate check ke saath vault me permanently store karo.
+                Upload useful academic papers and help preserve resources for the wider student community.
               </p>
             </div>
 
             <div className="mt-6 flex items-center justify-between border-t border-[#242424] pt-3.5 text-xs text-[#888888]">
               <span className="font-mono text-[11px] text-[#BDBDBD] group-hover:text-white transition-colors">
-                Paper upload karo &rarr;
+                Upload a paper &rarr;
               </span>
               <span className="flex h-6 w-6 items-center justify-center rounded-md border border-[#2A2A2A] bg-[#141414] text-white">
                 <Icon name="chevR" size={13} />
@@ -620,11 +617,10 @@ export function UploadCta() {
           Community Archive Contribution
         </div>
         <h3 className="font-display text-2xl font-bold tracking-tight text-white md:text-3xl lg:text-[38px]">
-          Paper hai? <span className="hl">Vault bharo.</span>
+          Have a Paper? <span className="hl">Add It to the Vault.</span>
         </h3>
         <p className="mx-auto mt-4 text-[14px] leading-relaxed text-[#BDBDBD] md:text-[16px]">
-          Tumhara ek upload hazaaron students ke kaam aayega. Automatic duplicate check
-          ke saath instantly vault me permanently index ho jayega.
+          Share your academic papers with the community. Automated duplicate detection helps keep the archive organized and reliable.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
           <Link
@@ -632,13 +628,13 @@ export function UploadCta() {
             className="metallic-button inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl px-9 text-[15px] font-bold text-black shadow-[0_4px_24px_rgba(255,255,255,0.24)] sm:w-auto"
           >
             <Icon name="upload" size={18} />
-            Paper upload karo
+            Upload a Paper
           </Link>
           <Link
             to="/requests"
             className="metallic-button-secondary inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl px-7 text-[14px] font-semibold text-[#E8E8E8] sm:w-auto"
           >
-            Requested papers dekho &rarr;
+            View Requests &rarr;
           </Link>
         </div>
       </div>

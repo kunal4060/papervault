@@ -99,7 +99,7 @@ function UploadRow({ upload, subject }) {
       {upload.status === "pending" && (
         <p className="mt-3 flex items-start gap-2 text-xs text-text-dim">
           <Icon name="clock" size={14} className="mt-0.5 shrink-0 text-accent" />
-          Admin review ke baad live hoga. Approval me usually 24–48 ghante lagte hain.
+          Queued for academic moderator review. Submissions are typically reviewed within 24–48 hours.
         </p>
       )}
 
@@ -107,14 +107,14 @@ function UploadRow({ upload, subject }) {
       {upload.status === "ai_approved" && (
         <p className="mt-3 flex items-start gap-2 text-xs text-text-dim">
           <Icon name="check" size={14} className="mt-0.5 shrink-0 text-moss" />
-          AI ne auto-approve kar diya — admin final confirm karke live karega.
+          Automated verification complete — awaiting final moderator confirmation to publish.
         </p>
       )}
 
       {/* rejected reason */}
       {rejected && (upload.rejectionReason ?? upload.reason) && (
         <div className="mt-3 rounded-[10px] border border-brick/30 bg-brick/5 px-3.5 py-3">
-          <p className="micro mb-1">Reject reason</p>
+          <p className="micro mb-1">Rejection Reason</p>
           <p className="text-sm text-text">{upload.rejectionReason ?? upload.reason}</p>
         </div>
       )}
@@ -198,7 +198,7 @@ export default function MyUploads() {
     return (
       <div className="min-h-screen bg-canvas text-text">
         <Navbar />
-        <LoginGate onSignIn={signIn} actionText="upload history dekhne" error={authError} />
+        <LoginGate onSignIn={signIn} actionText="to view your upload history" error={authError} />
       </div>
     );
   }
@@ -215,8 +215,8 @@ export default function MyUploads() {
           </h1>
           <p className="mt-2 text-sm text-text-dim lg:text-[15px]">
             {uploads.length === 0
-              ? "Tumhare saare uploads yahan dikhenge."
-              : `${uploads.length} upload${uploads.length > 1 ? "s" : ""} ab tak`}
+              ? "All papers you submit will appear here."
+              : `${uploads.length} submission${uploads.length > 1 ? "s" : ""} recorded`}
           </p>
         </div>
         <Button
@@ -224,7 +224,7 @@ export default function MyUploads() {
           onClick={() => { navigate("/upload"); }}
         >
           <Icon name="upload" size={16} />
-          <span className="hidden sm:inline">Naya upload</span>
+          <span className="hidden sm:inline">Upload Paper</span>
           <span className="sm:hidden">Upload</span>
         </Button>
       </div>
@@ -239,17 +239,17 @@ export default function MyUploads() {
             <Icon name="file" size={22} />
           </div>
           <h2 className="font-display text-lg font-bold text-text">
-            Abhi tak kuch upload nahi kiya
+            No Uploads Recorded Yet
           </h2>
           <p className="mx-auto mt-2 max-w-xs text-sm text-text-dim">
-            Pehla paper upload karo — duplicate check automatic hai, review ke baad live.
+            Contribute past examination papers — duplicate detection is automated and papers go live after quick review.
           </p>
           <Button
             className="mt-6"
             onClick={() => { navigate("/upload"); }}
           >
             <Icon name="upload" size={16} />
-            Pehla paper upload karo
+            Upload Your First Paper
           </Button>
         </Card>
       ) : (

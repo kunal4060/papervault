@@ -41,7 +41,7 @@ export default function Dashboard() {
         setTopPapers(trending);
       } catch (e) {
         setError(
-          e?.message ? `Dashboard load nahi hua: ${e.message}` : "Dashboard load nahi hua."
+          e?.message ? `Failed to load dashboard: ${e.message}` : "Failed to load dashboard."
         );
       } finally {
         setLoading(false);
@@ -53,7 +53,7 @@ export default function Dashboard() {
     <AdminShell
       active="dashboard"
       title="Dashboard"
-      subtitle="Vault ki health, ek nazar me"
+      subtitle="Vault platform health and operations at a glance"
       badge={pendingCount}
     >
       {error && (
@@ -68,7 +68,7 @@ export default function Dashboard() {
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <StatCard
-              label="Papers live"
+              label="Active Papers"
               value={stats.papers}
               sub={`${stats.subjects} active subjects`}
               highlight
@@ -78,7 +78,7 @@ export default function Dashboard() {
             <StatCard
               label="Pending review"
               value={pendingCount}
-              sub="Moderation queue me"
+              sub="In moderation queue"
               highlight
             />
             <StatCard label="Reports" value={reportsCount} sub="Flagged papers" />
@@ -92,15 +92,15 @@ export default function Dashboard() {
                 to="/admin/papers"
                 className="text-xs font-semibold text-accent hover:underline"
               >
-                Sab dekho
+                View All
               </Link>
             </div>
             {topPapers.length === 0 ? (
               <div className="mt-3">
                 <EmptyState
                   icon={<IcoDoc className="h-8 w-8" />}
-                  title="Abhi koi live paper nahi"
-                  hint="Papers moderation se approve honge to yahan trending dikhega."
+                  title="No live papers currently"
+                  hint="Approved examination papers will display here once indexed."
                 />
               </div>
             ) : (
@@ -137,13 +137,13 @@ export default function Dashboard() {
               <p className="text-sm">
                 <Highlight soft>Action needed:</Highlight>{" "}
                 <span className="text-text-dim">
-                  {pendingCount} uploads moderation queue me hain — review karo.
+                  {pendingCount} upload{pendingCount > 1 ? "s" : ""} pending moderation review.
                 </span>{" "}
                 <Link
                   to="/admin/moderation"
                   className="text-sm font-semibold text-accent hover:underline"
                 >
-                  Queue kholo
+                  Open Queue
                 </Link>
               </p>
             </div>

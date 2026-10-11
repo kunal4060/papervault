@@ -28,8 +28,8 @@ import {
 
 const EXAM_TYPES = ["CAT-1", "CAT-2", "FAT", "Lab FAT"];
 const MODES = [
-  { id: "ai", label: "AI", hint: "AI unique papers ko auto-approve karega (admin queue me AI badge ke saath aayega)." },
-  { id: "manual", label: "Manual", hint: "Har upload admin approve karega — AI sirf duplicate check karega." },
+  { id: "ai", label: "AI Automated", hint: "AI auto-approves verified unique papers with an AI badge in moderation." },
+  { id: "manual", label: "Manual Review", hint: "All submissions require explicit admin approval before publishing." },
 ];
 
 export default function ExamSettings() {
@@ -62,7 +62,7 @@ export default function ExamSettings() {
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e?.message ? `Settings load nahi hui: ${e.message}` : "Settings load nahi hui.");
+          setError(e?.message ? `Failed to load settings: ${e.message}` : "Failed to load settings.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -90,7 +90,7 @@ export default function ExamSettings() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
-      setError(e?.message ? `Save nahi hua: ${e.message}` : "Save nahi hua.");
+      setError(e?.message ? `Failed to save settings: ${e.message}` : "Failed to save settings.");
     } finally {
       setSaving(false);
     }
@@ -107,7 +107,7 @@ export default function ExamSettings() {
       setModeSaved(true);
       setTimeout(() => setModeSaved(false), 2500);
     } catch (e) {
-      setModeError(e?.message ? `Mode save nahi hua: ${e.message}` : "Mode save nahi hua.");
+      setModeError(e?.message ? `Failed to save mode: ${e.message}` : "Failed to save mode.");
     } finally {
       setModeSaving(false);
     }
@@ -117,7 +117,7 @@ export default function ExamSettings() {
     <AdminShell
       active="exam"
       title="Exam Countdown"
-      subtitle="Home page ka exam banner — yahin se control karo"
+      subtitle="Manage homepage examination countdown, dates, and moderation workflows"
       badge={0}
     >
       {error && (
@@ -128,7 +128,7 @@ export default function ExamSettings() {
 
       {saved && (
         <div className="mb-4 rounded-[10px] border border-moss/40 bg-moss/5 px-4 py-3 text-sm text-moss">
-          Save ho gaya — Home page banner turant update ho jayega.
+          Settings saved successfully — homepage banner updated.
         </div>
       )}
 
@@ -179,7 +179,7 @@ export default function ExamSettings() {
             </div>
             {!valid && startDate && endDate && (
               <p className="text-[13px] text-brick">
-                End date start date se pehle nahi ho sakti.
+                End date cannot be prior to start date.
               </p>
             )}
 
@@ -191,11 +191,11 @@ export default function ExamSettings() {
                 id="exam-label"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
-                placeholder="e.g. 31 Oct – 6 Nov 2026 · sab slots"
+                placeholder="e.g. 31 Oct – 6 Nov 2026 · All examination slots"
                 rows={2}
               />
               <p className="mt-1 text-xs text-text-dim">
-                Khali chhodo to date range se auto-generate hoga.
+                Leave blank to automatically format based on selected date range.
               </p>
             </div>
 
@@ -204,7 +204,7 @@ export default function ExamSettings() {
               disabled={saving || !valid}
               className="w-full"
             >
-              {saving ? "Saving…" : "Save countdown"}
+              {saving ? "Saving…" : "Save Countdown Settings"}
             </Button>
           </div>
         </Card>
@@ -214,7 +214,7 @@ export default function ExamSettings() {
         <Card className="mt-4 max-w-xl p-4 md:p-5">
           <MicroLabel>Moderation mode</MicroLabel>
           <p className="mt-1 text-xs text-text-dim">
-            Upload ke baad paper kaise approve hoga — AI ya manual?
+            Determine how new document submissions are processed — automated or manual review.
           </p>
 
           {modeError && (
@@ -224,7 +224,7 @@ export default function ExamSettings() {
           )}
           {modeSaved && (
             <div className="mt-3 rounded-[10px] border border-moss/40 bg-moss/5 px-4 py-3 text-sm text-moss">
-              Mode save ho gaya — naye uploads isi mode se honge.
+              Moderation mode saved — subsequent uploads will follow this policy.
             </div>
           )}
 
@@ -254,7 +254,7 @@ export default function ExamSettings() {
             })}
           </div>
           <p className="mt-3 text-xs text-text-dim">
-            Note: Gemini fail ho jaye ya key na ho to upload hamesha manual review me jayega — chahe mode kuch bhi ho.
+            Note: If AI services are unreachable, submissions gracefully fall back to manual review.
           </p>
         </Card>
       )}

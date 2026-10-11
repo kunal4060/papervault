@@ -224,7 +224,7 @@ export default function Requests() {
       setShowForm(false);
     } catch (err) {
       console.error("[Requests] create failed:", err);
-      setFormError("Request submit nahi hui. Internet check karke dobara try karo.");
+      setFormError("Failed to submit request. Please check your internet connection and try again.");
     }
   }
 
@@ -238,7 +238,7 @@ export default function Requests() {
       <p className="micro">Request board</p>
       <div className="mt-1 flex items-start justify-between gap-3">
         <h1 className="font-display text-2xl font-bold text-text lg:text-3xl lg:tracking-tight">
-          Paper <span className="hl">nahi mila?</span> Request karo.
+          Can't Find a Paper? <span className="hl">Submit a Request</span>.
         </h1>
         <button
           onClick={() => (user ? setShowForm((v) => !v) : signIn())}
@@ -249,7 +249,7 @@ export default function Requests() {
         </button>
       </div>
       <p className="mt-2 max-w-xl text-sm text-text-dim lg:text-[15px]">
-        Koi upload kare jo tumhari request se match kare, to request board pe <span className="text-moss">"Available"</span> dikhega — nazar rakho!
+        When a peer uploads a paper matching your request, it will be marked as <span className="text-moss">"Available"</span> on the board.
       </p>
 
       {/* request form */}
@@ -336,13 +336,13 @@ export default function Requests() {
       {!user && (
         <div className="mt-5 flex flex-col items-center gap-2 rounded-xl border border-dashed border-hairline bg-surface px-4 py-5 text-center">
           <p className="text-sm font-medium text-text">
-            Requests dekh sakte ho — upvote ya naya request karne ke liye login karo
+            Sign in to submit requests and upvote existing requests
           </p>
           <button
             onClick={() => signIn()}
             className="mt-1 inline-flex min-h-[44px] items-center rounded-lg bg-accent px-5 text-sm font-semibold text-canvas"
           >
-            Login to request
+            Sign In to Request
           </button>
         </div>
       )}
@@ -367,10 +367,10 @@ export default function Requests() {
               <Icon name="send" size={22} />
             </div>
             <h2 className="font-display text-lg font-bold text-text">
-              Abhi koi request nahi hai
+              No Open Requests
             </h2>
             <p className="mx-auto mt-2 max-w-xs text-sm text-text-dim">
-              Pehli request banao — koi upload karega to tumhe pata chal jayega.
+              Submit the first document request — contributors will be notified when looking for papers to upload.
             </p>
           </div>
         ) : (

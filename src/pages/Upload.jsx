@@ -65,10 +65,10 @@ const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR
 const SLOT_SUGGESTIONS = ["A1", "B2", "C1", "D2", "E1", "F1", "G1", "G2"];
 
 const PIPE_STEPS = [
-  { key: "hash", label: "File hash", desc: "SHA-256 — exact copy check (free)" },
-  { key: "metadata", label: "Metadata match", desc: "Subject · exam · year · slot (free)" },
-  { key: "similarity", label: "Similarity scan", desc: "Content compare with existing papers" },
-  { key: "verdict", label: "AI verdict", desc: "Gemini — doubtful cases only" },
+  { key: "hash", label: "File Hash", desc: "SHA-256 exact bitwise duplicate check" },
+  { key: "metadata", label: "Metadata Matching", desc: "Subject, exam type, year & slot verification" },
+  { key: "similarity", label: "Similarity Scan", desc: "Content comparison against existing archive documents" },
+  { key: "verdict", label: "AI Verification", desc: "Intelligent duplicate detection model" },
 ];
 
 /* ------------------------- Subject code combobox ------------------------- */
@@ -131,7 +131,7 @@ function SubjectCombobox({ value, onChange, error, options, loading }) {
             <span className="truncate text-text-dim">{selected.subject.name}</span>
           </span>
         ) : (
-          <span className="text-text-dim/70">Course code search karo…</span>
+          <span className="text-text-dim/70">Search course code or subject…</span>
         )}
         <Icon name="chevR" size={16} className="rotate-90 text-text-dim" />
       </button>
@@ -141,12 +141,11 @@ function SubjectCombobox({ value, onChange, error, options, loading }) {
           <div className="border-b border-hairline p-2">
             <Input
               ref={(el) => {
-                // Desktop pe autofocus, mobile pe keyboard pop se bachne ke liye nahi
                 if (el && window.matchMedia?.("(pointer: fine)").matches) el.focus();
               }}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="CSE3002 ya Artificial Intelligence…"
+              placeholder="e.g., CSE3002 or Artificial Intelligence…"
               aria-label="Subject search"
               onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
             />
@@ -154,12 +153,12 @@ function SubjectCombobox({ value, onChange, error, options, loading }) {
           <ul role="listbox" className="max-h-60 overflow-y-auto p-1.5">
             {loading && (
               <li className="px-3 py-6 text-center text-sm text-text-dim">
-                Subjects load ho rahe hain…
+                Loading subjects…
               </li>
             )}
             {!loading && filtered.length === 0 && (
               <li className="px-3 py-6 text-center text-sm text-text-dim">
-                Koi subject nahi mila. Dusra code try karo.
+                No subjects found. Try another code or keyword.
               </li>
             )}
             {filtered.map((o) => (
@@ -229,10 +228,10 @@ function Dropzone({ file, onFile, onClear, error }) {
             <Icon name="upload" size={20} />
           </span>
           <span className="text-sm font-semibold text-white">
-            PDF yahan drop karo, ya <span className="underline underline-offset-4 decoration-white/40">browse</span> karo
+            Drag & drop PDF here, or <span className="underline underline-offset-4 decoration-white/40">browse files</span>
           </span>
           <span className="text-xs text-text-dim">
-            Sirf PDF · max 25MB
+            PDF files only · Maximum 25MB
           </span>
         </button>
       ) : (
@@ -247,7 +246,7 @@ function Dropzone({ file, onFile, onClear, error }) {
           <button
             type="button"
             onClick={onClear}
-            aria-label="File hatao"
+            aria-label="Remove file"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-dim hover:bg-surface-plus hover:text-text"
           >
             <Icon name="close" size={16} />
@@ -351,26 +350,26 @@ export default function Upload() {
   /* ------------------------------- validation ------------------------------ */
   function validate(nextFile = file) {
     const e = {};
-    if (!code) e.code = "Subject select karo.";
+    if (!code) e.code = "Please select a subject.";
     else if (
       !subjectsList.some((s) => {
         const codes = (s.codes && s.codes.length ? s.codes : [s.code]).filter(Boolean);
         return codes.includes(code);
       })
     )
-      e.code = "Ye course code kisi subject me nahi hai.";
-    if (!examType) e.examType = "Exam type select karo.";
-    if (!year) e.year = "Year select karo.";
-    if (!slot.trim()) e.slot = "Slot likho (e.g. F1).";
+      e.code = "Course code not found in archive registry.";
+    if (!examType) e.examType = "Please select an exam type.";
+    if (!year) e.year = "Please select an academic year.";
+    if (!slot.trim()) e.slot = "Please enter examination slot (e.g., F1).";
     if (!nextFile) {
-      e.file = "PDF select karo.";
+      e.file = "Please select a PDF file.";
     } else {
       const isPdf =
         nextFile.type === "application/pdf" ||
         /\.pdf$/i.test(nextFile.name || "");
-      if (!isPdf) e.file = "INVALID_FILE — sirf PDF upload karo."; // §7 code
+      if (!isPdf) e.file = "INVALID_FILE — Only PDF documents are permitted."; // §7 code
       else if (nextFile.size > MAX_BYTES)
-        e.file = `FILE_TOO_LARGE — ${formatSize(nextFile.size)} hai, max 25MB.`; // §7 code
+        e.file = `FILE_TOO_LARGE — File is ${formatSize(nextFile.size)}, maximum allowed is 25MB.`; // §7 code
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -385,9 +384,9 @@ export default function Upload() {
   async function runCheck() {
     if (!validate()) return;
     if (!selectedSubject) return; // validate() already flagged it
-    // Magic-byte sniff: extension/MIME spoof se bachne ke liye %PDF- header check.
+    // Magic-byte sniff: verify %PDF- header to prevent spoofing
     if (!(await isRealPdf(file))) {
-      setErrors((p) => ({ ...p, file: "INVALID_FILE — ye asli PDF nahi lagta." }));
+      setErrors((p) => ({ ...p, file: "INVALID_FILE — File does not appear to be a valid PDF document." }));
       return;
     }
     cancelled.current = false;
@@ -472,7 +471,7 @@ export default function Upload() {
           setFail({
             code: "UPLOAD_FAILED",
             message:
-              "Paper unique tha, lekin Storage me upload nahi ho paya. Internet check karke dobara try karo.",
+              "Document is unique, but storage upload failed. Please check your network connection and retry.",
           });
           setPhase("error");
           return;
@@ -485,7 +484,7 @@ export default function Upload() {
       setFail({
         code: "CHECK_FAILED",
         message:
-          "Duplicate check me kuch gadbad ho gaya. Internet check karke dobara try karo.",
+          "An error occurred during duplicate verification. Please check your connection and retry.",
       });
       setPhase("error");
     }
@@ -524,7 +523,7 @@ export default function Upload() {
     return (
       <div className="min-h-screen bg-canvas text-text">
         <Navbar />
-        <LoginGate onSignIn={signIn} actionText="paper upload karne" error={authError} />
+        <LoginGate onSignIn={signIn} actionText="to upload question papers" error={authError} />
       </div>
     );
   }
@@ -544,11 +543,10 @@ export default function Upload() {
       <div className="mb-6 lg:mb-8">
         <p className="micro mb-2">Contribute</p>
         <h1 className="font-display text-3xl font-bold tracking-tight text-text lg:text-4xl">
-          Paper <span className="hl-soft">upload</span> karo
+          Contribute to the <span className="hl-soft">Vault</span>
         </h1>
         <p className="mt-2 max-w-xl text-sm text-text-dim lg:text-[15px]">
-          Tumhara paper pehle <span className="font-semibold text-text">duplicate check</span> se
-          guzrega, phir review ke baad live hoga.
+          Uploaded papers undergo automated <span className="font-semibold text-text">duplicate detection</span> before being reviewed and published.
         </p>
       </div>
 
@@ -565,8 +563,7 @@ export default function Upload() {
             <div className="flex items-start gap-2.5 rounded-[12px] border border-accent-dim bg-accent/5 px-4 py-3">
               <Icon name="upload" size={16} className="mt-0.5 shrink-0 text-accent" />
               <p className="text-xs text-text-dim">
-                <span className="font-semibold text-text">Re-upload mode:</span> rejected paper
-                ki details pre-fill hain. Bas nayi sahi file select karo.
+                <span className="font-semibold text-text">Re-upload mode:</span> Previous submission details pre-filled. Please select the revised PDF document.
               </p>
             </div>
           )}
@@ -597,7 +594,7 @@ export default function Upload() {
                 ))}
               </Select>
             </FieldLabel>
-            <FieldLabel label="Slot" hint="e.g. F1, B2 — hall ticket pe hota hai" error={errors.slot}>
+            <FieldLabel label="Slot" hint="e.g. F1, B2 — as indicated on schedule" error={errors.slot}>
               <Input
                 list="slot-suggestions"
                 value={slot}
@@ -630,17 +627,17 @@ export default function Upload() {
 
           <Button type="submit" className="w-full">
             <Icon name="spark" size={16} />
-            Duplicate check + submit
+            Verify Document & Submit
           </Button>
           <p className="text-center text-xs text-text-dim lg:text-left">
-            Check order: hash → metadata → similarity → AI verdict. 90%+ uploads pehle 2 steps me clear.
+            Pipeline order: Hash verification → Metadata match → Similarity scan → AI verification. Fast & automated.
           </p>
         </form>
 
         {/* desktop sidebar — how the check works + tips */}
         <aside className="hidden lg:sticky lg:top-24 lg:block">
           <Card className="p-5">
-            <p className="micro mb-4">Check kaise hota hai</p>
+            <p className="micro mb-4">Verification Pipeline</p>
             <ol className="space-y-4">
               {PIPE_STEPS.map((s, i) => (
                 <li key={s.key} className="flex gap-3">
@@ -656,10 +653,10 @@ export default function Upload() {
             </ol>
           </Card>
           <Card className="mt-4 p-5">
-            <p className="micro mb-2">Tip</p>
+            <p className="micro mb-2">Academic Standard</p>
             <p className="text-xs leading-relaxed text-text-dim">
-              Saaf scan wala PDF upload karo — text readable hoga to check fast hoga.
-              File ka naam automatic ban jayega:{" "}
+              Upload clear, high-resolution scans for rapid indexing and text extraction.
+              Canonical filename format:{" "}
               <span className="font-mono text-text-dim/80">CSE3002-CAT2-2025-F1.pdf</span>
             </p>
           </Card>
@@ -671,9 +668,9 @@ export default function Upload() {
       {phase === "checking" && (
         <Card className="p-6">
           <div className="mb-5">
-            <p className="micro mb-2">Duplicate check</p>
+            <p className="micro mb-2">Automated Verification</p>
             <h2 className="font-display text-lg font-bold text-text">
-              Tumhara paper check ho raha hai…
+              Verifying document authenticity…
             </h2>
             <p className="mt-1 font-mono text-xs text-text-dim">
               {file?.name}
@@ -693,25 +690,25 @@ export default function Upload() {
             <Icon name="check" size={26} />
           </OutcomeIcon>
           <h2 className="font-display text-xl font-bold text-text">
-            {aiApproved ? "AI approved! Admin review me bhej diya" : "Unique! Review me bhej diya"}
+            {aiApproved ? "AI Approved — Queued for Publishing" : "Unique Document — Queued for Review"}
           </h2>
           <p className="mt-2 text-sm text-text-dim">
             {aiApproved
-              ? "AI ne tumhara paper unique paya aur auto-approve kar diya. Admin final check karke vault me live karega."
-              : "Tumhara paper ab admin/moderator review karega. Approve hote hi vault me live ho jayega."}
-            <span className="mt-2 block font-mono text-xs text-text-dim/80">code: {aiApproved ? "AI_APPROVED" : "PENDING_REVIEW"}</span>
+              ? "Automated verification confirmed uniqueness and auto-approved this document. A moderator will finalize publishing."
+              : "Your document is queued for moderator verification and will be published once approved."}
+            <span className="mt-2 block font-mono text-xs text-text-dim/80">status: {aiApproved ? "AI_APPROVED" : "PENDING_REVIEW"}</span>
           </p>
           <div className="mt-5 rounded-[10px] border border-hairline bg-canvas px-4 py-3">
-            <p className="micro mb-1">Auto filename</p>
+            <p className="micro mb-1">Canonical Filename</p>
             <p className="truncate font-mono text-sm font-semibold text-accent">{autoName}</p>
           </div>
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
             <Button className="flex-1" onClick={() => navigate("/my-uploads")}>
               <Icon name="clock" size={16} />
-              My Uploads dekho
+              View My Uploads
             </Button>
             <Button variant="secondary" className="flex-1" onClick={resetForm}>
-              Naya upload karo
+              Upload Another Paper
             </Button>
           </div>
         </Card>
@@ -724,7 +721,7 @@ export default function Upload() {
             <Icon name="close" size={26} />
           </OutcomeIcon>
           <h2 className="font-display text-xl font-bold text-text">
-            Duplicate mila
+            Duplicate Detected
           </h2>
           <p className="mt-2 text-sm text-text-dim">{verdict.reason}</p>
           <p className="mt-1 font-mono text-xs text-text-dim/80">
@@ -732,7 +729,7 @@ export default function Upload() {
           </p>
           {verdict.duplicateOf && (
             <div className="mt-5 rounded-[10px] border border-brick/30 bg-brick/5 px-4 py-3.5 text-left">
-              <p className="micro mb-1.5">Existing paper</p>
+              <p className="micro mb-1.5">Existing Archived Document</p>
               <p className="font-mono text-sm font-semibold text-text">
                 {verdict.duplicateTitle}
               </p>
@@ -742,14 +739,14 @@ export default function Upload() {
                 className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent"
               >
                 <Icon name="eye" size={16} />
-                Existing paper dekho
+                View Existing Paper
                 <Icon name="chevR" size={14} />
               </button>
             </div>
           )}
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
             <Button variant="secondary" className="flex-1" onClick={resetForm}>
-              Wapas form pe jao
+              Return to Form
             </Button>
             <Button className="flex-1" onClick={() => navigate("/my-uploads")}>
               My Uploads
@@ -765,16 +762,16 @@ export default function Upload() {
             <Icon name="close" size={26} />
           </OutcomeIcon>
           <h2 className="font-display text-xl font-bold text-text">
-            Kuch gadbad ho gayi
+            Upload Encountered an Issue
           </h2>
           <p className="mt-2 text-sm text-text-dim">{fail.message}</p>
           <p className="mt-1 font-mono text-xs text-text-dim/80">code: {fail.code}</p>
           <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
             <Button className="flex-1" onClick={runCheck}>
-              Dobara try karo
+              Retry Verification
             </Button>
             <Button variant="secondary" className="flex-1" onClick={resetForm}>
-              Form edit karo
+              Edit Submission
             </Button>
           </div>
         </Card>

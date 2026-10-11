@@ -247,8 +247,8 @@ export default function Chat() {
           <div className="mt-3 rounded-xl border border-hairline bg-surface p-3.5 lg:p-4">
             <p className="micro mb-1">Tip</p>
             <p className="text-xs leading-relaxed text-text-dim">
-              Paper ka link paste karo — automatic clickable ho jayega.
-              Apne messages tum delete kar sakte ho.
+              Paste a paper URL directly into chat to generate an interactive link card.
+              You can delete your own messages at any time.
             </p>
           </div>
         </aside>
@@ -327,7 +327,7 @@ export default function Chat() {
                       handleSend();
                     }
                   }}
-                  placeholder="Doubt poochho ya message likho…"
+                  placeholder="Ask an academic question or share notes…"
                   className="min-h-[44px] flex-1 rounded-lg border border-hairline bg-canvas px-3 text-sm text-text placeholder:text-text-dim/80 focus:border-accent-dim focus:outline-none"
                 />
                 <button
@@ -344,16 +344,16 @@ export default function Chat() {
             <div className="border-t border-hairline p-4">
               <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-hairline bg-canvas px-4 py-5 text-center">
                 <p className="text-sm font-medium text-text">
-                  Chat padh sakte ho, likhne ke liye login chahiye
+                  Sign in required to participate in discussions
                 </p>
                 <p className="text-xs text-text-dim">
-                  Doubts poochho, papers share karo — Google se 10 second me.
+                  Ask questions, collaborate on coursework, and share papers with classmates.
                 </p>
                 <button
                   onClick={() => signIn()}
                   className="mt-1 inline-flex min-h-[44px] items-center rounded-lg bg-accent px-5 text-sm font-semibold text-canvas"
                 >
-                  Login to chat
+                  Sign In with Google
                 </button>
               </div>
             </div>

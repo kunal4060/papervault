@@ -9,13 +9,13 @@ import { Button } from "../../components/atoms.jsx";
 function friendlyError(error) {
   if (!error) return "";
   if (error === "not-admin")
-    return "Ye Google account admin nahi hai. Firebase console me users/{uid} doc me role = \"admin\" set karo.";
+    return "This Google account lacks administrator permissions. Ensure role = \"admin\" in users/{uid} document.";
   const code = error?.code || "";
   if (code === "auth/unauthorized-domain")
-    return "Domain authorized nahi hai — Firebase console → Authentication → Settings → Authorized domains me ye domain add karo.";
+    return "Domain is not authorized in Firebase Console > Authentication > Settings > Authorized Domains.";
   if (code === "auth/popup-blocked")
-    return "Popup block ho gaya — browser me popups allow karo aur dobara try karo.";
-  return error?.message || "Login fail ho gaya. Dobara try karo.";
+    return "Sign-in popup was blocked. Please allow popups in your browser and try again.";
+  return error?.message || "Authentication failed. Please try again.";
 }
 
 export default function AdminLogin({ onSignIn, error, busy }) {
@@ -28,15 +28,15 @@ export default function AdminLogin({ onSignIn, error, busy }) {
           </span>
           <div>
             <p className="font-display text-lg font-bold text-text">PaperVault</p>
-            <p className="micro">Admin login</p>
+            <p className="micro">Admin Login</p>
           </div>
         </div>
 
         <p className="mt-5 text-sm text-text-dim">
-          Admin panel ke liye apne <strong className="text-text">admin Google account</strong> se
-          sign in karo. Sirf wahi account chalega jiska Firestore{" "}
-          <code className="text-accent">users/{"{uid}"}</code> doc me{" "}
-          <code className="text-accent">role = "admin"</code> ho.
+          Sign in with your <strong className="text-text">administrator Google account</strong> to access
+          the moderation console. Accounts must have{" "}
+          <code className="text-accent">role = "admin"</code> configured in Firestore{" "}
+          <code className="text-accent">users/{"{uid}"}</code>.
         </p>
 
         {error && (
@@ -51,12 +51,12 @@ export default function AdminLogin({ onSignIn, error, busy }) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M21.35 11.1H12v2.9h5.35c-.5 2.4-2.55 3.5-5.35 3.5a5.9 5.9 0 1 1 0-11.8c1.5 0 2.85.55 3.9 1.45l2.1-2.1A8.9 8.9 0 1 0 12 20.9c4.45 0 8.6-3.15 8.6-8.95 0-.3-.05-.6-.25-.85Z" />
             </svg>
-            {busy ? "Sign in ho raha hai…" : "Google se sign in karo"}
+            {busy ? "Signing in…" : "Sign In with Google"}
           </span>
         </Button>
 
         <p className="micro mt-4 text-center">
-          Pehli baar? Firebase console → Firestore → users → apna uid → role = "admin"
+          Setup: Firebase Console → Firestore → users/{"{uid}"} → role = "admin"
         </p>
       </div>
     </div>
