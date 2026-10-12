@@ -5,6 +5,7 @@
  */
 import { Link } from "react-router-dom";
 import { MicroLabel } from "../../components/atoms.jsx";
+import BrandLogo from "../../components/BrandLogo.jsx";
 
 // ---------------------------------------------------------------- icons ---
 const svgProps = {
@@ -133,7 +134,14 @@ export function AdminShell({ active, title, subtitle, badge, children }) {
   return (
     <div className="min-h-screen bg-canvas text-text">
       <div className="mx-auto max-w-6xl px-4 py-6 md:py-10">
-        <MicroLabel className="mb-1">PaperVault · Admin</MicroLabel>
+        <div className="mb-4 flex items-center justify-between border-b border-hairline pb-4">
+          <Link to="/" className="group inline-flex items-center">
+            <BrandLogo size="sm" withText />
+          </Link>
+          <span className="font-mono text-[11px] uppercase tracking-wider text-text-dim border border-hairline bg-surface px-2.5 py-1 rounded-md">
+            ADMIN CONSOLE
+          </span>
+        </div>
         <h1 className="font-display text-2xl font-bold md:text-3xl">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-text-dim">{subtitle}</p>}
 

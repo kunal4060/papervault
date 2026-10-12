@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icon from "./Icon.jsx";
+import BrandLogo from "./BrandLogo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 
 const links = [
@@ -24,19 +25,9 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-canvas-subtle/80 backdrop-blur-xl transition-colors duration-300">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:h-[4.5rem] lg:max-w-7xl lg:px-6 xl:max-w-[1400px]">
-        {/* Brand Logo */}
-        <Link to="/" className="group flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-canvas shadow-[0_2px_14px_rgba(255,255,255,0.22)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_4px_20px_rgba(255,255,255,0.35)] lg:h-10 lg:w-10">
-            <Icon name="file" size={18} className="text-canvas" />
-          </span>
-          <span className="leading-none">
-            <span className="block font-display text-[17px] font-extrabold tracking-tight text-white lg:text-[19px]">
-              Paper<span className="text-text-muted">Vault</span>
-            </span>
-            <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.22em] text-text-dim">
-              VIT-AP Archive
-            </span>
-          </span>
+        {/* Official Brand Logo */}
+        <Link to="/" className="group flex shrink-0 items-center">
+          <BrandLogo size="md" withText />
         </Link>
 
         {/* Desktop Navigation */}

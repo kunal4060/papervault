@@ -16,6 +16,7 @@ import BulkImport from "./BulkImport.jsx";
 import AdminLogin from "./Login.jsx";
 import { useAdminAuth } from "./adminAuth.js";
 import { MicroLabel, Button } from "../../components/atoms.jsx";
+import BrandLogo from "../../components/BrandLogo.jsx";
 import Icon from "../../components/Icon.jsx";
 
 function Center({ children }) {
@@ -36,8 +37,11 @@ export default function AdminGate({ sub: subProp }) {
   if (loading) {
     return (
       <Center>
+        <div className="mb-4 flex justify-center">
+          <BrandLogo size="lg" />
+        </div>
         <MicroLabel>PaperVault · Admin</MicroLabel>
-        <p className="mt-3 text-sm text-text-dim">Checking admin access…</p>
+        <p className="mt-3 text-sm text-text-dim">Checking administrator privileges…</p>
       </Center>
     );
   }
@@ -49,6 +53,9 @@ export default function AdminGate({ sub: subProp }) {
   if (!isAdmin) {
     return (
       <Center>
+        <div className="mb-4 flex justify-center">
+          <BrandLogo size="md" />
+        </div>
         <MicroLabel>PaperVault · Admin</MicroLabel>
         <div className="mx-auto mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-brick/40 bg-brick/10 text-brick">
           <Icon name="close" size={22} />
