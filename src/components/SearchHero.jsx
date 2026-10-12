@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "./Icon.jsx";
+import BrandLogo from "./BrandLogo.jsx";
 import HeroScene from "./3d/HeroScene.jsx";
 import Card3D from "./3d/Card3D.jsx";
 import { FloatingRing, FloatingFrame, DepthLayer } from "./3d/FloatingSpace.jsx";
@@ -123,10 +124,10 @@ export default function SearchHero({ onSearch }) {
         <div className="lg:grid lg:grid-cols-[1fr_320px] lg:items-center lg:gap-16 xl:grid-cols-[1fr_360px] xl:gap-24">
           <div className="min-w-0">
             {/* Monospace Spatial Eyebrow */}
-            <div className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-hairline bg-surface/70 px-3.5 py-1 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+            <div className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-hairline bg-surface/70 py-1 pl-1.5 pr-3.5 backdrop-blur-md">
+              <BrandLogo size="sm" badgeClassName="!h-5 !w-5 !min-w-[20px] !rounded-full shadow-none ring-0 p-0" />
               <span className="coord-marker">
-                PV-SYS // VIT-AP ARCHIVE
+                PV-SYS // VIT-AP DIGITAL ARCHIVE &middot; ESTD 2026
               </span>
             </div>
 

@@ -4,6 +4,7 @@
  * 100% original, Direction A "Archive Noir".
  */
 import Icon from "../../components/Icon.jsx";
+import BrandLogo from "../../components/BrandLogo.jsx";
 import { Button } from "../../components/atoms.jsx";
 
 function friendlyError(error) {
@@ -22,13 +23,11 @@ export default function AdminLogin({ onSignIn, error, busy }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <div className="w-full max-w-sm rounded-xl border border-hairline bg-surface p-6">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent font-display text-lg font-bold text-[#0C0D10]">
-            P
-          </span>
+        <div className="flex items-center gap-3">
+          <BrandLogo size="md" />
           <div>
             <p className="font-display text-lg font-bold text-text">PaperVault</p>
-            <p className="micro">Admin Login</p>
+            <p className="micro">Admin Portal &middot; 2026</p>
           </div>
         </div>
 

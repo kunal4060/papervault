@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "./Icon.jsx";
+import BrandLogo from "./BrandLogo.jsx";
 import Card3D from "./3d/Card3D.jsx";
 import InteractiveVaultScene from "./3d/InteractiveVaultScene.jsx";
 import {
@@ -665,13 +666,8 @@ export function Footer() {
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div>
             {/* Dimensional PaperVault Logo Treatment */}
-            <Link to="/" className="group inline-flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-black font-extrabold text-sm shadow-[0_0_18px_rgba(255,255,255,0.4)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_24px_rgba(255,255,255,0.7)]">
-                PV
-              </span>
-              <p className="font-display text-2xl font-extrabold tracking-tight text-white">
-                Paper<span className="text-[#888888] transition-colors group-hover:text-[#BDBDBD]">Vault</span>
-              </p>
+            <Link to="/" className="group inline-flex items-center">
+              <BrandLogo size="lg" withText />
             </Link>
 
             <p className="mt-3.5 max-w-xs text-[13px] leading-relaxed text-[#888888]">
